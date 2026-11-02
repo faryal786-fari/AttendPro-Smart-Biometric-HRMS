@@ -1,0 +1,1 @@
+Historical note: ye previous version ka description hai. Current changes ke liye DISCREPANCIES_AND_EMPLOYEES_ROMAN_URDU.md kholein. Employees table wapas original multi-column View-modal style mein hai. Attendance Records se extra Absent column pehle ki tarah removed hai.
