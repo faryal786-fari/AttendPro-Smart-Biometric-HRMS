@@ -359,6 +359,22 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
 #screen-employees .employee-directory-table .emp-display-name{color:var(--blue);font-weight:650;border:0;background:none;padding:0;cursor:pointer;font-size:inherit}
 #screen-employees .employee-directory-table .emp-display-name:hover{text-decoration:underline}
 @media(max-width:750px){#screen-discrepancies .discrepancy-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* AttendPro UI patch: professional, English-only notices */
+#apToastStack{position:fixed;right:18px;bottom:18px;z-index:3000;display:flex;flex-direction:column;gap:9px;width:min(390px,calc(100vw - 30px));pointer-events:none}
+.ap-toast{pointer-events:auto;display:flex;gap:12px;align-items:flex-start;padding:13px 13px 13px 15px;border-radius:10px;background:#fff;color:#18243b;border:1px solid #dbe4ef;box-shadow:0 15px 38px #0f172a30;font-size:13px;max-height:280px;overflow:auto;border-left:4px solid #2563eb}
+.ap-toast.error{border-left-color:#ef4444}.ap-toast.warning{border-left-color:#f59e0b}.ap-toast.success{border-left-color:#10b981}
+.ap-toast-copy{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}.ap-toast-close{border:0;background:none;color:#64748b;font-weight:700;font-size:17px}
+#apNotifPanel{display:none;position:fixed;top:72px;right:20px;z-index:1900;width:min(365px,calc(100vw - 30px));max-height:410px;overflow:auto;background:var(--card-bg,#fff);color:var(--text);border:1px solid var(--gray200);border-radius:12px;box-shadow:0 18px 45px #0f172a30}
+#apNotifPanel.open{display:block}.ap-notif-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--gray200)}.ap-notif-item{padding:13px 16px;border-bottom:1px solid var(--gray100);font-size:13px}.ap-notif-item small{display:block;color:var(--text2);margin-top:4px}
+#apActionDialog{display:none;position:fixed;inset:0;background:#0f172a90;z-index:2500;align-items:center;justify-content:center;padding:20px}
+#apActionDialog.open{display:flex}#apActionDialog .ap-dialog-box{background:#fff;color:#18243b;box-shadow:0 16px 38px #0002;padding:23px;border-radius:12px;width:min(460px,100%)}
+#apActionDialog input{width:100%;margin-top:12px;padding:10px;border:1px solid #cbd5e1;border-radius:7px}
+#apActionDialog .ap-dialog-actions{margin-top:19px;display:flex;justify-content:flex-end;gap:10px}
+.ap-profile-input{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#18243b}
+.dark-mode #apNotifPanel{background:#161f35;color:#f8fafc;border-color:#334155}
+#deptSummaryScroll{max-height:340px;overflow:auto;overscroll-behavior:contain}#deptSummaryScroll thead th{position:sticky;top:0;z-index:1}
+
 </style>
 </head>
 <body>
@@ -452,7 +468,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
   </div>
   <div class="tb-actions">
     <button class="icon-btn theme-btn" id="themeToggle" title="Switch dark/light mode" aria-label="Switch dark/light mode" onclick="toggleTheme()">🌙</button>
-    <div class="icon-btn" onclick="alert('3 notifications: Late arrival alert for 2 employees, Sync pending.')">
+    <div class="icon-btn" id="apNotificationBell" role="button" tabindex="0" title="Open notifications" aria-label="Open notifications" onclick="toggleApNotifications()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleApNotifications()}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span class="notif-dot"></span>
     </div>
@@ -500,7 +516,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <div class="kpi-value" id="kpiMissingOut">7</div><div class="kpi-sub">From yesterday</div>
   </div>
 </div>
-<div class="page-hdr" style="margin-top:4px;margin-bottom:10px"><div class="page-title" style="font-size:15px">Connected Biometric Devices</div><div class="page-sub">Har device ka live / configured status yahan se check karein.</div></div>
+<div class="page-hdr" style="margin-top:4px;margin-bottom:10px"><div class="page-title" style="font-size:15px">Connected Biometric Devices</div><div class="page-sub">View the live and configured status of each device.</div></div>
 <div id="dashboardDevices"><div class="device-mini-card"><div class="device-mini-icon">👁</div><div class="device-mini-info"><div class="device-mini-name">ZKTeco uFace 800</div><div class="device-mini-model">Status loading…</div></div></div></div>
 <div class="grid3">
   <div class="card">
@@ -524,7 +540,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
   </div>
   <div class="card">
     <div class="card-hdr"><span class="card-title">Dept. Summary</span></div>
-    <div class="tbl-wrap">
+    <div class="tbl-wrap" id="deptSummaryScroll">
       <table>
         <thead><tr><th>Department</th><th>Total</th><th>Present</th><th>Absent</th></tr></thead>
         <tbody id="deptSummaryBody">
@@ -693,7 +709,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
 <div id="screen-leave" class="screen">
 <div class="page-hdr" style="display:flex;justify-content:space-between;align-items:flex-start">
   <div><div class="page-title">Leave & Holidays</div><div class="page-sub">Leave requests and public holidays — preview only; leave records were not supplied</div></div>
-  <button class="btn btn-primary" onclick="alert('Leave request form would open here')">+ New Leave Request</button>
+  <button class="btn btn-primary" onclick="notify('Leave request form would open here')">+ New Leave Request</button>
 </div>
 <div class="leave-tabs">
   <div class="l-tab active" onclick="switchLeaveTab(this,'leave-pending')">Pending Requests</div>
@@ -706,9 +722,9 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
       <table>
         <thead><tr><th>Employee</th><th>Dept</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#6366f1">SA</div>Sana Aslam</div></td><td>HR</td><td>Annual Leave</td><td>Oct 30</td><td>Nov 1</td><td>3</td><td>Family event</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="alert('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="alert('Leave rejected!')">Reject</button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#f59e0b">TK</div>Tahir Khan</div></td><td>Engineering</td><td>Sick Leave</td><td>Oct 29</td><td>Oct 29</td><td>1</td><td>Medical</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="alert('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="alert('Leave rejected!')">Reject</button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#10b981">RM</div>Raza Malik</div></td><td>Sales</td><td>Casual Leave</td><td>Nov 4</td><td>Nov 5</td><td>2</td><td>Personal work</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="alert('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="alert('Leave rejected!')">Reject</button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#6366f1">SA</div>Sana Aslam</div></td><td>HR</td><td>Annual Leave</td><td>Oct 30</td><td>Nov 1</td><td>3</td><td>Family event</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#f59e0b">TK</div>Tahir Khan</div></td><td>Engineering</td><td>Sick Leave</td><td>Oct 29</td><td>Oct 29</td><td>1</td><td>Medical</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#10b981">RM</div>Raza Malik</div></td><td>Sales</td><td>Casual Leave</td><td>Nov 4</td><td>Nov 5</td><td>2</td><td>Personal work</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
         </tbody>
       </table>
     </div>
@@ -863,7 +879,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <button class="btn btn-outline" onclick="testAccessDB()">🔍 Test MDB</button>
     <button class="btn btn-outline" onclick="syncAccessDB()">🔄 Sync Now</button>
   </div>
-  <div class="access-help">Python dashboard MDB ko read-only read karta hai. Is path par wohi file honi chahiye jo existing ZKTeco software update karta hai. Copied MDB sirf purani history dikhayegi. Ubuntu par MDB read karne ke liye <code>mdbtools</code> install hona chahiye.</div>
+  <div class="access-help">AttendPro reads the MDB database in read-only mode. Enter the path to the file actively updated by the ZKTeco software. A copied MDB only shows older data. Install <code>mdbtools</code> on Ubuntu to read Microsoft Access databases.</div>
 </div>
 <div class="metric-row">
   <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Connection Method</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">TCP/IP (to be configured)</div></div>
@@ -975,30 +991,30 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
         <div class="form-group"><label class="form-label">Phone</label><input class="form-input" value="+92-42-111-000-000"></div>
         <div class="form-group" style="grid-column:1/-1"><label class="form-label">Address</label><input class="form-input" value="123 Industrial Area, Lahore, Punjab, Pakistan"></div>
       </div>
-      <button class="btn btn-primary" style="margin-top:8px" onclick="alert('Settings saved! (Preview only)')">Save Changes</button>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="notify('Settings saved! (Preview only)')">Save Changes</button>
     </div>
     <div id="sShifts" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Shift Configuration</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Shift Name</th><th>Start</th><th>End</th><th>Late After</th><th>Grace Period</th><th>Actions</th></tr></thead>
         <tbody>
-          <tr><td>Morning Shift</td><td>08:00</td><td>17:00</td><td>08:10</td><td>10 min</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit shift')">Edit</button></td></tr>
-          <tr><td>General Shift</td><td>09:00</td><td>18:00</td><td>09:10</td><td>10 min</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit shift')">Edit</button></td></tr>
-          <tr><td>Evening Shift</td><td>14:00</td><td>23:00</td><td>14:15</td><td>15 min</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit shift')">Edit</button></td></tr>
+          <tr><td>Morning Shift</td><td>08:00</td><td>17:00</td><td>08:10</td><td>10 min</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit shift')">Edit</button></td></tr>
+          <tr><td>General Shift</td><td>09:00</td><td>18:00</td><td>09:10</td><td>10 min</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit shift')">Edit</button></td></tr>
+          <tr><td>Evening Shift</td><td>14:00</td><td>23:00</td><td>14:15</td><td>15 min</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit shift')">Edit</button></td></tr>
         </tbody>
       </table></div>
-      <button class="btn btn-primary" style="margin-top:12px" onclick="alert('Add shift form')">+ Add Shift</button>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="notify('Add shift form')">+ Add Shift</button>
     </div>
     <div id="sDepts" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Departments</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Department</th><th>Head</th><th>Employees</th><th>Actions</th></tr></thead>
         <tbody>
-          <tr><td>Engineering</td><td>Omar Farooq</td><td>32</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit dept')">Edit</button></td></tr>
-          <tr><td>Finance</td><td>Zara Sheikh</td><td>18</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit dept')">Edit</button></td></tr>
-          <tr><td>HR</td><td>Admin Rehman</td><td>12</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit dept')">Edit</button></td></tr>
-          <tr><td>Operations</td><td>Khalid Mirza</td><td>28</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit dept')">Edit</button></td></tr>
-          <tr><td>Sales</td><td>Nadia Pervez</td><td>24</td><td><button class="btn btn-outline btn-sm" onclick="alert('Edit dept')">Edit</button></td></tr>
+          <tr><td>Engineering</td><td>Omar Farooq</td><td>32</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
+          <tr><td>Finance</td><td>Zara Sheikh</td><td>18</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
+          <tr><td>HR</td><td>Admin Rehman</td><td>12</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
+          <tr><td>Operations</td><td>Khalid Mirza</td><td>28</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
+          <tr><td>Sales</td><td>Nadia Pervez</td><td>24</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
         </tbody>
       </table></div>
     </div>
@@ -1008,7 +1024,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
       <div class="form-group"><label class="form-label">Late Arrival Threshold (minutes)</label><input class="form-input" value="10" style="max-width:120px"></div>
       <div class="form-group"><label class="form-label">Early Departure Threshold (minutes)</label><input class="form-input" value="15" style="max-width:120px"></div>
       <div class="form-group"><label class="form-label">Overtime Starts After (minutes beyond shift)</label><input class="form-input" value="30" style="max-width:120px"></div>
-      <button class="btn btn-primary" onclick="alert('Rules saved! (Preview only)')">Save Rules</button>
+      <button class="btn btn-primary" onclick="notify('Rules saved! (Preview only)')">Save Rules</button>
     </div>
     <div id="sNotif" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Notification Settings</div>
@@ -1019,11 +1035,11 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" checked> Daily attendance summary email</label>
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox"> Device sync failure alerts</label>
       </div>
-      <button class="btn btn-primary" style="margin-top:16px" onclick="alert('Notification settings saved! (Preview only)')">Save Settings</button>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="notify('Notification settings saved! (Preview only)')">Save Settings</button>
     </div>
     <div id="sDevices" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:8px">Multiple Device Settings</div>
-      <div class="page-sub" style="margin-bottom:14px">Device select kar ke uska path, model aur sync options manage karein. Sirf Super Admin changes kar sakta hai.</div>
+      <div class="page-sub" style="margin-bottom:14px">Select a device to manage its path, model and sync options. Only Super Admin can make changes.</div>
       <div id="settingsDeviceCards" class="device-list-grid"></div>
       <div class="access-actions" data-permission="super_admin"><button class="btn btn-primary" onclick="toggleAddDeviceForm(true);showScreen('device',document.querySelector('[data-screen=device]'))">+ Add / Manage Device</button></div>
     </div>
@@ -1041,7 +1057,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <div class="card-title" style="margin-bottom:14px">Add New User</div>
     <div class="user-form-grid">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newUserDisplay" placeholder="User full name"></div>
-      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="newUserName" placeholder="Username / Supabase email"></div>
+      <div class="form-group"><label class="form-label" id="newUserNameLabel">Username</label><input class="form-input" id="newUserName" placeholder="Username / Supabase email"></div>
       <div class="form-group"><label class="form-label">Role</label><select class="form-input" id="newUserRole"><option value="view_only">View Only User</option><option value="supervisor">Supervisor</option><option value="super_admin">Super Admin</option></select></div>
       <div class="form-group"><label class="form-label">Password (8+ characters)</label><input class="form-input" id="newUserPassword" type="password" placeholder="Set password"></div>
     </div>
@@ -1115,15 +1131,93 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
   <form class="login-card" onsubmit="loginUser(event)">
     <div class="sb-logo-icon" style="margin-bottom:14px">A</div><h2>AttendPro Login</h2><p>Sign in with your assigned user account.</p>
     <div class="login-error" id="loginError"></div>
-    <label class="form-label" for="loginUsername" id="loginUsernameLabel">Username</label><input class="form-input" id="loginUsername" autocomplete="username" value="admin" required>
+    <label class="form-label" for="loginUsername" id="loginUsernameLabel">Email address</label><input class="form-input" id="loginUsername" type="text" autocomplete="username" placeholder="you@company.com" required>
     <label class="form-label" for="loginPassword">Password</label><input class="form-input" id="loginPassword" type="password" autocomplete="current-password" required>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px" type="submit">Sign In</button>
     <div class="access-help">Use your assigned account credentials. Change your password after your first sign-in.</div>
   </form>
 </div>
 
+<div class="modal-overlay" id="apEmployeeEditOverlay" onclick="if(event.target===this)closeEmployeeEditor()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title">Edit Employee Profile</div><button class="close-btn" type="button" onclick="closeEmployeeEditor()">×</button></div>
+ <form class="modal-body" id="apEmployeeEditForm" onsubmit="saveEmployeeProfile(event)">
+  <div class="access-help" style="margin-bottom:12px">Saved to Supabase only. The original biometric database is never modified.</div>
+  <div id="apEmployeeEditFields"></div>
+  <div class="access-actions" style="margin-top:16px"><button class="btn btn-primary" type="submit" id="apProfileSaveButton">Save Profile</button><button class="btn btn-outline" type="button" onclick="closeEmployeeEditor()">Cancel</button></div>
+ </form></div>
+</div>
+<div id="apToastStack" aria-live="polite" aria-atomic="false"></div>
+<section id="apNotifPanel" aria-label="Notifications" role="region"><div class="ap-notif-head"><strong>Notifications</strong><button type="button" class="btn btn-outline btn-sm" onclick="toggleApNotifications(false)">Close</button></div><div id="apNotifItems"></div></section>
+<div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
+
 <script>
-window.ATTENDPRO_BUILD = "2026-11-02-redis-monitor-hotfix-2";
+window.ATTENDPRO_BUILD = "2026-11-03-hosted-ui-auth-fixes";
+
+const apEnglishText = new Map([
+ ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],
+ ['Database settings saved.','Database settings saved.'],['MDB test failed:','MDB test failed:'],
+ ['Sync error:','Sync error:'],['Could not load logs:','Could not load logs:'],
+ ['No sync/import history available.','No sync or import history is available.'],
+ ['Database mein employee records nahi mile.','No employee records were returned by the database.'],
+ ['Could not load report data:','Could not load report data:'],['Generate a report preview first.','Generate a report preview first.'],
+ ['Password updated.','Password updated successfully.'],['Could not switch device:','Could not switch device:'],
+ ['Could not add device:','Could not add device:'],['Could not update device:','Could not update device:'],
+ ['Could not delete device:','Could not delete device:'],['Could not create user:','Could not create user:'],
+ ['Could not update user:','Could not update user:'],['Could not delete user:','Could not delete user:'],
+ ['Password reset.','Password reset successfully.'],['Could not reset password:','Could not reset password:'],
+ ['Could not update user status:','Could not update user status:'],['Attendance updated successfully.','Attendance updated successfully.'],
+ ['Could not update attendance:','Could not update attendance:'],['Attendance action failed:','Attendance action failed:'],
+ ['Could not save employee:','Could not save employee:'],['User created successfully.','User created successfully.'],
+ ['Your role does not allow attendance editing.','Your role does not allow attendance editing.'],
+ ['Aapka role attendance edit nahi kar sakta','Your role does not allow attendance editing'],
+ ['Device added. Verify its MDB path using Test MDB.','Device added. Use Test MDB to verify its database path.'],
+ ['Yeh username pehle se mojood hai.','This username already exists.']
+]);
+function englishMessage(value){
+ let message=String(value ?? 'An unexpected error occurred.');
+ for(const [oldText,newText] of apEnglishText)message=message.replaceAll(oldText,newText);
+ if(message==='403'||message.includes('Origin not permitted')||message.includes('Invalid origin'))
+  return 'Request blocked by server origin settings. Check the allowed Vercel origin on Render.';
+ if(message==='401')return 'Sign-in failed or session expired. Please check your credentials and try again.';
+ return message;
+}
+function notify(message,kind=''){
+ const text=englishMessage(message),layer=document.getElementById('apToastStack');if(!layer)return;
+ const mode=kind||(/failed|error|denied|cannot|could not|unauthorized|forbidden|not available|not allowed|requires|blocked|missing|invalid|403|401/i.test(text)?'error':/warning|pending/i.test(text)?'warning':'success');
+ const item=document.createElement('div');item.className='ap-toast '+mode;item.setAttribute('role',mode==='error'?'alert':'status');
+ const content=document.createElement('div');content.className='ap-toast-copy';content.textContent=text;
+ const x=document.createElement('button');x.className='ap-toast-close';x.type='button';x.textContent='×';x.setAttribute('aria-label','Dismiss notification');x.onclick=()=>item.remove();
+ item.append(content,x);layer.append(item);while(layer.childElementCount>5)layer.firstChild.remove();
+ setTimeout(()=>item.remove(),mode==='error'?11000:6500);
+}
+function appDialog(message,opts={}){
+ return new Promise(resolve=>{
+  const modal=document.getElementById('apActionDialog'),label=document.getElementById('apDialogMessage'),title=document.getElementById('apDialogTitle'),box=document.getElementById('apDialogInputWrap'),input=document.getElementById('apDialogInput');
+  title.textContent=opts.title||(opts.input?'Enter details':'Confirm action');label.textContent=englishMessage(message);
+  box.style.display=opts.input?'block':'none';input.value=opts.initial||'';modal.classList.add('open');
+  const cancel=document.getElementById('apDialogCancel'),ok=document.getElementById('apDialogOK');ok.textContent=opts.input?'Save':'Continue';
+  function done(v){modal.classList.remove('open');cancel.onclick=null;ok.onclick=null;input.onkeydown=null;resolve(v);}
+  cancel.onclick=()=>done(opts.input?null:false);ok.onclick=()=>done(opts.input?input.value:true);
+  input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();done(input.value)}if(e.key==='Escape')done(null)};
+  if(opts.input)input.focus();else ok.focus();
+ });
+}
+const appConfirm=message=>appDialog(message,{title:'Please confirm'});
+const appPrompt=(message,initial='')=>appDialog(message,{input:true,initial,title:'Enter details'});
+function toggleApNotifications(force){
+ const panel=document.getElementById('apNotifPanel');if(!panel)return;
+ const shouldOpen=force===undefined?!panel.classList.contains('open'):!!force;
+ panel.classList.toggle('open',shouldOpen);if(!shouldOpen)return;
+ const late=Array.isArray(liveData)?liveData.filter(row=>row.status==='Late').length:0;
+ const missing=Array.isArray(liveData)?liveData.filter(row=>row.cin!=='—'&&row.cout==='Pending').length:0;
+ const entries=[];
+ if(late)entries.push({title:`${late} late arrivals`,body:'For the selected attendance date.'});
+ if(missing)entries.push({title:`${missing} missing check-outs`,body:'Review these entries in Discrepancies.'});
+ if(currentSettings?.device?.status==='error')entries.push({title:'Biometric sync warning',body:'Check Device Status for the latest connection error.'});
+ if(!entries.length)entries.push({title:'No new notifications',body:'There are no outstanding attendance notifications for the current view.'});
+ document.getElementById('apNotifItems').innerHTML=entries.map(x=>`<div class="ap-notif-item"><strong>${escapeHtml(x.title)}</strong><small>${escapeHtml(x.body)}</small></div>`).join('');
+}
+
 // ── DATA ──────────────────────────────────────────────────────────────────
 // Employee profile state initialized BEFORE the prototype's initial render.
 let employeeSortKey='name', employeeSortDirection=1;
@@ -1369,34 +1463,34 @@ async function loadAccessSettings(showError=false) {
     if(metricBoxes[2]){metricBoxes[2].querySelector('.metric-val').textContent=dev.last_fetched??'—';metricBoxes[2].querySelector('.metric-lbl').textContent='Events Scanned';metricBoxes[2].lastElementChild.textContent=`New punches saved: ${dev.last_inserted??0}`;}
     await loadSyncHistory();
     return currentSettings;
-  } catch(e) { if(showError)alert('Settings load nahi ho sakin: '+e.message); return null; }
+  } catch(e) { if(showError)notify('Could not load settings: '+e.message); return null; }
 }
 async function saveAccessSettings(quiet=false) {
   try {
     const body={access_path:document.getElementById('accessPath').value.trim(),access_auto:document.getElementById('accessAuto').checked,access_interval:Number(document.getElementById('accessInterval').value||90)};
     currentSettings=await apiJSON('/api/settings',{method:'PUT',body:JSON.stringify(body)});
     await loadAccessSettings();
-    if(!quiet)alert('Database settings save ho gayi hain.');
+    if(!quiet)notify('Database settings saved.');
     return true;
-  } catch(e) { alert('Settings save nahi hui: '+e.message); return false; }
+  } catch(e) { notify('Could not save settings: '+e.message); return false; }
 }
 async function testAccessDB() {
   if(!await saveAccessSettings(true))return;
-  try { const r=await apiJSON('/api/database/test',{method:'POST'}); await loadAccessSettings(); alert((r.success?'SUCCESS: ':'ERROR: ')+(r.message||'Test complete')); }
-  catch(e){alert('MDB test fail: '+e.message);}
+  try { const r=await apiJSON('/api/database/test',{method:'POST'}); await loadAccessSettings(); notify((r.success?'SUCCESS: ':'ERROR: ')+(r.message||'Test complete')); }
+  catch(e){notify('MDB test failed: '+e.message);}
 }
 async function syncAccessDB() {
   if(!await saveAccessSettings(true))return;
   const btns=document.querySelectorAll('#screen-device button');
   try {
     const r=await apiJSON('/api/database/sync?force=true',{method:'POST'});
-    alert((r.success?'Sync complete: ':'Sync failed: ')+(r.message||JSON.stringify(r)));
+    notify((r.success?'Sync completed: ':'Sync failed: ')+(r.message||JSON.stringify(r)));
     await loadAccessSettings(); await loadRealData(true);
-  } catch(e){alert('Sync error: '+e.message);}
+  } catch(e){notify('Sync error: '+e.message);}
 }
 async function showSyncLogs() {
-  try { const r=await apiJSON('/api/imports'); const rows=r.items||[]; alert(rows.length?rows.map(x=>`${x.imported_at||''} | ${x.source||''} | ${x.filename||''} | rows: ${x.attendance_rows||0}`).join('\n'):'Abhi sync/import history available nahi.'); }
-  catch(e){alert('Logs load nahi huay: '+e.message);}
+  try { const r=await apiJSON('/api/imports'); const rows=r.items||[]; notify(rows.length?rows.map(x=>`${x.imported_at||''} | ${x.source||''} | ${x.filename||''} | rows: ${x.attendance_rows||0}`).join('\n'):'No sync/import history available.'); }
+  catch(e){notify('Could not load logs: '+e.message);}
 }
 async function loadSelectedDate() { userSelectedDate=true; await loadRealData(true); }
 async function loadRealData(forceDate=false) {
@@ -1407,7 +1501,7 @@ async function loadRealData(forceDate=false) {
     const dashboard=await apiJSON('/api/dashboard');
     await loadAccessSettings();
     const employeeRows=await fetchAllPages('/api/employees');
-    if(!employeeRows.length)throw new Error('Database mein employee records nahi mile.');
+    if(!employeeRows.length)throw new Error('No employee records were returned by the database.');
     employees.splice(0,employees.length,...employeeRows.map(mapEmployee));
     currentDataDate=(userSelectedDate && document.getElementById('liveDate').value)?document.getElementById('liveDate').value:(dashboard.date||today());
     if(!userSelectedDate){const dateEl=document.getElementById('liveDate');if(dateEl)dateEl.value=currentDataDate;}
@@ -1594,10 +1688,47 @@ function openEmpModal(e){
     ...(e.cin?[['Check-in',e.cin],['Check-out',e.cout||'—'],['Late/Early',e.lateStr||'—']]:[]),
     ...(e.phone?[['Phone',e.phone],['Email',e.email||'—']]:[] )
   ];
-  document.getElementById('modalBody').innerHTML=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div class="emp-av" style="width:48px;height:48px;font-size:16px;background:${e.color||COLORS[0]}">${initials(displayEmployeeName(e.name)||'?')}</div><div><div style="font-size:16px;font-weight:700">${escapeHtml(displayEmployeeName(e.name)||'')}</div><div style="color:var(--text2);font-size:13px">${e.designation||''} · ${e.dept||''}</div></div></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`).join('')}<div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="alert('Edit form requires backend integration')">Edit Details</button><button class="btn btn-outline btn-sm" onclick="showScreen('records',document.querySelector('[data-screen=records]'));closeModal()">View Records</button></div>`;
+  document.getElementById('modalBody').innerHTML=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div class="emp-av" style="width:48px;height:48px;font-size:16px;background:${e.color||COLORS[0]}">${initials(displayEmployeeName(e.name)||'?')}</div><div><div style="font-size:16px;font-weight:700">${escapeHtml(displayEmployeeName(e.name)||'')}</div><div style="color:var(--text2);font-size:13px">${e.designation||''} · ${e.dept||''}</div></div></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`).join('')}<div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="openEmployeeEditor(${Number(e.dbId)})">Edit Details</button><button class="btn btn-outline btn-sm" onclick="viewEmployeeRecords(${Number(e.dbId)})">View Records</button></div>`;
   document.getElementById('empModal').classList.add('open');
 }
 function closeModal(){document.getElementById('empModal').classList.remove('open')}
+
+let apEditingEmployeeId=null,employeeRecordFilterId=null;
+function openEmployeeEditor(id){
+ if(!roleAllowed('super_admin')){notify('Only Super Admin can edit employee profiles.','error');return;}
+ const e=employees.find(row=>String(row.dbId)===String(id));if(!e){notify('Employee was not found.','error');return;}
+ apEditingEmployeeId=id;
+ const fields=[['name','Full Name',displayEmployeeName(e.name)],['department','Department',e.dept],['designation','Designation',e.designation],['shift','Shift',e.shift],['phone','Phone',e.phone],['email','Email',e.email]];
+ document.getElementById('apEmployeeEditFields').innerHTML=fields.map(([key,label,value])=>`<label class="form-label" style="display:block;margin-top:10px">${escapeHtml(label)}<input class="ap-profile-input" name="${key}" value="${escapeHtml(value||'')}" ${key==='name'?'required minlength="2"':''} ${key==='email'?'type="email"':''}></label>`).join('');
+ document.getElementById('apEmployeeEditOverlay').classList.add('open');closeModal();
+}
+function closeEmployeeEditor(){document.getElementById('apEmployeeEditOverlay').classList.remove('open');apEditingEmployeeId=null;}
+async function saveEmployeeProfile(event){
+ event.preventDefault();if(!apEditingEmployeeId)return;
+ const id=apEditingEmployeeId,btn=document.getElementById('apProfileSaveButton');
+ const profile=Object.fromEntries(new FormData(document.getElementById('apEmployeeEditForm')));
+ btn.disabled=true;
+ try{
+  const result=await apiJSON('/api/employees/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(profile)});
+  if(!result.success)throw new Error('Profile could not be saved.');
+  const employee=employees.find(e=>String(e.dbId)===String(id));if(employee){employee.name=profile.name;employee.dept=profile.department;employee.designation=profile.designation;employee.shift=profile.shift;employee.phone=profile.phone;employee.email=profile.email;}
+  employeeProfileCache.delete(Number(id));closeEmployeeEditor();renderEmployees();
+  notify('Employee profile saved to '+(result.saved_to==='supabase'?'Supabase.':'AttendPro.')+' Original biometric data is unchanged.','success');
+  await loadRealData(true);
+ }catch(err){notify('Employee profile could not be saved: '+err.message,'error');}
+ finally{btn.disabled=false;}
+}
+async function viewEmployeeRecords(id){
+ const person=employees.find(e=>String(e.dbId)===String(id));if(!person){notify('Employee not found.','error');return;}
+ closeModal();employeeRecordFilterId=String(id);
+ const d=new Date();const end=d.toISOString().slice(0,10);d.setDate(d.getDate()-90);const start=d.toISOString().slice(0,10);
+ showScreen('records',document.querySelector('[data-screen=records]'));
+ document.getElementById('recFrom').value=start;document.getElementById('recTo').value=end;
+ const search=document.getElementById('recSearch');if(search)search.value=displayEmployeeName(person.name);
+ recPage=1;await renderRecords();
+ notify('Showing attendance for '+displayEmployeeName(person.name)+' (last 90 days). Use Clear to view all employees.','success');
+}
+
 
 // ── DASHBOARD DYNAMIC ──────────────────────────────────────────────────────
 function buildDashboard(){
@@ -1654,8 +1785,8 @@ function showReportPreview(){
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button>
-      <button class="btn btn-outline btn-sm" onclick="alert('Export to Excel requires backend integration')">📊 Export Excel</button>
-      <button class="btn btn-outline btn-sm" onclick="alert('Export to PDF requires backend integration')">📄 Export PDF</button>
+      <button class="btn btn-outline btn-sm" onclick="notify('Export to Excel requires backend integration')">📊 Export Excel</button>
+      <button class="btn btn-outline btn-sm" onclick="notify('Export to PDF requires backend integration')">📄 Export PDF</button>
     </div>`;
   // Prep print layout
   document.getElementById('printTitle').textContent=type;
@@ -1738,7 +1869,7 @@ async function showReportPreview(){
       const cin=showTime(r.clock_in),cout=showTime(r.clock_out),mins=Number(r.work_minutes||0);
       return {date:r.work_date,id:String(r.badge_number||r.device_user_id||emp?.id||r.employee_id),name:r.name||emp?.name||'Unknown',dept:r.department||emp?.dept||'Unassigned',cin,cout:cout==='—'&&cin!=='—'?'Pending':cout,wh:mins>0?`${Math.floor(mins/60)}h ${mins%60}m`:'—',status:titleStatus(r.status)};
     });
-  } catch(e) { alert('Report data load nahi hua: '+e.message); return; }
+  } catch(e) { notify('Could not load report data: '+e.message); return; }
   currentReportRows=rows;
   const shown=rows.slice(0,100);
   document.getElementById('reportPreview').innerHTML=`<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">AttendPro — Attendance Report</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr></thead><tbody>${shown.map(r=>`<tr><td style="font-size:11px;font-family:monospace">${escapeHtml(r.id)}</td><td>${escapeHtml(r.name)}</td><td style="font-size:11px">${escapeHtml(r.dept)}</td><td>${escapeHtml(r.cin)}</td><td>${escapeHtml(r.cout)}</td><td>${statusBadge(r.status)}</td></tr>`).join('')}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px"><span>Records: <strong>${rows.length}</strong></span><span>Present: <strong>${rows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length}</strong></span><span>Late: <strong>${rows.filter(r=>r.status==='Late').length}</strong></span><span>Absent: <strong>${rows.filter(r=>r.status==='Absent').length}</strong></span></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button></div>`;
@@ -1748,7 +1879,7 @@ async function showReportPreview(){
 }
 function downloadReportCsv(){
   const rows=currentReportRows||[];
-  if(!rows.length){alert('Pehle report preview generate karein.');return;}
+  if(!rows.length){notify('Generate a report preview first.');return;}
   const fields=['date','id','name','dept','cin','cout','wh','status'];
   const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const csv=[fields.join(','),...rows.map(r=>fields.map(k=>quote(r[k])).join(','))].join('\r\n');
@@ -1792,13 +1923,16 @@ async function initAuth() {
   try {
     const result=await apiJSON('/api/auth/status');
     cloudMode = result.mode === 'supabase';
-    if(cloudMode){const label=document.getElementById('loginUsernameLabel');if(label)label.textContent='Email address (Supabase Auth)';const input=document.getElementById('loginUsername');if(input&&input.value==='admin')input.value='';}
+    if(cloudMode){const label=document.getElementById('loginUsernameLabel');if(label)label.textContent='Email address (Supabase Auth)';const input=document.getElementById('loginUsername');if(input){input.type='email';input.autocomplete='email';input.placeholder='you@company.com';if(input.value==='admin')input.value='';}}else{const label=document.getElementById('loginUsernameLabel');if(label)label.textContent='Username';const input=document.getElementById('loginUsername');if(input){input.type='text';input.autocomplete='username';input.placeholder='Username';}}
 
     const help=document.getElementById('editSaveHelp');
     if(help)help.textContent=cloudMode?'Manual corrections are saved to Supabase with an audit trail; original biometric data remains unchanged.':'Edits affect only AttendPro local data; source MDB is never modified.';
     const dHelp=document.getElementById('discrepancySaveHelp');
     if(dHelp)dHelp.textContent=cloudMode?'Approved reviews and corrections are saved to Supabase; original biometric punches remain unchanged.':'Reviews are saved locally; original punches and MDB remain unchanged.';
     if(cloudMode){ const el=document.querySelector('.demo-badge');if(el)el.textContent='☁ Supabase Mode — Cloud Authentication'; }
+    const newUserLabel=document.getElementById('newUserNameLabel'),newUserInput=document.getElementById('newUserName');
+    if(newUserLabel)newUserLabel.textContent=cloudMode?'Email address':'Username';
+    if(newUserInput){newUserInput.type=cloudMode?'email':'text';newUserInput.placeholder=cloudMode?'name@company.com':'Username';}
     if(result.authenticated){currentUser=result.user;document.getElementById('loginOverlay').classList.remove('open');applyPermissions();await loadRealData(true);}
     else document.getElementById('loginOverlay').classList.add('open');
   } catch(e) { document.getElementById('loginOverlay').classList.add('open'); }
@@ -1809,18 +1943,18 @@ async function loginUser(event) {
   try {
     const result=await apiJSON('/api/auth/login',{method:'POST',body:JSON.stringify({username:document.getElementById('loginUsername').value.trim(),password:document.getElementById('loginPassword').value})});
     currentUser=result.user;document.getElementById('loginOverlay').classList.remove('open');document.getElementById('loginPassword').value='';applyPermissions();await loadRealData(true);
-  } catch(e) {error.textContent=e.message||'Login fail ho gaya.';error.style.display='block';}
+  } catch(e) {error.textContent=englishMessage(e.message||'Login failed. Please try again.');error.style.display='block';}
 }
 async function logoutUser() {
   if(!currentUser)return;
-  if(!confirm('Are you sure you want to log out?'))return;
+  if(!await appConfirm('Are you sure you want to log out?'))return;
   try{await apiJSON('/api/auth/logout',{method:'POST'});}catch(_){}
   currentUser=null;document.getElementById('loginOverlay').classList.add('open');applyPermissions();
 }
 async function changeMyPassword() {
   const current=document.getElementById('currentPassword').value,newPass=document.getElementById('newPassword').value;
-  try{const r=await apiJSON('/api/auth/change-password',{method:'POST',body:JSON.stringify({current_password:current,new_password:newPass})});alert(r.message||'Password update ho gaya.');document.getElementById('currentPassword').value='';document.getElementById('newPassword').value='';}
-  catch(e){alert(e.message);}
+  try{const r=await apiJSON('/api/auth/change-password',{method:'POST',body:JSON.stringify({current_password:current,new_password:newPass})});notify(r.message||'Password updated.');document.getElementById('currentPassword').value='';document.getElementById('newPassword').value='';}
+  catch(e){notify(e.message);}
 }
 function initSidebar() {
   const savedWidth=parseInt(localStorage.getItem('attendpro-sidebar-width')||'240',10);
@@ -1905,7 +2039,7 @@ function deviceInfoText(d) {
 }
 function showDeviceInfo(id) {
   const d=(currentSettings.devices||[]).find(x=>String(x.id)===String(id))||currentSettings.device;
-  alert(deviceInfoText(d));
+  notify(deviceInfoText(d));
 }
 function renderDeviceUI(devices,activeId) {
   devices=Array.isArray(devices)?devices:[];activeId=activeId??currentSettings.active_device_id;
@@ -1913,7 +2047,7 @@ function renderDeviceUI(devices,activeId) {
   if(sidebar)sidebar.innerHTML=devices.map(d=>`<div class="nav-item device-nav-item ${String(d.id)===String(activeId)?'active':''}" data-status="${escapeHtml(d.status||'not_configured')}" title="${escapeHtml(d.name)} — ${escapeHtml(deviceStatusText(d))}" onclick="handleDeviceNav(${Number(d.id)})"><span class="device-nav-dot"></span><span class="nav-label">${escapeHtml(d.name)}</span></div>`).join('');
   const dashboard=document.getElementById('dashboardDevices');
   if(dashboard)dashboard.innerHTML=devices.map(d=>`<div class="device-mini-card"><div class="device-mini-icon">👁</div><div class="device-mini-info"><div class="device-mini-name">${escapeHtml(d.name)}</div><div class="device-mini-model">${escapeHtml(d.model||'ZKTeco biometric terminal')}</div><div class="device-mini-state ${d.status==='online'?'online':''}">● ${escapeHtml(deviceStatusText(d))}</div></div><div class="device-mini-actions"><button onclick="showDeviceInfo(${Number(d.id)})" title="Device information">ⓘ Info</button><button data-permission="super_admin" onclick="selectDevice(${Number(d.id)},true)">${String(d.id)===String(activeId)?'Selected':'Switch'}</button></div></div>`).join('')||'<div class="card">No devices added yet.</div>';
-  const cardHTML=devices.map(d=>`<div class="device-list-item ${String(d.id)===String(activeId)?'selected':''}"><div class="device-list-head"><div><div class="device-list-title">👁 ${escapeHtml(d.name)}</div><div class="device-list-sub">${escapeHtml(d.model||'ZKTeco')} · S/N: ${escapeHtml(d.serial_number||'—')}</div><div class="device-list-sub">Status: <strong>${escapeHtml(deviceStatusText(d))}</strong></div><div class="device-list-sub" title="${escapeHtml(d.path||'')}" style="overflow-wrap:anywhere">${escapeHtml(d.path||'MDB path not configured')}</div></div><button class="device-info-btn" onclick="showDeviceInfo(${Number(d.id)})" title="Device information">i</button></div><div class="device-list-actions"><button class="btn btn-primary btn-sm" data-permission="super_admin" onclick="selectDevice(${Number(d.id)},true)">${String(d.id)===String(activeId)?'Selected Device':'Switch Device'}</button><button class="btn btn-outline btn-sm" onclick="showDeviceInfo(${Number(d.id)})">ⓘ Info</button><button class="btn btn-outline btn-sm" data-permission="super_admin" onclick="editDevice(${Number(d.id)})">Edit</button><button class="btn btn-outline btn-sm" data-permission="super_admin" onclick="testSpecificDevice(${Number(d.id)})">Test MDB</button><button class="btn btn-outline btn-sm" data-permission="super_admin" onclick="syncSpecificDevice(${Number(d.id)})">Sync Now</button><button class="btn btn-red btn-sm" data-permission="super_admin" onclick="deleteDevice(${Number(d.id)})">Delete</button></div></div>`).join('')||'<div class="access-help">Abhi koi device configure nahi hai.</div>';
+  const cardHTML=devices.map(d=>`<div class="device-list-item ${String(d.id)===String(activeId)?'selected':''}"><div class="device-list-head"><div><div class="device-list-title">👁 ${escapeHtml(d.name)}</div><div class="device-list-sub">${escapeHtml(d.model||'ZKTeco')} · S/N: ${escapeHtml(d.serial_number||'—')}</div><div class="device-list-sub">Status: <strong>${escapeHtml(deviceStatusText(d))}</strong></div><div class="device-list-sub" title="${escapeHtml(d.path||'')}" style="overflow-wrap:anywhere">${escapeHtml(d.path||'MDB path not configured')}</div></div><button class="device-info-btn" onclick="showDeviceInfo(${Number(d.id)})" title="Device information">i</button></div><div class="device-list-actions"><button class="btn btn-primary btn-sm" data-permission="super_admin" onclick="selectDevice(${Number(d.id)},true)">${String(d.id)===String(activeId)?'Selected Device':'Switch Device'}</button><button class="btn btn-outline btn-sm" onclick="showDeviceInfo(${Number(d.id)})">ⓘ Info</button><button class="btn btn-outline btn-sm" data-permission="super_admin" onclick="editDevice(${Number(d.id)})">Edit</button><button class="btn btn-outline btn-sm" data-permission="super_admin" onclick="testSpecificDevice(${Number(d.id)})">Test MDB</button><button class="btn btn-outline btn-sm" data-permission="super_admin" onclick="syncSpecificDevice(${Number(d.id)})">Sync Now</button><button class="btn btn-red btn-sm" data-permission="super_admin" onclick="deleteDevice(${Number(d.id)})">Delete</button></div></div>`).join('')||'<div class="access-help">No devices configured yet.</div>';
   const deviceCards=document.getElementById('deviceCards');if(deviceCards)deviceCards.innerHTML=cardHTML;
   const settingsCards=document.getElementById('settingsDeviceCards');if(settingsCards)settingsCards.innerHTML=cardHTML;
   document.querySelectorAll('#dashboardDevices [data-permission],#deviceCards [data-permission],#settingsDeviceCards [data-permission]').forEach(el=>el.classList.toggle('role-hidden',!roleAllowed(el.dataset.permission)));
@@ -1937,7 +2071,7 @@ async function selectDevice(id,openScreen=false) {
     await loadAccessSettings();renderDeviceUI(currentSettings.devices,id);
     if(openScreen)showScreen('device',document.querySelector('[data-screen="device"]'));
     await loadRealData(true);
-  }catch(e){alert('Device switch nahi hua: '+e.message);}
+  }catch(e){notify('Could not switch device: '+e.message);}
 }
 function toggleAddDeviceForm(force) {
   const form=document.getElementById('addDeviceForm');if(!form)return;
@@ -1948,29 +2082,29 @@ async function createDevice() {
   try{
     const r=await apiJSON('/api/devices',{method:'POST',body:JSON.stringify(body)});
     const id=r.device.id;toggleAddDeviceForm(false);['newDeviceName','newDeviceSerial','newDevicePath'].forEach(x=>document.getElementById(x).value='');
-    await selectDevice(id,true);alert('Device add ho gaya. Ab is device ka MDB path Test MDB se verify karein.');
-  }catch(e){alert('Device add nahi hua: '+e.message);}
+    await selectDevice(id,true);notify('Device added. Verify its MDB path using Test MDB.');
+  }catch(e){notify('Could not add device: '+e.message);}
 }
 async function editDevice(id) {
   const d=(currentSettings.devices||[]).find(x=>String(x.id)===String(id));if(!d)return;
-  const name=prompt('Device name',d.name);if(name===null)return;
-  const model=prompt('Device model',d.model||'ZKTeco uFace 800');if(model===null)return;
-  const path=prompt('Full .mdb file path (blank to clear)',d.path||'');if(path===null)return;
+  const name=await appPrompt('Device name',d.name);if(name===null)return;
+  const model=await appPrompt('Device model',d.model||'ZKTeco uFace 800');if(model===null)return;
+  const path=await appPrompt('Full .mdb file path (blank to clear)',d.path||'');if(path===null)return;
   try{await apiJSON(`/api/devices/${id}`,{method:'PUT',body:JSON.stringify({name,model,mdb_path:path})});await loadAccessSettings();await loadRealData(true);}
-  catch(e){alert('Device update nahi hua: '+e.message);}
+  catch(e){notify('Could not update device: '+e.message);}
 }
 async function deleteDevice(id) {
-  const d=(currentSettings.devices||[]).find(x=>String(x.id)===String(id));if(!d||!confirm(`${d.name} delete karna hai? Attendance records delete nahi honge.`))return;
+  const d=(currentSettings.devices||[]).find(x=>String(x.id)===String(id));if(!d||!await appConfirm(`${d.name} Do you want to delete this device? Attendance records will be preserved.`))return;
   try{await apiJSON(`/api/devices/${id}`,{method:'DELETE'});await loadAccessSettings();await loadRealData(true);}
-  catch(e){alert('Device delete nahi hua: '+e.message);}
+  catch(e){notify('Could not delete device: '+e.message);}
 }
 async function testSpecificDevice(id) {
-  try{const r=await apiJSON(`/api/devices/${id}/test`,{method:'POST'});await loadAccessSettings();alert((r.success?'SUCCESS: ':'ERROR: ')+(r.message||'Test complete'));}
-  catch(e){alert('MDB test fail: '+e.message);}
+  try{const r=await apiJSON(`/api/devices/${id}/test`,{method:'POST'});await loadAccessSettings();notify((r.success?'SUCCESS: ':'ERROR: ')+(r.message||'Test complete'));}
+  catch(e){notify('MDB test failed: '+e.message);}
 }
 async function syncSpecificDevice(id) {
-  try{const r=await apiJSON(`/api/devices/${id}/sync`,{method:'POST'});await loadAccessSettings();await loadRealData(true);alert((r.success?'Sync complete: ':'Sync failed: ')+(r.message||JSON.stringify(r)));}
-  catch(e){alert('Sync error: '+e.message);}
+  try{const r=await apiJSON(`/api/devices/${id}/sync`,{method:'POST'});await loadAccessSettings();await loadRealData(true);notify((r.success?'Sync completed: ':'Sync failed: ')+(r.message||JSON.stringify(r)));}
+  catch(e){notify('Sync error: '+e.message);}
 }
 async function loadAccessSettings(showError=false) {
   try {
@@ -1986,24 +2120,24 @@ async function loadAccessSettings(showError=false) {
     if(boxes[2]){boxes[2].querySelector('.metric-val').textContent=dev.last_fetched??0;boxes[2].querySelector('.metric-lbl').textContent='Events Scanned';boxes[2].lastElementChild.textContent=`New punches saved: ${dev.last_inserted??0}`;}
     renderDeviceUI(currentSettings.devices||[],currentSettings.active_device_id);
     await loadSyncHistory();return currentSettings;
-  } catch(e){if(showError)alert('Settings load nahi ho sakin: '+e.message);return null;}
+  } catch(e){if(showError)notify('Could not load settings: '+e.message);return null;}
 }
 async function saveAccessSettings(quiet=false) {
   try{
     const body={access_path:document.getElementById('accessPath').value.trim(),access_auto:document.getElementById('accessAuto').checked,access_interval:Number(document.getElementById('accessInterval').value||90)};
     currentSettings=await apiJSON('/api/settings',{method:'PUT',body:JSON.stringify(body)});await loadAccessSettings();
-    if(!quiet)alert('Database settings save ho gayi hain.');return true;
-  }catch(e){alert('Settings save nahi hui: '+e.message);return false;}
+    if(!quiet)notify('Database settings saved.');return true;
+  }catch(e){notify('Could not save settings: '+e.message);return false;}
 }
 async function testAccessDB() {
   if(!await saveAccessSettings(true))return;
-  try{const r=await apiJSON('/api/database/test',{method:'POST'});await loadAccessSettings();alert((r.success?'SUCCESS: ':'ERROR: ')+(r.message||'Test complete'));}
-  catch(e){alert('MDB test fail: '+e.message);}
+  try{const r=await apiJSON('/api/database/test',{method:'POST'});await loadAccessSettings();notify((r.success?'SUCCESS: ':'ERROR: ')+(r.message||'Test complete'));}
+  catch(e){notify('MDB test failed: '+e.message);}
 }
 async function syncAccessDB() {
   if(!await saveAccessSettings(true))return;
-  try{const r=await apiJSON('/api/database/sync?force=true',{method:'POST'});await loadAccessSettings();await loadRealData(true);alert((r.success?'Sync complete: ':'Sync failed: ')+(r.message||JSON.stringify(r)));}
-  catch(e){alert('Sync error: '+e.message);}
+  try{const r=await apiJSON('/api/database/sync?force=true',{method:'POST'});await loadAccessSettings();await loadRealData(true);notify((r.success?'Sync completed: ':'Sync failed: ')+(r.message||JSON.stringify(r)));}
+  catch(e){notify('Sync error: '+e.message);}
 }
 function showScreen(name,el) {
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
@@ -2128,10 +2262,10 @@ function employeeProfileHTML(e,data){
 function openEmployeeModalById(id){const e=employees.find(x=>String(x.dbId)===String(id));if(e)openEmpModal(e);}
 
 function recordKey(r){return `${r.dbId||r.employee_id||r.id}|${r.date}`;}
-function clearRecordFilters(){['recSearch','recDept','recStatus'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});setDefaultDates();renderRecords();}
+function clearRecordFilters(){employeeRecordFilterId=null;['recSearch','recDept','recStatus'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});setDefaultDates();renderRecords();}
 function recordHistoryHTML(employeeId) {
   const rows=recData.filter(x=>String(x.dbId||x.employee_id)===String(employeeId)).slice().sort((a,b)=>b.date.localeCompare(a.date));
-  if(!rows.length)return '<div class="record-detail-box">Is selected date range mein is employee ka aur record nahi mila.</div>';
+  if(!rows.length)return '<div class="record-detail-box">No more records were found for this employee in the selected date range.</div>';
   return `<div class="record-detail-box"><strong>Employee attendance history (selected date range)</strong><div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th>Date</th><th>Timetable</th><th>Clock In</th><th>Clock Out</th><th>Department</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.date)}</td><td>${escapeHtml(x.timetable||'—')}</td><td>${escapeHtml(x.cin||'—')}</td><td>${escapeHtml(x.cout||'—')}</td><td>${escapeHtml(x.dept)}</td><td>${statusBadge(x.status)}</td><td><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick='openAttendanceEditorByKey(${JSON.stringify(recordKey(x))})'>Review / Update</button></td></tr>`).join('')}</tbody></table></div></div>`;
 }
 function toggleRecordDetails(key) {expandedRecordKey=expandedRecordKey===key?'':key;renderRecords();}
@@ -2141,7 +2275,7 @@ async function renderRecords() {
   const dept=document.getElementById('recDept')?.value||'',status=document.getElementById('recStatus')?.value||'';
   const from=document.getElementById('recFrom')?.value||'',to=document.getElementById('recTo')?.value||'';
   const search=(document.getElementById('recSearch')?.value||'').toLowerCase();
-  const data=recData.filter(r=>(!from||r.date>=from)&&(!to||r.date<=to)&&(!dept||r.dept===dept)&&(!status||r.status===status)&&(!search||r.name.toLowerCase().includes(search)||String(r.id).toLowerCase().includes(search)));
+  const data=recData.filter(r=>(!from||r.date>=from)&&(!to||r.date<=to)&&(!dept||r.dept===dept)&&(!status||r.status===status)&&(!employeeRecordFilterId||String(r.dbId||r.employee_id)===String(employeeRecordFilterId))&&(!search||!!employeeRecordFilterId||r.name.toLowerCase().includes(search)||String(r.id).toLowerCase().includes(search)));
   data.sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base'})||b.date.localeCompare(a.date));
   const pp=15,total=data.length,pages=Math.ceil(total/pp)||1;
   if(recPage>pages)recPage=1;
@@ -2161,7 +2295,7 @@ async function renderRecords() {
 }
 function openAttendanceEditorByKey(key) {
   const r=recData.find(x=>recordKey(x)===key);if(!r)return;
-  if(!roleAllowed('attendance_edit')){alert('Aapka role attendance edit nahi kar sakta.');return;}
+  if(!roleAllowed('attendance_edit')){notify('Your role does not allow attendance editing.');return;}
   currentEditRecord=r;
   document.getElementById('editEmployeeName').textContent=`${r.name} (${r.id})`;
   document.getElementById('editWorkDateLabel').textContent=r.date;
@@ -2179,24 +2313,24 @@ async function viewOriginalAudit(){
   const data=await apiJSON('/api/attendance/provenance?'+new URLSearchParams({employee_id:id,work_date:currentEditRecord.date}).toString());
   const fmt=x=>x?`Status: ${x.status||'—'}, In: ${x.clock_in||'—'}, Out: ${x.clock_out||'—'}`:'No original daily row';
   const audits=(data.cloud_audit||[]).slice(0,8).map(a=>`${a.created_at}: ${a.action} (${a.reason})`).join('\n');
-  alert('ORIGINAL / BIOMETRIC SOURCE\n'+fmt(data.original)+'\n\nCURRENT EFFECTIVE REPORT\n'+fmt(data.effective)+
+  notify('ORIGINAL / BIOMETRIC SOURCE\n'+fmt(data.original)+'\n\nCURRENT EFFECTIVE REPORT\n'+fmt(data.effective)+
         '\n\nRaw punches: '+(data.raw_punches||[]).length+'\n\nCLOUD CHANGE AUDIT\n'+(audits||'No approved changes yet.'));
- }catch(e){alert('Could not load audit: '+e.message);}
+ }catch(e){notify('Could not load audit: '+e.message);}
 }
 
 async function saveAttendanceEdit() {
   if(!currentEditRecord)return;
   const body={employee_id:currentEditRecord.dbId||currentEditRecord.employee_id,work_date:currentEditRecord.date,clock_in:document.getElementById('editClockIn').value,clock_out:document.getElementById('editClockOut').value,shift:document.getElementById('editShift').value||'09:00',status:document.getElementById('editStatus').value,action:'update'};
-  if(cloudMode){body.reason=prompt('Reason for attendance correction (required for audit):')||'';if(body.reason.trim().length<3){alert('Correction cancelled: enter a reason (3+ characters).');return;}}
-  try{const r=await apiJSON('/api/attendance/edit',{method:'PUT',body:JSON.stringify(body)});closeAttendanceEditor();alert(r.message||'Attendance update ho gayi.');await loadRealData(true);await loadHistoryForRange(false);renderRecords();}
-  catch(e){alert('Attendance update nahi hui: '+e.message);}
+  if(cloudMode){body.reason=await appPrompt('Reason for attendance correction (required for audit):')||'';if(body.reason.trim().length<3){notify('Correction cancelled: enter a reason (3+ characters).');return;}}
+  try{const r=await apiJSON('/api/attendance/edit',{method:'PUT',body:JSON.stringify(body)});closeAttendanceEditor();notify(r.message||'Attendance updated successfully.');await loadRealData(true);await loadHistoryForRange(false);renderRecords();}
+  catch(e){notify('Could not update attendance: '+e.message);}
 }
 async function quickAttendanceAction(action) {
   if(!currentEditRecord)return;
-  const reason=cloudMode?(prompt('Reason for manual '+action+' (required):')||''):'';
-  if(cloudMode&&reason.trim().length<3){alert('Enter a reason (3+ characters).');return;}
-  try{const r=await apiJSON('/api/attendance/edit',{method:'PUT',body:JSON.stringify({employee_id:currentEditRecord.dbId||currentEditRecord.employee_id,work_date:currentEditRecord.date,action,reason})});closeAttendanceEditor();alert(r.message||'Attendance update ho gayi.');await loadRealData(true);await loadHistoryForRange(false);renderRecords();}
-  catch(e){alert('Attendance action fail: '+e.message);}
+  const reason=cloudMode?(await appPrompt('Reason for manual '+action+' (required):')||''):'';
+  if(cloudMode&&reason.trim().length<3){notify('Enter a reason (3+ characters).');return;}
+  try{const r=await apiJSON('/api/attendance/edit',{method:'PUT',body:JSON.stringify({employee_id:currentEditRecord.dbId||currentEditRecord.employee_id,work_date:currentEditRecord.date,action,reason})});closeAttendanceEditor();notify(r.message||'Attendance updated successfully.');await loadRealData(true);await loadHistoryForRange(false);renderRecords();}
+  catch(e){notify('Attendance action failed: '+e.message);}
 }
 async function loadUsers() {
   if(!roleAllowed('super_admin'))return;
@@ -2204,45 +2338,45 @@ async function loadUsers() {
   try{
     const result=await apiJSON('/api/users');userCache=result.items||[];
     tbody.innerHTML=userCache.map(u=>`<tr><td>${escapeHtml(u.display_name)}</td><td>${escapeHtml(u.username)}</td><td>${escapeHtml(({view_only:'View Only User',supervisor:'Supervisor',super_admin:'Super Admin'})[u.role]||u.role)}</td><td>${u.active?'<span class="badge b-green">Active</span>':'<span class="badge b-gray">Disabled</span>'}</td><td><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="editUser(${u.id})">Edit</button><button class="btn btn-outline btn-sm" onclick="resetUserPassword(${u.id})">Reset Password</button><button class="btn btn-outline btn-sm" onclick="toggleUserActive(${u.id})">${u.active?'Disable':'Enable'}</button><button class="btn btn-red btn-sm" onclick="deleteUser(${u.id})">Delete</button></div></td></tr>`).join('')||'<tr><td colspan="5">No users found.</td></tr>';
-  }catch(e){tbody.innerHTML=`<tr><td colspan="5">Users load nahi huay: ${escapeHtml(e.message)}</td></tr>`;}
+  }catch(e){tbody.innerHTML=`<tr><td colspan="5">Could not load users: ${escapeHtml(e.message)}</td></tr>`;}
 }
 async function createUser() {
   const body={display_name:document.getElementById('newUserDisplay').value.trim(),username:document.getElementById('newUserName').value.trim(),role:document.getElementById('newUserRole').value,password:document.getElementById('newUserPassword').value};
-  try{await apiJSON('/api/users',{method:'POST',body:JSON.stringify(body)});['newUserDisplay','newUserName','newUserPassword'].forEach(id=>document.getElementById(id).value='');await loadUsers();alert('Naya user create ho gaya.');}
-  catch(e){alert('User create nahi hua: '+e.message);}
+  try{await apiJSON('/api/users',{method:'POST',body:JSON.stringify(body)});['newUserDisplay','newUserName','newUserPassword'].forEach(id=>document.getElementById(id).value='');await loadUsers();notify('User created successfully.');}
+  catch(e){notify('Could not create user: '+e.message);}
 }
 async function editUser(id) {
   const u=userCache.find(x=>x.id===id);if(!u)return;
-  const display_name=prompt('Display name',u.display_name);if(display_name===null)return;
-  const role=prompt('Role enter karein: view_only, supervisor, super_admin',u.role);if(role===null)return;
+  const display_name=await appPrompt('Display name',u.display_name);if(display_name===null)return;
+  const role=await appPrompt('Enter role: view_only, supervisor, super_admin',u.role);if(role===null)return;
   try{await apiJSON(`/api/users/${id}`,{method:'PUT',body:JSON.stringify({display_name,role:role.trim()})});await loadUsers();}
-  catch(e){alert('User update nahi hua: '+e.message);}
+  catch(e){notify('Could not update user: '+e.message);}
 }
 async function resetUserPassword(id) {
-  const password=prompt('Naya password (kam az kam 8 characters)');if(password===null)return;
-  try{await apiJSON(`/api/users/${id}`,{method:'PUT',body:JSON.stringify({password})});alert('Password reset ho gaya.');}
-  catch(e){alert('Password reset nahi hua: '+e.message);}
+  const password=await appPrompt('New password (at least 8 characters)');if(password===null)return;
+  try{await apiJSON(`/api/users/${id}`,{method:'PUT',body:JSON.stringify({password})});notify('Password reset.');}
+  catch(e){notify('Could not reset password: '+e.message);}
 }
 async function toggleUserActive(id) {
   const u=userCache.find(x=>x.id===id);if(!u)return;
   try{await apiJSON(`/api/users/${id}`,{method:'PUT',body:JSON.stringify({active:!u.active})});await loadUsers();}
-  catch(e){alert('User status update nahi hua: '+e.message);}
+  catch(e){notify('Could not update user status: '+e.message);}
 }
 async function deleteUser(id) {
-  const u=userCache.find(x=>x.id===id);if(!u||!confirm(`${u.display_name} ka account delete karna hai?`))return;
+  const u=userCache.find(x=>x.id===id);if(!u||!await appConfirm(`${u.display_name} account should be deleted?`))return;
   try{await apiJSON(`/api/users/${id}`,{method:'DELETE'});await loadUsers();}
-  catch(e){alert('User delete nahi hua: '+e.message);}
+  catch(e){notify('Could not delete user: '+e.message);}
 }
 function updateReportCell(index,field,value) {if(currentReportRows[index])currentReportRows[index][field]=String(value??'').trim();}
 async function saveReportToSupabase(){
- if(!cloudMode||!roleAllowed('attendance_edit')){alert('Supervisor/Super Admin permission required.');return;}
+ if(!cloudMode||!roleAllowed('attendance_edit')){notify('Supervisor/Super Admin permission required.');return;}
  const fields=['cin','cout','status','timetable'];
  const changed=(currentReportRows||[]).filter((r,i)=>fields.some(f=>String(r[f]??'')!==String(originalReportRows[i]?.[f]??'')));
- if(!changed.length){alert('No attendance changes to save.');return;}
- if(changed.length>100){alert('Save in smaller batches of up to 100 changes.');return;}
- const reason=prompt(`Reason for applying ${changed.length} corrections to Supabase (audit required):`)||'';
- if(reason.trim().length<3){alert('Save cancelled: reason required.');return;}
- if(!confirm(`Save ${changed.length} corrections to Supabase? Original biometric punches will not change.`))return;
+ if(!changed.length){notify('No attendance changes to save.');return;}
+ if(changed.length>100){notify('Save in smaller batches of up to 100 changes.');return;}
+ const reason=await appPrompt(`Reason for applying ${changed.length} corrections to Supabase (audit required):`)||'';
+ if(reason.trim().length<3){notify('Save cancelled: reason required.');return;}
+ if(!await appConfirm(`Save ${changed.length} corrections to Supabase? Original biometric punches will not change.`))return;
  let ok=0;const failed=[];
  for(const r of changed){
   const status=String(r.status||'').toLowerCase().replace(/\s+/g,'_');
@@ -2252,7 +2386,7 @@ async function saveReportToSupabase(){
      status,shift:r.timetable,action:'update',reason})});ok++;
   }catch(e){failed.push(`${r.name} (${r.date}): ${e.message}`);}
  }
- alert(`${ok} correction(s) saved to Supabase.${failed.length?' Failed: '+failed.slice(0,5).join(' | '):''}`);
+ notify(`${ok} correction(s) saved to Supabase.${failed.length?' Failed: '+failed.slice(0,5).join(' | '):''}`);
  await showReportPreview();await loadRealData(true);
 }
 
@@ -2386,7 +2520,7 @@ async function showReportPreview(options = {}) {
 
 function downloadReportCsv() {
   const rows = currentReportRows || [];
-  if (!rows.length) { alert('Generate a report preview first.'); return; }
+  if (!rows.length) { notify('Generate a report preview first.'); return; }
   const fields = currentReportExportMode === 'department'
     ? ['department','total','present','late','absent','on_leave','attendance_rate']
     : ['id','name','date','timetable','cin','cout','absent','dept','status'];
@@ -2403,8 +2537,8 @@ function downloadReportCsv() {
 
 async function downloadReportExcel() {
   const rows = currentReportRows || [];
-  if (!rows.length) { alert('Generate a report preview first.'); return; }
-  if (currentReportExportMode === 'department') { alert('Use Export CSV for the Department Summary report.'); return; }
+  if (!rows.length) { notify('Generate a report preview first.'); return; }
+  if (currentReportExportMode === 'department') { notify('Use Export CSV for the Department Summary report.'); return; }
   const from = document.getElementById('rptFrom').value || currentDataDate || today();
   const to = document.getElementById('rptTo').value || from;
   try {
@@ -2413,14 +2547,14 @@ async function downloadReportExcel() {
     const blob=await response.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download=`attendpro-report-${from}-to-${to}.xlsx`; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-    alert('Editable Excel report downloaded. You can open and edit it in Excel or LibreOffice. Editing this file does not change the original attendance database.');
-  } catch(e) { alert('Excel export failed: '+e.message); }
+    notify('Editable Excel report downloaded. You can open and edit it in Excel or LibreOffice. Editing this file does not change the original attendance database.');
+  } catch(e) { notify('Excel export failed: '+e.message); }
 }
 
 
 
 function openAddEmployeeForm(){
-  if(!roleAllowed('super_admin')){alert('Only Super Admin can add employees.');return;}
+  if(!roleAllowed('super_admin')){notify('Only Super Admin can add employees.');return;}
   document.getElementById('addEmployeeForm')?.reset();
   document.getElementById('addEmployeeModal')?.classList.add('open');
   document.getElementById('newEmpName')?.focus();
@@ -2437,7 +2571,7 @@ async function saveNewEmployee(ev){
     await loadRealData(true);
     const id=Number(result.employee?.id);
     if(id){const e=employees.find(x=>Number(x.dbId)===id);if(e){empPage=1;document.getElementById('empSearch').value=e.name;document.getElementById('globalEmployeeSearch').value=e.name;renderEmployees();await toggleEmployeeProfile(id);}}
-  }catch(e){alert('Employee save nahi hua: '+e.message);}finally{btn.disabled=false;}
+  }catch(e){notify('Could not save employee: '+e.message);}finally{btn.disabled=false;}
 }
 // ── Restored original Employees table: A–Z names + View popup, no row dropdown. ──
 function renderEmployees(){
@@ -2530,23 +2664,23 @@ async function saveDiscrepancyReview(){
   await apiJSON('/api/discrepancies/resolve',{method:'POST',body:JSON.stringify({employee_id:c.employee_id,work_date:c.work_date,issue_type:c.issue_type,
    resolution:document.getElementById('discResolution').value,note:document.getElementById('discReviewNote').value})});
   closeDiscrepancyModal();await loadDiscrepancies();await loadRealData(true);
- }catch(e){alert('Could not save discrepancy review: '+e.message);}
+ }catch(e){notify('Could not save discrepancy review: '+e.message);}
 }
 async function saveBiometricStatus(){
  const employee_id=Number(document.getElementById('discEmployeeSelect').value);
- if(!employee_id){alert('Please select an employee.');return;}
+ if(!employee_id){notify('Please select an employee.');return;}
  try{
   const result=await apiJSON('/api/discrepancies/biometric-status',{method:'PUT',body:JSON.stringify({employee_id,status:document.getElementById('discEnrollment').value,note:document.getElementById('discEnrollmentNote').value})});
   await loadDiscrepancies();await loadRealData(true);
   const auto=result.auto_rule||{};
   if(auto.warnings&&auto.warnings.length){
-   alert('Biometric status was saved, but the automatic exception could not be applied. Check that Supabase migration 002 has been run. Details: '+auto.warnings[0].error);
+   notify('Biometric status was saved, but the automatic exception could not be applied. Check that Supabase migration 002 has been run. Details: '+auto.warnings[0].error);
   }else if(Number(auto.applied||0)>0){
-   alert('Biometric status saved. The effective attendance was automatically marked On Leave. Original MDB data remains unchanged.');
+   notify('Biometric status saved. The effective attendance was automatically marked On Leave. Original MDB data remains unchanged.');
   }else{
-   alert('Biometric status saved. If a matching original MDB check-in is found for the current work date, AttendPro will apply the automatic On Leave rule. Original MDB data remains unchanged.');
+   notify('Biometric status saved. If a matching original MDB check-in is found for the current work date, AttendPro will apply the automatic On Leave rule. Original MDB data remains unchanged.');
   }
- }catch(e){alert('Could not save biometric status: '+e.message);}
+ }catch(e){notify('Could not save biometric status: '+e.message);}
 }
 // ── REDIS & SCHEDULER MONITOR ───────────────────────────────────────────────
 let redisMonitorTimer=null;

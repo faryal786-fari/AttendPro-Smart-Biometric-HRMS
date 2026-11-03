@@ -447,8 +447,15 @@ if not CLOUD_ENABLED:
 async def protect_cloud_writes(request:Request,call_next):
  if CLOUD_ENABLED and request.method not in ('GET','HEAD','OPTIONS'):
   origin=request.headers.get('origin')
-  if origin and origin.rstrip('/') != os.getenv('ATTENDPRO_PUBLIC_ORIGIN',f'{request.url.scheme}://{request.headers.get("host","")}').rstrip('/'):
-   return Response('Invalid origin',status_code=403)
+  # Vercel rewrites /api/* to Render; the browser's Origin is the Vercel site.
+  # Allow explicitly configured frontends and this API's own origin, not every origin.
+  origin_allowed={f'{request.url.scheme}://{request.headers.get("host","")}'.rstrip('/')}
+  for item in (os.getenv('ATTENDPRO_PUBLIC_ORIGIN',''),os.getenv('ATTENDPRO_ALLOWED_ORIGINS','')):
+   origin_allowed.update(x.strip().rstrip('/') for x in item.split(',') if x.strip())
+  # Default Vercel production domain is exact, so no attacker-controlled wildcard is needed.
+  origin_allowed.add('https://attendpro-smart-biometric-hrms-stat.vercel.app')
+  if origin and origin.rstrip('/') not in origin_allowed:
+   return Response('Origin not permitted for this application.',status_code=403)
  return await call_next(request)
 
 @app.middleware('http')
@@ -905,7 +912,7 @@ async def edit_attendance(request:Request):
         after=dict(db.execute('SELECT * FROM daily WHERE employee_id=? AND work_date=?',(employee_id,work_date)).fetchone())
         db.execute('INSERT INTO attendance_changes(employee_id,work_date,changed_by,action,before_json,after_json) VALUES(?,?,?,?,?,?)',
           (employee_id,work_date,user.get('username','unknown'),action,json.dumps(before,default=str),json.dumps(after,default=str)))
-    return {'success':True,'message':'Attendance update ho gayi. Original MDB ko change nahi kiya gaya.','record':after}
+    return {'success':True,'message':'Attendance updated. Original MDB was not modified.','record':after}
 
 # ── Discrepancies: a separate, audited local review queue. ────────────────────
 # CHECKINOUT does not reveal the biometric modality. Enrollment remains UNKNOWN
@@ -1184,6 +1191,34 @@ async def create_employee(request:Request):
     cloud_or_503(lambda:cloud.upsert('attendpro_employees',record,'id'))
  return {'success':True,'employee':employee,'message':'Employee saved in Supabase.' if CLOUD_ENABLED else 'Employee created in local AttendPro database. Original MDB unchanged.'}
 
+@app.patch('/api/employees/{employee_id}')
+async def update_employee_profile(employee_id:int,request:Request):
+    """Save an HR profile override. Never write an MDB or the original source snapshot."""
+    actor=require_roles(request,'super_admin')
+    body=await request.json()
+    if not isinstance(body,dict):raise HTTPException(400,'Employee profile object required')
+    allowed=('name','department','designation','shift','phone','email')
+    with connection() as db:
+        existing=db.execute('SELECT * FROM employees WHERE id=?',(employee_id,)).fetchone()
+        if not existing:raise HTTPException(404,'Employee not found')
+        values={field:str(body.get(field,existing[field]) or '').strip() for field in allowed}
+        if not 2<=len(values['name'])<=120:raise HTTPException(400,'Name must contain 2 to 120 characters')
+        if any(len(values[field])>180 for field in allowed):raise HTTPException(400,'Profile field is too long')
+        if values['email'] and ('@' not in values['email'] or len(values['email'])>180):
+            raise HTTPException(400,'Invalid email address')
+        if CLOUD_ENABLED:
+            try:
+                cloud.upsert('attendpro_employee_profile_overrides',{
+                    'employee_id':employee_id,**values,'updated_by':actor['auth_id']},'employee_id')
+            except CloudError as exc:
+                raise HTTPException(503,'Supabase profile override could not be saved. Apply migration 003 and check the cloud connection: '+str(exc)) from exc
+        with WRITE_LOCK:
+            db.execute('UPDATE employees SET '+','.join(field+'=?' for field in allowed)+
+                       ',updated_at=CURRENT_TIMESTAMP WHERE id=?',list(values.values())+[employee_id])
+    return {'success':True,'employee_id':employee_id,'profile':values,
+            'saved_to':'supabase' if CLOUD_ENABLED else 'local',
+            'original_mdb_changed':False}
+
 @app.get('/api/employees')
 @redis_cached_endpoint('employees')
 def employees(search:str='',department:str='',page:int=1,per_page:int=30):
@@ -1280,7 +1315,7 @@ async def export_report_excel(request:Request):
     try:
         content=build_report_xlsx(ROOT/'templates'/'attendance_report_template.xlsx',rows,from_day.isoformat(),to_day.isoformat())
     except Exception as exc:
-        raise HTTPException(500,f'Excel report create nahi hui: {exc}') from exc
+        raise HTTPException(500,f'Could not create Excel report: {exc}') from exc
     filename=f'attendpro-report-{from_day.strftime("%Y%m%d")}-{to_day.strftime("%Y%m%d")}.xlsx'
     return StreamingResponse(io.BytesIO(content),media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition':f'attachment; filename="{filename}"','Cache-Control':'no-store'})
@@ -1393,7 +1428,7 @@ def delete_device(device_id:int,request:Request):
  require_roles(request,'super_admin')
  with connection() as db:
   if not db.execute('SELECT id FROM devices WHERE id=?',(device_id,)).fetchone():raise HTTPException(404,'Device not found')
-  if db.execute('SELECT COUNT(*) FROM devices').fetchone()[0]<=1:raise HTTPException(400,'Kam az kam aik device rehna zaroori hai.')
+  if db.execute('SELECT COUNT(*) FROM devices').fetchone()[0]<=1:raise HTTPException(400,'At least one device must remain configured.')
   db.execute('DELETE FROM devices WHERE id=?',(device_id,))
   if active_device_id(db)==device_id:
    nxt=db.execute('SELECT id FROM devices ORDER BY id LIMIT 1').fetchone()
@@ -1455,7 +1490,7 @@ async def create_user(request:Request):
  body=await request.json();username=str(body.get('username') or '').strip()
  display=str(body.get('display_name') or '').strip();role=str(body.get('role') or 'view_only');password=str(body.get('password') or '')
  if CLOUD_ENABLED:
-  if '@' not in username or len(username)>250:raise HTTPException(400,'Enter a valid email address in Username field.')
+  if '@' not in username or len(username)>250:raise HTTPException(400,'Enter a valid email address.')
   if role not in ROLE_LABELS or len(password)<8 or not display:raise HTTPException(400,'Valid name, role, email and password (8+ chars) required')
   try:
    created=cloud.admin_create(username,password)
@@ -1469,13 +1504,13 @@ async def create_user(request:Request):
     raise
   except CloudError as e:raise HTTPException(503,str(e)) from e
   return {'success':True,'user':{'id':profile['id'],'username':username,'display_name':display,'role':role,'active':True}}
- if not re.fullmatch(r'[A-Za-z0-9_.-]{3,40}',username):raise HTTPException(400,'Username 3–40 characters ka ho aur sirf letters, numbers, dot, dash ya underscore ho.')
+ if not re.fullmatch(r'[A-Za-z0-9_.-]{3,40}',username):raise HTTPException(400,'Username must be 3–40 characters and contain only letters, numbers, dots, dashes or underscores.')
  if not display:raise HTTPException(400,'Display name required')
  if role not in ROLE_LABELS:raise HTTPException(400,'Invalid user role')
- if len(password)<8:raise HTTPException(400,'Password kam az kam 8 characters ka hona chahiye.')
+ if len(password)<8:raise HTTPException(400,'Password must contain at least 8 characters.')
  with connection() as db:
   try:cur=db.execute('INSERT INTO app_users(username,display_name,role,password_hash,active) VALUES(?,?,?,?,1)',(username,display,role,hash_password(password)))
-  except sqlite3.IntegrityError:raise HTTPException(409,'Yeh username pehle se mojood hai.')
+  except sqlite3.IntegrityError:raise HTTPException(409,'This username already exists.')
   return {'success':True,'user':dict(db.execute('SELECT id,username,display_name,role,active,created_at FROM app_users WHERE id=?',(cur.lastrowid,)).fetchone())}
 
 @app.put('/api/users/{user_id}')
@@ -1509,11 +1544,11 @@ async def update_user(user_id:int,request:Request):
     updates[key]=value
   if 'active' in body:updates['active']=1 if body['active'] else 0
   if body.get('password'):
-   if len(str(body['password']))<8:raise HTTPException(400,'Password kam az kam 8 characters ka hona chahiye.')
+   if len(str(body['password']))<8:raise HTTPException(400,'Password must contain at least 8 characters.')
    updates['password_hash']=hash_password(str(body['password']))
   if row['role']=='super_admin' and (updates.get('role') not in (None,'super_admin') or updates.get('active')==0):
    remaining=db.execute("SELECT COUNT(*) FROM app_users WHERE role='super_admin' AND active=1 AND id!=?",(user_id,)).fetchone()[0]
-   if remaining==0:raise HTTPException(400,'Kam az kam aik active Super Admin zaroori hai.')
+   if remaining==0:raise HTTPException(400,'At least one active Super Admin is required.')
   if updates:db.execute('UPDATE app_users SET '+','.join(f'{k}=?' for k in updates)+',updated_at=CURRENT_TIMESTAMP WHERE id=?',list(updates.values())+[user_id])
   return {'success':True,'user':dict(db.execute('SELECT id,username,display_name,role,active,created_at FROM app_users WHERE id=?',(user_id,)).fetchone())}
 
@@ -1534,7 +1569,7 @@ def delete_user(user_id:int,request:Request):
   row=db.execute('SELECT role FROM app_users WHERE id=?',(user_id,)).fetchone()
   if not row:raise HTTPException(404,'User not found')
   if row['role']=='super_admin' and db.execute("SELECT COUNT(*) FROM app_users WHERE role='super_admin' AND active=1 AND id!=?",(user_id,)).fetchone()[0]==0:
-   raise HTTPException(400,'Kam az kam aik active Super Admin zaroori hai.')
+   raise HTTPException(400,'At least one active Super Admin is required.')
   db.execute('DELETE FROM app_users WHERE id=?',(user_id,))
  return {'success':True}
 

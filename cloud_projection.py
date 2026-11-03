@@ -160,11 +160,26 @@ def pull_cloud(db,force=False):
     try:
         if not force and time.monotonic()-PULL_LAST < 15:return {'skipped':True}
         employees=cloud.rows('attendpro_employees',{'order':'id.asc'})
+        # Cloud-only HR profile edits take precedence over imported biometric names.
+        try:
+            profile_overrides=cloud.rows('attendpro_employee_profile_overrides')
+        except CloudError as exc:
+            # Keep existing attendance readable before optional migration 003 is applied.
+            if '404' in str(exc) and 'attendpro_employee_profile_overrides' in str(exc):
+                profile_overrides=[]
+            elif 'PGRST205' in str(exc) or 'Could not find the table' in str(exc):
+                profile_overrides=[]
+            else:raise
+        profile_by_id={int(v['employee_id']):v for v in profile_overrides}
         originals=cloud.rows('attendpro_source_daily',{'order':'work_date.asc'})
         overrides=cloud.rows('attendpro_corrections',{'order':'work_date.asc'})
         reviews=cloud.rows('attendpro_discrepancy_reviews')
         for e in employees:
             fields=EMP_COLUMNS;item={k:e.get(k) for k in fields};item['active']=int(bool(item['active']))
+            custom=profile_by_id.get(int(e['id']))
+            if custom:
+                for field in ('name','department','designation','shift','phone','email'):
+                    if field in custom and custom[field] is not None:item[field]=custom[field]
             db.execute('''INSERT INTO employees(id,device_user_id,source_userid,badge_number,name,department,
              designation,shift,phone,email,biometric_enrollment,active)
              VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET
