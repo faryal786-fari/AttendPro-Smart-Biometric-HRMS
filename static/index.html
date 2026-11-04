@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-02-redis-monitor-hotfix-2">
+<meta name="attendpro-build" content="2026-11-03-frontend-reports-and-settings">
 <title>AttendPro — Biometric Attendance System</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -597,6 +597,9 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <option>On Leave</option><option>Early Arrival</option><option>Not Checked In</option>
   </select>
   <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApLiveRecords('csv')">Export CSV</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApLiveRecords('xlsx')">Export Editable Excel</button>
+  <button class="btn btn-primary btn-sm" onclick="reportFromApLive()">Generate Report</button>
 </div>
 <div class="card">
 <div class="tbl-wrap">
@@ -613,7 +616,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
       <th>Early/Late</th>
       <th>Sched. Out</th>
       <th>Actual Out</th>
-      <th>Status</th>
+      <th>Status</th><th>Actions</th>
     </tr>
   </thead>
   <tbody id="liveTbody"></tbody>
@@ -653,6 +656,9 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
   <select class="f-input" id="recStatus" onchange="renderRecords()"><option value="">All Status</option><option value="Present">Present</option><option value="Late">Late</option><option value="Absent">Absent</option><option value="On Leave">On Leave</option><option value="Early Arrival">Early Arrival</option><option value="Not Checked In">Not Checked In</option><option value="Missing Check-in">Missing Check-in</option></select>
   <button class="btn btn-primary btn-sm" onclick="renderRecords()">Apply Filter</button>
   <button class="btn btn-outline btn-sm" onclick="clearRecordFilters()">✕ Clear</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApAttendanceRecords('csv')">Export CSV</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApAttendanceRecords('xlsx')">Export Editable Excel</button>
+  <button class="btn btn-primary btn-sm" onclick="reportFromApRecords()">Generate Report</button>
 </div>
 <div class="card">
 <div class="tbl-wrap">
@@ -686,6 +692,8 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <select class="f-input" id="discState" onchange="loadDiscrepancies()"><option value="open">Needs Review</option><option value="resolved">Reviewed</option><option value="all">All</option></select>
     <button class="btn btn-outline btn-sm" onclick="resetDiscrepancies()">Clear</button>
     <button class="btn btn-outline btn-sm" onclick="loadDiscrepancies()">↻ Refresh</button>
+    <button class="btn btn-outline btn-sm" onclick="exportApDiscrepancies('csv')">Export CSV</button>
+    <button class="btn btn-outline btn-sm" onclick="exportApDiscrepancies('xlsx')">Export Editable Excel</button>
   </div>
   <div class="card" style="margin-bottom:14px">
    <div class="card-hdr"><span class="card-title">Attendance Issues</span><span class="access-help">Supervisor/Admin can review; view-only can inspect.</span></div>
@@ -784,8 +792,16 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
       <div class="form-group"><label class="form-label">Employee (Optional)</label><input type="text" class="form-input" id="rptEmployee" placeholder="Name or AC-No."></div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary" style="flex:1" onclick="showReportPreview()">Preview Report</button>
-        <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-outline" onclick="printApReport()">🖨 Print</button>
       </div>
+      <div class="access-help" style="margin-top:10px">Generate a report using the selected dates. Edit permitted attendance cells in the preview, then choose Save Changes to Supabase. Original biometric data is never changed.</div>
+      <div class="access-actions" style="margin-top:10px">
+        <button type="button" class="btn btn-outline btn-sm" onclick="ensureApReportExport('csv')">Export CSV</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="ensureApReportExport('xlsx')">Export Editable Excel</button>
+        <button type="button" class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="document.getElementById('apEditedCsvInput').click()">Import Edited Excel / CSV</button>
+        <input type="file" id="apEditedCsvInput" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="importApEditedReport(event)">
+      </div>
+      <div class="access-help" style="margin-top:6px">Excel files can be edited offline. To apply edits to Supabase without changing the backend, import the edited XLSX or CSV here, then choose Save Changes to Supabase in the preview.</div>
     </div>
     <div class="card">
       <div class="card-title" style="margin-bottom:12px">Quick Reports</div>
@@ -997,26 +1013,18 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
       <div class="card-title" style="margin-bottom:16px">Shift Configuration</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Shift Name</th><th>Start</th><th>End</th><th>Late After</th><th>Grace Period</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td>Morning Shift</td><td>08:00</td><td>17:00</td><td>08:10</td><td>10 min</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit shift')">Edit</button></td></tr>
-          <tr><td>General Shift</td><td>09:00</td><td>18:00</td><td>09:10</td><td>10 min</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit shift')">Edit</button></td></tr>
-          <tr><td>Evening Shift</td><td>14:00</td><td>23:00</td><td>14:15</td><td>15 min</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit shift')">Edit</button></td></tr>
-        </tbody>
+        <tbody id="apShiftSettingsBody"></tbody>
       </table></div>
-      <button class="btn btn-primary" style="margin-top:12px" onclick="notify('Add shift form')">+ Add Shift</button>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="openApShiftEditor()" data-permission="super_admin">+ Add Shift</button>
+      <p class="access-help" style="margin-top:10px">Shift definitions on this screen are saved in this browser only. They do not alter biometric data, employee assignments or Supabase settings.</p>
     </div>
     <div id="sDepts" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Departments</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Department</th><th>Head</th><th>Employees</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td>Engineering</td><td>Omar Farooq</td><td>32</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
-          <tr><td>Finance</td><td>Zara Sheikh</td><td>18</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
-          <tr><td>HR</td><td>Admin Rehman</td><td>12</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
-          <tr><td>Operations</td><td>Khalid Mirza</td><td>28</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
-          <tr><td>Sales</td><td>Nadia Pervez</td><td>24</td><td><button class="btn btn-outline btn-sm" onclick="notify('Edit dept')">Edit</button></td></tr>
-        </tbody>
+        <tbody id="apDepartmentSettingsBody"></tbody>
       </table></div>
+      <p class="access-help" style="margin-top:10px">Department labels and heads here are browser-only settings. Rename here does not reassign employees or update Supabase.</p>
     </div>
     <div id="sAttendance" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Attendance Rules</div>
@@ -1143,8 +1151,18 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
  <form class="modal-body" id="apEmployeeEditForm" onsubmit="saveEmployeeProfile(event)">
   <div class="access-help" style="margin-bottom:12px">Saved to Supabase only. The original biometric database is never modified.</div>
   <div id="apEmployeeEditFields"></div>
-  <div class="access-actions" style="margin-top:16px"><button class="btn btn-primary" type="submit" id="apProfileSaveButton">Save Profile</button><button class="btn btn-outline" type="button" onclick="closeEmployeeEditor()">Cancel</button></div>
+  <div class="access-actions" style="margin-top:16px"><button class="btn btn-primary" type="submit" id="apProfileSaveButton">Save Profile</button><button class="btn btn-outline" type="button" onclick="reviewFromApEmployeeEditor()">Review / Update Attendance</button><button class="btn btn-outline" type="button" onclick="reportFromApEmployeeEditor()">Generate Report</button><button class="btn btn-outline" type="button" onclick="exportFromApEmployeeEditor()">Export Editable Excel</button><button class="btn btn-outline" type="button" onclick="closeEmployeeEditor()">Cancel</button></div>
  </form></div>
+</div>
+<div class="modal-overlay" id="apConfigEditorModal" onclick="if(event.target===this)closeApConfigEditor()">
+ <div class="modal" role="dialog" aria-modal="true" aria-label="Edit display configuration">
+   <div class="modal-hdr"><div class="modal-title" id="apConfigEditorTitle">Edit Settings</div><button class="close-btn" type="button" onclick="closeApConfigEditor()">×</button></div>
+   <form class="modal-body" id="apConfigEditorForm" onsubmit="saveApConfigEditor(event)">
+     <div id="apConfigEditorFields"></div>
+     <div class="access-help" style="margin:10px 0">These settings are stored in this browser only. The backend, Supabase and the original biometric database remain unchanged.</div>
+     <div class="access-actions"><button class="btn btn-primary" type="submit">Save</button><button class="btn btn-outline" type="button" onclick="closeApConfigEditor()">Cancel</button></div>
+   </form>
+ </div>
 </div>
 <div id="apToastStack" aria-live="polite" aria-atomic="false"></div>
 <section id="apNotifPanel" aria-label="Notifications" role="region"><div class="ap-notif-head"><strong>Notifications</strong><button type="button" class="btn btn-outline btn-sm" onclick="toggleApNotifications(false)">Close</button></div><div id="apNotifItems"></div></section>
@@ -1603,6 +1621,10 @@ function renderLive(){
       <td>${r.schedOut}</td>
       <td style="color:${r.cout==='Pending'?'var(--amber)':r.cout==='—'?'var(--text3)':'var(--text)'}">${r.cout}</td>
       <td>${statusBadge(r.status)}</td>
+      <td><div class="access-actions" style="margin:0;flex-wrap:nowrap">
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();reviewApEmployeeAttendance(${Number(r.dbId)||0})" data-permission="attendance_edit">Review / Update</button>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openApEmployeeReport(${Number(r.dbId)||0})">Report</button>
+      </div></td>
     </tr>`).join('');
   renderPag('livePag',livePage,pages,total,pp,p=>{livePage=p;renderLive()});
 }
@@ -1688,7 +1710,7 @@ function openEmpModal(e){
     ...(e.cin?[['Check-in',e.cin],['Check-out',e.cout||'—'],['Late/Early',e.lateStr||'—']]:[]),
     ...(e.phone?[['Phone',e.phone],['Email',e.email||'—']]:[] )
   ];
-  document.getElementById('modalBody').innerHTML=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div class="emp-av" style="width:48px;height:48px;font-size:16px;background:${e.color||COLORS[0]}">${initials(displayEmployeeName(e.name)||'?')}</div><div><div style="font-size:16px;font-weight:700">${escapeHtml(displayEmployeeName(e.name)||'')}</div><div style="color:var(--text2);font-size:13px">${e.designation||''} · ${e.dept||''}</div></div></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`).join('')}<div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="openEmployeeEditor(${Number(e.dbId)})">Edit Details</button><button class="btn btn-outline btn-sm" onclick="viewEmployeeRecords(${Number(e.dbId)})">View Records</button></div>`;
+  document.getElementById('modalBody').innerHTML=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div class="emp-av" style="width:48px;height:48px;font-size:16px;background:${e.color||COLORS[0]}">${initials(displayEmployeeName(e.name)||'?')}</div><div><div style="font-size:16px;font-weight:700">${escapeHtml(displayEmployeeName(e.name)||'')}</div><div style="color:var(--text2);font-size:13px">${e.designation||''} · ${e.dept||''}</div></div></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`).join('')}<div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="openEmployeeEditor(${Number(e.dbId)})">Edit Details</button><button class="btn btn-outline btn-sm" onclick="viewEmployeeRecords(${Number(e.dbId)})">View Records</button><button class="btn btn-outline btn-sm" onclick="reviewApEmployeeAttendance(${Number(e.dbId)})" data-permission="attendance_edit">Review / Update</button><button class="btn btn-outline btn-sm" onclick="openApEmployeeReport(${Number(e.dbId)})">Generate Report</button><button class="btn btn-outline btn-sm" onclick="exportApEmployeeExcel(${Number(e.dbId)})">Export Editable Excel</button></div>`;
   document.getElementById('empModal').classList.add('open');
 }
 function closeModal(){document.getElementById('empModal').classList.remove('open')}
@@ -1764,7 +1786,7 @@ function switchSettingsTab(el,id){
 // ── REPORT PREVIEW ──────────────────────────────────────────────────────────
 function showReportPreview(){
   const type=document.getElementById('rptType').value;
-  const from=document.getElementById('rptFrom').value||'2026-10-22';
+  const from=document.getElementById('rptFrom').value||currentDataDate||today();
   const to=document.getElementById('rptTo').value||today();
   const rows=liveData.slice(0,20);
   document.getElementById('reportPreview').innerHTML=`
@@ -2149,6 +2171,8 @@ function showScreen(name,el) {
   if(name==='device'){loadAccessSettings();}
   if(name==='settings'){loadAccessSettings();}
   if(name==='users')loadUsers();
+  if(name==='reports'){const day=currentDataDate||today();for(const id of ['rptFrom','rptTo']){const el=document.getElementById(id);if(el&&!el.value)el.value=day;}}
+  if(name==='settings')renderApSettings();
   renderDeviceUI(currentSettings.devices||[],currentSettings.active_device_id);
 }
 function switchSettingsTab(el,id) {
@@ -2288,7 +2312,7 @@ async function renderRecords() {
       <td>${escapeHtml(r.timetable||r.schedIn||'—')}</td><td>${escapeHtml(r.cin||'—')}</td>
       <td>${escapeHtml(r.cout||'—')}</td><td>${escapeHtml(r.dept)}</td>
       <td>${statusBadge(r.status)}</td>
-      <td>${canEdit?`<button class="btn btn-primary btn-sm" onclick='openAttendanceEditorByKey(${JSON.stringify(key)})'>Review / Update</button>`:'<span style="color:var(--text3);font-size:12px">View only</span>'}</td>
+      <td><div class="access-actions" style="margin:0;flex-wrap:nowrap">${canEdit?`<button class="btn btn-primary btn-sm" onclick='openAttendanceEditorByKey(${JSON.stringify(key)})'>Review / Update</button>`:'<span style="color:var(--text3);font-size:12px">View only</span>'}<button class="btn btn-outline btn-sm" onclick="openApEmployeeReport(${Number(r.dbId||r.employee_id)||0})">Report</button></div></td>
     </tr>`;
   }).join('')||'<tr><td colspan="9" style="color:var(--text3);text-align:center;padding:22px">No records match these filters.</td></tr>';
   renderPag('recPag',recPage,pages,total,pp,p=>{recPage=p;renderRecords();});
@@ -2370,6 +2394,7 @@ async function deleteUser(id) {
 function updateReportCell(index,field,value) {if(currentReportRows[index])currentReportRows[index][field]=String(value??'').trim();}
 async function saveReportToSupabase(){
  if(!cloudMode||!roleAllowed('attendance_edit')){notify('Supervisor/Super Admin permission required.');return;}
+ if(currentReportExportMode!=='attendance'){notify('Generate a detailed attendance report to save corrections. Summary tables are read-only.','warning');return;}
  const fields=['cin','cout','status','timetable'];
  const changed=(currentReportRows||[]).filter((r,i)=>fields.some(f=>String(r[f]??'')!==String(originalReportRows[i]?.[f]??'')));
  if(!changed.length){notify('No attendance changes to save.');return;}
@@ -2435,6 +2460,10 @@ async function showReportPreview(options = {}) {
   const from = options.from || document.getElementById('rptFrom').value || currentDataDate || document.getElementById('recFrom').value || today();
   const to = options.to || document.getElementById('rptTo').value || from;
   const preview = document.getElementById('reportPreview');
+  if(from>to){notify('From Date must be on or before To Date.','error');return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to)){notify('Select valid report dates.','error');return;}
+  if((Date.parse(to)-Date.parse(from))/86400000>366){notify('Select a date range of 366 days or less.','error');return;}
+  document.getElementById('rptFrom').value=from;document.getElementById('rptTo').value=to;
   currentReportRows = [];
   currentReportExportMode = 'attendance';
   preview.innerHTML = '<div style="text-align:center;padding:42px;color:var(--text2)">Loading report data…</div>';
@@ -2445,6 +2474,7 @@ async function showReportPreview(options = {}) {
   if (search) q.set('search',search);
   if (type === 'Absent Employees') q.set('status','absent');
   if (type === 'Late Arrivals' || quickKind === 'late') q.set('status','late');
+  if(options.status && !['Absent Employees','Late Arrivals'].includes(type))q.set('status',String(options.status).trim().toLowerCase().replaceAll(' ','_'));
 
   let sourceRows = [];
   try {
@@ -2472,10 +2502,28 @@ async function showReportPreview(options = {}) {
   if (quickKind === 'missing_checkout' || type === 'Missing Check-outs') {
     sourceRows = sourceRows.filter(r => Boolean(r.cin) && !r.cout);
   }
+  if(type === 'Missing Check-ins')sourceRows=sourceRows.filter(r => !r.cin);
+  if(type === 'Absent Employees')sourceRows=sourceRows.filter(r => r.status==='Absent');
+  if(type === 'Late Arrivals')sourceRows=sourceRows.filter(r => r.status==='Late');
 
   let rows = sourceRows;
   let fields = [['id','AC-No.'],['name','Name'],['date','Date'],['timetable','Timetable'],['cin','Clock In'],['cout','Clock Out'],['absent','Absent'],['dept','Department'],['status','Status']];
   currentReportExportMode = 'attendance';
+  if (type === 'Monthly Attendance Summary') {
+    const groups=new Map();
+    sourceRows.forEach(r=>{
+      const k=String(r.employee_id)+'|'+r.name;
+      if(!groups.has(k))groups.set(k,{id:r.id,name:r.name,dept:r.dept,total:0,present:0,late:0,absent:0,on_leave:0});
+      const g=groups.get(k);g.total++;
+      if(r.status==='Present'||r.status==='Early Arrival')g.present++;
+      else if(r.status==='Late')g.late++;
+      else if(r.status==='Absent')g.absent++;
+      else if(r.status==='On Leave')g.on_leave++;
+    });
+    rows=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name));
+    fields=[['id','AC-No.'],['name','Name'],['dept','Department'],['total','Days'],['present','Present'],['late','Late'],['absent','Absent'],['on_leave','On Leave']];
+    currentReportExportMode='monthly';
+  }
   if (quickKind === 'department' || type === 'Department-wise Attendance') {
     const groups = new Map();
     sourceRows.forEach(r => {
@@ -2497,19 +2545,22 @@ async function showReportPreview(options = {}) {
   currentReportRows = rows;
   originalReportRows = JSON.parse(JSON.stringify(rows));
   const shown = rows.slice(0,100);
-  const isDepartmentSummary = currentReportExportMode === 'department';
+  const isDepartmentSummary = currentReportExportMode === 'department' || currentReportExportMode === 'monthly';
   const editable = !isDepartmentSummary && roleAllowed('attendance_edit');
+  if (!shown.length) notify(`No attendance data found for ${from} to ${to}. Select dates with imported biometric records.`, 'warning');
   const tableRows = shown.map((r,index)=>`<tr>${fields.map(([field])=>`<td ${editable && (!cloudMode || ['cin','cout','status','timetable'].includes(field)) ? `contenteditable="true" spellcheck="false" oninput="updateReportCell(${index},'${field}',this.innerText)"` : ''} style="${field==='id'?'font-family:monospace;font-size:11px;':''}" title="${editable?'Editable report copy; original DB will not change':''}">${escapeHtml(r[field] ?? '')}</td>`).join('')}</tr>`).join('');
   const presentCount = sourceRows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length;
   const lateCount = sourceRows.filter(r=>r.status==='Late').length;
   const absentCount = sourceRows.filter(r=>r.status==='Absent').length;
-  const summary = isDepartmentSummary
-    ? `<span>Departments: <strong>${rows.length}</strong></span><span>Employees: <strong>${sourceRows.length}</strong></span><span>Present: <strong>${presentCount}</strong></span><span>Late: <strong>${lateCount}</strong></span><span>Absent: <strong>${absentCount}</strong></span>`
+  const summary = currentReportExportMode==='monthly'
+    ? `<span>Employees: <strong>${rows.length}</strong></span><span>Attendance days: <strong>${sourceRows.length}</strong></span><span>Present: <strong>${presentCount}</strong></span><span>Late: <strong>${lateCount}</strong></span><span>Absent: <strong>${absentCount}</strong></span>`
+    : currentReportExportMode==='department'
+    ? `<span>Departments: <strong>${rows.length}</strong></span><span>Attendance rows: <strong>${sourceRows.length}</strong></span><span>Present: <strong>${presentCount}</strong></span><span>Late: <strong>${lateCount}</strong></span><span>Absent: <strong>${absentCount}</strong></span>`
     : `<span>Records: <strong>${rows.length}</strong></span><span>Present: <strong>${presentCount}</strong></span><span>Late: <strong>${lateCount}</strong></span><span>Absent: <strong>${absentCount}</strong></span>${(quickKind==='missing_checkout'||type==='Missing Check-outs')?`<span>Missing Check-outs: <strong>${rows.length}</strong></span>`:''}`;
   const help = editable
     ? (cloudMode ? 'Edit Clock In, Clock Out, Timetable or Status, then click Save to Supabase. Original biometric data stays unchanged.' : 'Preview cells can be edited for export only. Local source database will not change.')
     : 'View-only mode: reports can be viewed, exported and printed.';
-  preview.innerHTML = `<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">Police Training Collage — Biometric Attendance</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div><div class="access-help" style="text-align:center">${help}</div></div><div class="tbl-wrap"><table><thead><tr>${fields.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${tableRows || `<tr><td colspan="${fields.length}" style="text-align:center;padding:22px">No records for the selected filters.</td></tr>`}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px">${summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button>${!isDepartmentSummary?'<button class="btn btn-outline btn-sm" onclick="downloadReportExcel()">📗 Export / Open Editable Excel</button>':''}${editable&&cloudMode?'<button class="btn btn-primary btn-sm" onclick="saveReportToSupabase()">☁ Save Changes to Supabase</button>':''}</div>`;
+  preview.innerHTML = `<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">Police Training Collage — Biometric Attendance</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div><div class="access-help" style="text-align:center">${help}</div></div><div class="tbl-wrap"><table><thead><tr>${fields.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${tableRows || `<tr><td colspan="${fields.length}" style="text-align:center;padding:22px">No records for the selected filters.</td></tr>`}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px">${summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button><button class="btn btn-outline btn-sm" onclick="downloadReportExcel()">📗 Export Editable Excel</button>${editable&&cloudMode?'<button class="btn btn-primary btn-sm" onclick="saveReportToSupabase()">☁ Save Changes to Supabase</button>':''}</div>`;
 
   document.getElementById('printTitle').textContent = type;
   document.getElementById('printMeta').textContent = `Period: ${from} to ${to} · Generated: ${new Date().toLocaleString()}`;
@@ -2523,11 +2574,13 @@ function downloadReportCsv() {
   if (!rows.length) { notify('Generate a report preview first.'); return; }
   const fields = currentReportExportMode === 'department'
     ? ['department','total','present','late','absent','on_leave','attendance_rate']
+    : currentReportExportMode==='monthly' ? ['id','name','dept','total','present','late','absent','on_leave']
     : ['id','name','date','timetable','cin','cout','absent','dept','status'];
   const headers = currentReportExportMode === 'department'
     ? ['Department','Employees','Present','Late','Absent','On Leave','Attendance Rate']
+    : currentReportExportMode==='monthly' ? ['AC-No.','Name','Department','Days','Present','Late','Absent','On Leave']
     : ['AC-No.','Name','Date','Timetable','Clock In','Clock Out','Absent','Department','Status'];
-  const quote = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+  const quote = v => {const t=String(v??'');return '"'+( /^[=+@\-\t\r]/.test(t)?'\u0027'+t:t ).replace(/"/g,'""')+'"';};
   const csv = [headers.join(','), ...rows.map(r=>fields.map(k=>quote(r[k])).join(','))].join('\r\n');
   const blob = new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob); const a = document.createElement('a');
@@ -2538,11 +2591,12 @@ function downloadReportCsv() {
 async function downloadReportExcel() {
   const rows = currentReportRows || [];
   if (!rows.length) { notify('Generate a report preview first.'); return; }
-  if (currentReportExportMode === 'department') { notify('Use Export CSV for the Department Summary report.'); return; }
+  if (['department','monthly'].includes(currentReportExportMode)) { downloadApGridXlsx('AttendPro '+currentReportExportMode+' Summary', getApReportGridColumns(), rows, 'attendpro-'+currentReportExportMode+'-summary.xlsx'); return; }
   const from = document.getElementById('rptFrom').value || currentDataDate || today();
   const to = document.getElementById('rptTo').value || from;
   try {
-    const response = await fetch(`${API}/api/reports/excel`,{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});
+    let response = await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});
+    if(response.status===401 && cloudMode){const refresh=await fetch(`${API}/api/auth/refresh`,{method:'POST',credentials:'same-origin'});if(refresh.ok)response=await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});}
     if (!response.ok) { let msg=`${response.status} ${response.statusText}`; try { const j=await response.json(); msg=j.detail||msg; } catch(_) {} throw new Error(msg); }
     const blob=await response.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download=`attendpro-report-${from}-to-${to}.xlsx`; document.body.appendChild(a); a.click(); a.remove();
@@ -2850,6 +2904,356 @@ showScreen=function(name,el){
 initTheme();
 initSidebar();
 setTimeout(()=>initAuth(),100);
+
+/* Frontend-only incremental attendance report and settings tools */
+// Keep report creation and Excel/CSV downloads on the frontend. No new backend APIs.
+const apSafeCell = value => {
+  const v=String(value??'');
+  return /^[=+@\-\t\r]/.test(v) ? "'"+v : v;
+};
+function apFileDownload(content, filename, mime) {
+  const blob=content instanceof Blob?content:new Blob([content],{type:mime||'application/octet-stream'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+function apDownloadGridCsv(columns, rows, filename) {
+  const quote=v=>'"'+apSafeCell(v).replaceAll('"','""')+'"';
+  const csv=[columns.map(x=>quote(x[1])).join(','),...rows.map(row=>columns.map(([field])=>quote(row[field])).join(','))].join('\r\n');
+  apFileDownload('\ufeff'+csv,filename,'text/csv;charset=utf-8');
+}
+function apExcelCol(index) {
+  let s='',n=index+1;while(n){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;
+}
+const apXmlEscape=value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'');
+function apZipArchive(items){
+ const encoder=new TextEncoder();let offset=0;const locals=[],central=[];
+ const crcTable=apZipArchive.crc||(apZipArchive.crc=Array.from({length:256},(_,i)=>{let n=i;for(let j=0;j<8;j++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;}));
+ const crc32=data=>{let crc=0xffffffff;for(const byte of data)crc=crcTable[(crc^byte)&255]^(crc>>>8);return (crc^0xffffffff)>>>0;};
+ function header(bytes){const dv=new DataView(bytes.buffer);return dv;}
+ for(const [name,content] of Object.entries(items)){
+   const filename=encoder.encode(name),body=encoder.encode(content),crc=crc32(body),size=body.length;
+   const local=new Uint8Array(30+filename.length+size),a=header(local);
+   a.setUint32(0,0x04034b50,true);a.setUint16(4,20,true);a.setUint16(6,0,true);
+   a.setUint16(8,0,true);a.setUint32(14,crc,true);a.setUint32(18,size,true);a.setUint32(22,size,true);a.setUint16(26,filename.length,true);
+   local.set(filename,30);local.set(body,30+filename.length);locals.push(local);
+   const c=new Uint8Array(46+filename.length),b=header(c);
+   b.setUint32(0,0x02014b50,true);b.setUint16(4,20,true);b.setUint16(6,20,true);
+   b.setUint16(8,0,true);b.setUint16(10,0,true);b.setUint32(16,crc,true);
+   b.setUint32(20,size,true);b.setUint32(24,size,true);b.setUint16(28,filename.length,true);
+   b.setUint32(42,offset,true);c.set(filename,46);central.push(c);
+   offset+=local.length;
+ }
+ const centralSize=central.reduce((n,b)=>n+b.length,0),end=new Uint8Array(22),z=header(end);
+ z.setUint32(0,0x06054b50,true);z.setUint16(8,central.length,true);z.setUint16(10,central.length,true);
+ z.setUint32(12,centralSize,true);z.setUint32(16,offset,true);
+ return new Blob([...locals,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function downloadApGridXlsx(title,columns,rows,filename){
+  if(!rows.length){notify('No records are available to export.','warning');return;}
+  if(rows.length>20000){notify('Limit the export to 20,000 rows per workbook.','warning');return;}
+  const a=columns.length,last=apExcelCol(a-1),xmlCell=(col,row,value,style=0)=>`<c r="${apExcelCol(col)}${row}" t="inlineStr" s="${style}"><is><t xml:space="preserve">${apXmlEscape(value)}</t></is></c>`;
+  const colDefs=columns.map(([key,label],i)=>{
+    const sample=rows.slice(0,80).reduce((max,r)=>Math.max(max,String(r[key]??'').length),String(label).length);
+    return `<col min="${i+1}" max="${i+1}" width="${Math.min(44,Math.max(13,sample+2))}" customWidth="1"/>`;
+  }).join('');
+  const header=`<row r="2">${columns.map(([,label],i)=>xmlCell(i,2,label,2)).join('')}</row>`;
+  const data=rows.map((r,index)=>`<row r="${index+3}">${columns.map(([field],i)=>xmlCell(i,index+3,apSafeCell(r[field]),3)).join('')}</row>`).join('');
+  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="17"/><cols>${colDefs}</cols><sheetData><row r="1" ht="31" customHeight="1">${xmlCell(0,1,title,1)}</row>${header}${data}</sheetData><mergeCells count="1"><mergeCell ref="A1:${last}1"/></mergeCells><autoFilter ref="A2:${last}${rows.length+2}"/><pageMargins left="0.5" right="0.5" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>`;
+  const files={
+    '[Content_Types].xml':`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`,
+    '_rels/.rels':`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml':`<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Report" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels':`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
+    'xl/styles.xml':`<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF17325C"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top/><bottom style="thin"><color rgb="FFDDE5F0"/></bottom></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+    'xl/worksheets/sheet1.xml':sheet
+  };
+  apFileDownload(apZipArchive(files),filename,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  notify('Editable Excel workbook downloaded. Changes to the downloaded file are not automatically uploaded.','success');
+}
+const apAttendanceColumns=[['id','AC-No.'],['name','Name'],['date','Date'],['timetable','Timetable'],['cin','Clock In'],['cout','Clock Out'],['absent','Absent'],['dept','Department'],['status','Status']];
+function getApReportGridColumns(){
+ if(currentReportExportMode==='department')return [['department','Department'],['total','Employees'],['present','Present'],['late','Late'],['absent','Absent'],['on_leave','On Leave'],['attendance_rate','Attendance Rate']];
+ if(currentReportExportMode==='monthly')return [['id','AC-No.'],['name','Name'],['dept','Department'],['total','Days'],['present','Present'],['late','Late'],['absent','Absent'],['on_leave','On Leave']];
+ return apAttendanceColumns;
+}
+function apNormalizeRecord(r){
+ return {id:r.id||r.badge_number||'',name:r.name||'',date:r.date||r.work_date||'',timetable:r.timetable||r.shift||'',cin:r.cin==='—'?'':r.cin||r.clock_in||'',cout:['—','Pending'].includes(r.cout)?'':r.cout||r.clock_out||'',absent:r.status==='Absent'?'True':'',dept:r.dept||r.department||'',status:r.status||''};
+}
+function apSelectLiveRows(){
+ const q=(document.getElementById('liveSearch')?.value||'').toLowerCase(),dept=document.getElementById('liveDept')?.value||'',shift=document.getElementById('liveShift')?.value||'',status=document.getElementById('liveStatus')?.value||'';
+ return liveData.filter(r=>(!q||String(r.name).toLowerCase().includes(q)||String(r.id).toLowerCase().includes(q))&&(!dept||r.dept===dept)&&(!shift||r.shift===shift)&&(!status||r.status===status)).map(r=>apNormalizeRecord({...r,date:currentDataDate,timetable:r.shift}));
+}
+function exportApLiveRecords(format){
+ const rows=apSelectLiveRows();if(!rows.length){notify('No live attendance rows match the current filters.','warning');return;}
+ if(format==='xlsx')downloadApGridXlsx('AttendPro Live Attendance · '+(currentDataDate||today()),apAttendanceColumns,rows,'attendpro-live-attendance-'+(currentDataDate||today())+'.xlsx');
+ else apDownloadGridCsv(apAttendanceColumns,rows,'attendpro-live-attendance-'+(currentDataDate||today())+'.csv');
+}
+function apSelectHistoryRows(){
+ const from=document.getElementById('recFrom')?.value||'',to=document.getElementById('recTo')?.value||'',dept=document.getElementById('recDept')?.value||'',status=document.getElementById('recStatus')?.value||'',q=(document.getElementById('recSearch')?.value||'').toLowerCase();
+ return recData.filter(r=>(!from||r.date>=from)&&(!to||r.date<=to)&&(!dept||r.dept===dept)&&(!status||r.status===status)&&(!employeeRecordFilterId||String(r.dbId||r.employee_id)===String(employeeRecordFilterId))&&(!q||String(r.name).toLowerCase().includes(q)||String(r.id).toLowerCase().includes(q)||!!employeeRecordFilterId)).map(apNormalizeRecord);
+}
+async function exportApAttendanceRecords(format){
+ await loadHistoryForRange(false);
+ const rows=apSelectHistoryRows();if(!rows.length){notify('No attendance records match these filters.','warning');return;}
+ const tag=document.getElementById('recFrom')?.value||currentDataDate||today();
+ if(format==='xlsx')downloadApGridXlsx('AttendPro Attendance Records',apAttendanceColumns,rows,'attendpro-attendance-'+tag+'.xlsx');
+ else apDownloadGridCsv(apAttendanceColumns,rows,'attendpro-attendance-'+tag+'.csv');
+}
+function apReportField(id,value){const el=document.getElementById(id);if(el)el.value=value??'';}
+async function openApEmployeeReport(id){
+ const employee=employees.find(e=>Number(e.dbId)===Number(id));if(!employee){notify('Employee not found.','error');return false;}
+ closeModal();closeEmployeeEditor();
+ const to=currentDataDate||today(),from=addDaysToIso(to,-30);
+ apReportField('rptType','Employee Attendance History');apReportField('rptFrom',from);apReportField('rptTo',to);
+ apReportField('rptEmployee',String(employee.id));apReportField('rptDept','');
+ showScreen('reports',document.querySelector('[data-screen=reports]'));
+ await showReportPreview();return currentReportRows.length>0;
+}
+async function exportApEmployeeExcel(id){if(await openApEmployeeReport(id))await downloadReportExcel();}
+async function reviewApEmployeeAttendance(id){
+ if(!roleAllowed('attendance_edit')){notify('Supervisor or Super Admin access is required to edit attendance.','error');return;}
+ await viewEmployeeRecords(id);
+ const row=recData.filter(r=>Number(r.dbId||r.employee_id)===Number(id)).sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0];
+ if(row)openAttendanceEditorByKey(recordKey(row));
+ else notify('No attendance record was found for this employee in the selected range.','warning');
+}
+function reviewFromApEmployeeEditor(){const id=apEditingEmployeeId;closeEmployeeEditor();if(id)reviewApEmployeeAttendance(id);}
+function reportFromApEmployeeEditor(){const id=apEditingEmployeeId;closeEmployeeEditor();if(id)openApEmployeeReport(id);}
+function exportFromApEmployeeEditor(){const id=apEditingEmployeeId;closeEmployeeEditor();if(id)exportApEmployeeExcel(id);}
+async function reportFromApRecords(){
+ apReportField('rptType',document.getElementById('recStatus')?.value==='Late'?'Late Arrivals':document.getElementById('recStatus')?.value==='Absent'?'Absent Employees':'Daily Attendance Register');
+ apReportField('rptFrom',document.getElementById('recFrom')?.value||currentDataDate||today());
+ apReportField('rptTo',document.getElementById('recTo')?.value||currentDataDate||today());
+ apReportField('rptDept',document.getElementById('recDept')?.value||'');apReportField('rptEmployee',document.getElementById('recSearch')?.value||'');
+ showScreen('reports',document.querySelector('[data-screen=reports]'));await showReportPreview({status:document.getElementById('recStatus')?.value||''});
+}
+async function reportFromApLive(){
+ apReportField('rptType',document.getElementById('liveStatus')?.value==='Late'?'Late Arrivals':document.getElementById('liveStatus')?.value==='Absent'?'Absent Employees':'Daily Attendance Register');
+ apReportField('rptFrom',currentDataDate||today());apReportField('rptTo',currentDataDate||today());
+ apReportField('rptDept',document.getElementById('liveDept')?.value||'');apReportField('rptEmployee',document.getElementById('liveSearch')?.value||'');
+ showScreen('reports',document.querySelector('[data-screen=reports]'));await showReportPreview({status:document.getElementById('liveStatus')?.value||''});
+}
+async function ensureApReportExport(format){
+ if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}
+ if(format==='xlsx')await downloadReportExcel();else downloadReportCsv();
+}
+async function printApReport(){if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}window.print();}
+const apDiscColumns=[['work_date','Date'],['name','Employee'],['badge_number','AC-No.'],['department','Department'],['clock_in','Clock In'],['clock_out','Clock Out'],['issue_label','Issue'],['biometric_enrollment','Biometric Setup'],['status','Attendance'],['review_state','Review State'],['resolution','Resolution'],['review_note','Review Note'],['reviewed_by','Reviewed By'],['reviewed_at','Reviewed At']];
+async function apAllDiscrepancies(){
+ const q=new URLSearchParams({state:document.getElementById('discState')?.value||'all',page:'1',per_page:'50'});
+ for(const [param,id] of [['from_date','discFrom'],['to_date','discTo'],['issue','discIssue'],['search','discSearch']]){
+   const v=document.getElementById(id)?.value?.trim();if(v)q.set(param,v);
+ }
+ const result=await apiJSON('/api/discrepancies?'+q);const items=[...(result.items||[])],total=Number(result.total||items.length);
+ for(let page=2;items.length<total&&page<=200;page++){
+   q.set('page',String(page));const next=await apiJSON('/api/discrepancies?'+q);if(!next.items?.length)break;items.push(...next.items);
+ }
+ return items;
+}
+async function exportApDiscrepancies(format){
+ try{
+  const rows=await apAllDiscrepancies();if(!rows.length){notify('No discrepancies match the current filters.','warning');return;}
+  const filename='attendpro-discrepancies-'+(document.getElementById('discFrom')?.value||currentDataDate||today());
+  if(format==='xlsx')downloadApGridXlsx('AttendPro Discrepancies',apDiscColumns,rows,filename+'.xlsx');
+  else apDownloadGridCsv(apDiscColumns,rows,filename+'.csv');
+ }catch(e){notify('Could not export discrepancies: '+e.message,'error');}
+}
+// CSV can be edited in Excel and imported back into the displayed report; existing
+// attendance correction API and its audit/permission rules perform the final save.
+function apParseCsv(text){
+ const out=[];let row=[],cell='',quotes=false;const content=text.replace(/^\ufeff/,'');
+ for(let i=0;i<content.length;i++){
+  const ch=content[i];if(quotes){if(ch==='"'&&content[i+1]==='"'){cell+='"';i++;}else if(ch==='"')quotes=false;else cell+=ch;}
+  else if(ch==='"')quotes=true;else if(ch===','){row.push(cell);cell='';}
+  else if(ch==='\n'){row.push(cell.replace(/\r$/,''));out.push(row);row=[];cell='';}else cell+=ch;
+ }
+ if(quotes)throw new Error('The CSV file has an unclosed quoted field.');
+ if(cell.length||row.length){row.push(cell.replace(/\r$/,''));out.push(row);}return out;
+}
+async function importApEditedCsv(event){
+ const input=event.target, file=input.files?.[0];input.value='';if(!file)return;
+ if(!roleAllowed('attendance_edit')){notify('You cannot edit attendance.','error');return;}
+ if(!currentReportRows.length||currentReportExportMode!=='attendance'){notify('Preview a detailed attendance report before importing an edited CSV.','warning');return;}
+ try{
+  const data=apParseCsv(await file.text());if(data.length<2)throw new Error('The CSV file has no attendance rows.');
+  const keys=data[0].map(x=>x.trim().toLowerCase());const get=(row,name)=>row[keys.indexOf(name)]?.trim()||'';
+  for(const field of ['ac-no.','date','clock in','clock out','status'])if(!keys.includes(field))throw new Error('Missing required column: '+field);
+  const lookup=new Map();currentReportRows.forEach((r,index)=>{const key=String(r.id)+'|'+String(r.date);if(!lookup.has(key))lookup.set(key,index);else lookup.set(key,-1);});
+  const allowed=new Set(['present','late','absent','on leave','early arrival','not checked in']);let updates=0,skipped=0;
+  for(const row of data.slice(1)){
+   const key=get(row,'ac-no.')+'|'+get(row,'date'),index=lookup.get(key);
+   if(index===undefined||index<0){skipped++;continue;}
+   const status=get(row,'status'),cin=get(row,'clock in'),cout=get(row,'clock out');
+   if(!allowed.has(status.toLowerCase())||![cin,cout].every(v=>!v||/^([01]\d|2[0-3]):[0-5]\d$/.test(v))){skipped++;continue;}
+   const target=currentReportRows[index];target.cin=cin;target.cout=cout;target.status=status;
+   if(keys.includes('timetable'))target.timetable=get(row,'timetable');updates++;
+  }
+  const tableRows=document.querySelectorAll('#reportPreview tbody tr');
+  currentReportRows.slice(0,100).forEach((r,index)=>{const tr=tableRows[index];if(!tr||tr.cells.length<9)return;
+    for(const [cellIndex,field] of [[3,'timetable'],[4,'cin'],[5,'cout'],[8,'status']])tr.cells[cellIndex].textContent=r[field]||'';
+  });
+  notify(`Imported ${updates} edited rows. ${skipped} unmatched/invalid rows skipped. Click Save Changes to Supabase to apply corrections.`,updates?'success':'warning');
+ }catch(e){notify('CSV import failed: '+e.message,'error');}
+}
+// Shift and department edit controls are deliberately local-only: the existing
+// backend has no CRUD APIs or Supabase tables for these configuration entities.
+const apStorageKey='attendpro:settings-browser-only:v1';
+let apLocalConfig={shifts:[
+  {name:'Morning Shift',start:'08:00',end:'17:00',late_after:'08:10',grace:10},
+  {name:'General Shift',start:'09:00',end:'18:00',late_after:'09:10',grace:10},
+  {name:'Evening Shift',start:'14:00',end:'23:00',late_after:'14:15',grace:15}
+], departments:[
+ {name:'Engineering',head:'Omar Farooq'}, {name:'Finance',head:'Zara Sheikh'},
+ {name:'HR',head:'Admin Rehman'}, {name:'Operations',head:'Khalid Mirza'},
+ {name:'Sales',head:'Nadia Pervez'}
+]};
+try{
+ const stored=JSON.parse(localStorage.getItem(apStorageKey)||'null');
+ if(stored&&Array.isArray(stored.shifts)&&Array.isArray(stored.departments))apLocalConfig=stored;
+}catch(_){}
+let apCurrentConfigEditor=null;
+function renderApSettings(){
+ const shifts=document.getElementById('apShiftSettingsBody');
+ if(shifts)shifts.innerHTML=apLocalConfig.shifts.map((sh,index)=>`<tr><td>${escapeHtml(sh.name)}</td><td>${escapeHtml(sh.start)}</td><td>${escapeHtml(sh.end)}</td><td>${escapeHtml(sh.late_after)}</td><td>${Number(sh.grace)||0} min</td><td><button type="button" class="btn btn-outline btn-sm" data-permission="super_admin" onclick="openApShiftEditor(${index})">Edit</button></td></tr>`).join('');
+ const depts=document.getElementById('apDepartmentSettingsBody');
+ if(depts)depts.innerHTML=apLocalConfig.departments.map((d,index)=>`<tr><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.head)}</td><td>${employees.filter(e=>e.dept===d.name).length}</td><td><button type="button" class="btn btn-outline btn-sm" data-permission="super_admin" onclick="openApDepartmentEditor(${index})">Edit</button></td></tr>`).join('');
+ applyPermissions();
+}
+function openApShiftEditor(index=-1){
+ if(!roleAllowed('super_admin')){notify('Only Super Admin can change shift settings.','error');return;}
+ apCurrentConfigEditor={type:'shift',index};const sh=apLocalConfig.shifts[index]||{name:'',start:'09:00',end:'17:00',late_after:'09:10',grace:10};
+ document.getElementById('apConfigEditorTitle').textContent=index<0?'Add Shift':'Edit Shift';
+ document.getElementById('apConfigEditorFields').innerHTML=[['name','Shift Name','text'],['start','Start','time'],['end','End','time'],['late_after','Late After','time'],['grace','Grace Period (minutes)','number']].map(([key,label,type])=>`<div class="form-group"><label class="form-label">${escapeHtml(label)}<input class="form-input" name="${key}" type="${type}" ${key==='grace'?'min="0" max="120"':''} required value="${escapeHtml(sh[key])}"></label></div>`).join('');
+ document.getElementById('apConfigEditorModal').classList.add('open');
+}
+function openApDepartmentEditor(index){
+ if(!roleAllowed('super_admin')){notify('Only Super Admin can change department settings.','error');return;}
+ apCurrentConfigEditor={type:'department',index};const dep=apLocalConfig.departments[index];if(!dep)return;
+ document.getElementById('apConfigEditorTitle').textContent='Edit Department';
+ document.getElementById('apConfigEditorFields').innerHTML=[['name','Department Name'],['head','Department Head']].map(([key,label])=>`<div class="form-group"><label class="form-label">${escapeHtml(label)}<input class="form-input" name="${key}" required maxlength="100" value="${escapeHtml(dep[key])}"></label></div>`).join('');
+ document.getElementById('apConfigEditorModal').classList.add('open');
+}
+function closeApConfigEditor(){document.getElementById('apConfigEditorModal')?.classList.remove('open');apCurrentConfigEditor=null;}
+function saveApConfigEditor(event){
+ event.preventDefault();if(!apCurrentConfigEditor)return;
+ const {type,index}=apCurrentConfigEditor,body=Object.fromEntries(new FormData(event.target));
+ if(type==='shift'){
+   const name=body.name.trim(),grace=Number(body.grace);
+   if(!name||!Number.isFinite(grace)||grace<0||grace>120){notify('Enter a valid shift name and grace period (0–120).','error');return;}
+   if(apLocalConfig.shifts.some((s,i)=>i!==index&&s.name.toLowerCase()===name.toLowerCase())){notify('A shift with this name already exists.','error');return;}
+   const row={name,start:body.start,end:body.end,late_after:body.late_after,grace};
+   if(index>=0)apLocalConfig.shifts[index]=row;else apLocalConfig.shifts.push(row);
+ }else{
+   const name=body.name.trim(),head=body.head.trim();if(!name||!head){notify('Department name and head are required.','error');return;}
+   apLocalConfig.departments[index]={name,head};
+ }
+ try{localStorage.setItem(apStorageKey,JSON.stringify(apLocalConfig));notify('Settings saved in this browser only. Supabase and biometric data were not changed.','success');}
+ catch(_){notify('Settings updated for this session; browser storage is unavailable.','warning');}
+ closeApConfigEditor();renderApSettings();
+}
+// Initialize forms without modifying existing app initialization or backend.
+document.addEventListener('DOMContentLoaded',()=>{
+ renderApSettings();
+ const select=document.getElementById('rptType');
+ if(select)select.addEventListener('change',()=>{
+  const ref=currentDataDate||today();
+  if(select.value==='Monthly Attendance Summary'){
+   const first=ref.slice(0,7)+'-01';apReportField('rptFrom',first);apReportField('rptTo',ref);
+  }
+ });
+});
+
+/* Browser-side XLSX/CSV attendance correction import */
+// Read standard XLSX files directly in modern browsers, without adding a server API.
+// Only attendance fields are applied, and the existing Save to Supabase action audits edits.
+async function apReadXlsxSheets(file){
+ if(file.size>20*1024*1024)throw new Error('Excel file exceeds 20 MB. Export a smaller date range.');
+ const raw=new Uint8Array(await file.arrayBuffer()),dv=new DataView(raw.buffer,raw.byteOffset,raw.byteLength);
+ let eocd=-1;for(let p=raw.length-22;p>=Math.max(0,raw.length-65557);p--){if(dv.getUint32(p,true)===0x06054b50){eocd=p;break;}}
+ if(eocd<0)throw new Error('The Excel file is not a valid XLSX archive.');
+ const count=dv.getUint16(eocd+10,true),cdOffset=dv.getUint32(eocd+16,true),items=new Map();let pos=cdOffset;
+ for(let i=0;i<count;i++){
+   if(dv.getUint32(pos,true)!==0x02014b50)throw new Error('The workbook ZIP directory is damaged.');
+   const method=dv.getUint16(pos+10,true),len=dv.getUint32(pos+20,true),nameLen=dv.getUint16(pos+28,true),extraLen=dv.getUint16(pos+30,true),commentLen=dv.getUint16(pos+32,true),local=dv.getUint32(pos+42,true);
+   const name=new TextDecoder().decode(raw.slice(pos+46,pos+46+nameLen));
+   items.set(name,{method,len,local});pos+=46+nameLen+extraLen+commentLen;
+ }
+ async function xml(name){
+   const record=items.get(name);if(!record)return '';
+   const start=record.local;if(dv.getUint32(start,true)!==0x04034b50)throw new Error('Invalid ZIP entry.');
+   const payload=start+30+dv.getUint16(start+26,true)+dv.getUint16(start+28,true);
+   const bytes=raw.slice(payload,payload+record.len);let decoded;
+   if(record.method===0)decoded=bytes;
+   else if(record.method===8){
+     if(typeof DecompressionStream==='undefined')throw new Error('Your browser does not support XLSX decompression. Save the file as CSV and import that instead.');
+     decoded=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+   }else throw new Error('Unsupported compression in XLSX workbook.');
+   return new TextDecoder().decode(decoded);
+ }
+ const parser=new DOMParser();const doc=x=>parser.parseFromString(x,'application/xml');
+ const ssText=await xml('xl/sharedStrings.xml');const strings=[];
+ if(ssText){for(const item of Array.from(doc(ssText).getElementsByTagNameNS('*','si')))strings.push(Array.from(item.getElementsByTagNameNS('*','t')).map(t=>t.textContent||'').join(''));}
+ const names=[...items.keys()].filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort();
+ for(const name of names){
+  const fileText=await xml(name);if(!fileText)continue;
+  const sheet=doc(fileText),table=[];
+  for(const row of Array.from(sheet.getElementsByTagNameNS('*','row'))){
+    const values=[];
+    for(const cell of Array.from(row.getElementsByTagNameNS('*','c'))){
+      const reference=cell.getAttribute('r')||'',colLetters=reference.match(/^[A-Z]+/)?.[0]||'A';
+      let col=0;for(const letter of colLetters)col=col*26+letter.charCodeAt(0)-64;col--;
+      const type=cell.getAttribute('t'),v=cell.getElementsByTagNameNS('*','v')[0]?.textContent||'';
+      values[col]=type==='s'?(strings[Number(v)]||''):type==='inlineStr'?Array.from(cell.getElementsByTagNameNS('*','t')).map(t=>t.textContent||'').join(''):v;
+    }
+    table.push(values.map(v=>v??''));
+  }
+  const headerRow=table.findIndex(row=>{
+    const vals=row.map(v=>String(v||'').toLowerCase().trim());
+    return vals.includes('ac-no.')&&vals.includes('date')&&vals.includes('clock in')&&vals.includes('clock out');
+  });
+  if(headerRow>=0)return {headers:table[headerRow],rows:table.slice(headerRow+1).filter(row=>row.some(v=>String(v||'').trim()))};
+ }
+ throw new Error('No attendance sheet found. Use the Attendance Data sheet exported from AttendPro.');
+}
+function apImportDate(value){
+ const text=String(value??'').trim();if(/^\d{4}-\d{2}-\d{2}/.test(text))return text.slice(0,10);
+ const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(text);
+ if(m)return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+ if(/^\d+(\.\d+)?$/.test(text)){const n=Number(text);if(n>20000&&n<100000)return new Date(Date.UTC(1899,11,30)+Math.floor(n)*86400000).toISOString().slice(0,10);}
+ return text;
+}
+function apImportTime(value){
+ const v=String(value??'').trim();if(!v||v==='—')return '';
+ if(/^\d\d:\d\d/.test(v))return v.slice(0,5);
+ if(/^\d+(\.\d+)?$/.test(v)){const n=Number(v);if(n>=0&&n<1){const mins=Math.round(n*1440)%1440;return String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');}}
+ return v;
+}
+async function importApEditedReport(event){
+ const control=event.target,file=control.files?.[0];if(!file)return;
+ if(file.name.toLowerCase().endsWith('.csv'))return importApEditedCsv(event);
+ control.value='';
+ if(!file.name.toLowerCase().endsWith('.xlsx')){notify('Choose an XLSX or CSV attendance file.','error');return;}
+ if(!roleAllowed('attendance_edit')){notify('Supervisor or Super Admin permission is required.','error');return;}
+ if(!currentReportRows.length||currentReportExportMode!=='attendance'){notify('Preview an attendance report before importing edits.','warning');return;}
+ try{
+  const sheet=await apReadXlsxSheets(file),columns=sheet.headers.map(x=>String(x).toLowerCase().trim());
+  const get=(row,name)=>row[columns.indexOf(name)]??'';
+  const rows=[['AC-No.','Date','Clock In','Clock Out','Status','Timetable']];
+  const map=new Map(currentReportRows.map(r=>[String(r.id)+'|'+String(r.date),r]));
+  for(const row of sheet.rows){
+    const badge=String(get(row,'ac-no.')).trim(),day=apImportDate(get(row,'date'));
+    const original=map.get(badge+'|'+day);
+    if(!original)continue;
+    const status=columns.includes('status')?String(get(row,'status')).trim():String(get(row,'absent')).trim().toLowerCase()==='true'?'Absent':original.status;
+    rows.push([badge,day,apImportTime(get(row,'clock in')),apImportTime(get(row,'clock out')),status,String(get(row,'timetable')||'').trim()]);
+  }
+  if(rows.length===1){notify('No matching attendance rows found in this workbook. Check dates and AC numbers.','warning');return;}
+  const csv=rows.map(row=>row.map(value=>'"'+String(value??'').replaceAll('"','""')+'"').join(',')).join('\r\n');
+  const asCsv=new File([csv],'converted-attendance.csv',{type:'text/csv'});
+  await importApEditedCsv({target:{files:[asCsv],value:''}});
+ }catch(e){notify('Excel import failed: '+e.message,'error');}
+}
 
 </script>
 </body>
