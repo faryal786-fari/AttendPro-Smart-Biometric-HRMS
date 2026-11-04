@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-03-frontend-reports-and-settings">
+<meta name="attendpro-build" content="2026-11-04-system-screens-visible-fix">
 <title>AttendPro — Biometric Attendance System</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -866,6 +866,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
 </div>
 <!-- MASTER TEMPLATE PRINT AREA: populated only when Print Report is clicked -->
 <div class="print-only" id="printLayout" aria-hidden="true"><div id="printTemplateRoot"></div></div>
+</div><!-- /screen-reports: keep all following screens as siblings, not hidden inside Reports -->
 
 <!-- ═══════════════════ DEVICE STATUS ═══════════════════ -->
 <div id="screen-device" class="screen">
@@ -1186,7 +1187,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
 <script>
-window.ATTENDPRO_BUILD = "2026-11-04-master-template-print-fix";
+window.ATTENDPRO_BUILD = "2026-11-04-system-screens-visible-fix";
 
 const apEnglishText = new Map([
  ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],

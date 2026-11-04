@@ -95,4 +95,15 @@ def test_redis_monitor_defines_cloud_enabled_before_rendering_details():
     assert 'const cloudIsEnabled=monitorBool(cloud.enabled);' in monitor
     assert 'cloudEnabled?' not in monitor
     assert 'Promise.allSettled' in HTML
-    assert 'window.ATTENDPRO_BUILD = "2026-11-02-redis-monitor-hotfix-2"' in HTML
+    assert 'window.ATTENDPRO_BUILD = "2026-11-04-system-screens-visible-fix"' in HTML
+
+
+def test_system_screens_are_not_nested_in_reports_section():
+    doc=BeautifulSoup(HTML,'html.parser')
+    reports=doc.find(id='screen-reports')
+    assert reports is not None
+    for screen_id in ['screen-device','screen-redis','screen-settings','screen-users']:
+        screen=doc.find(id=screen_id)
+        assert screen is not None
+        assert screen not in reports.find_all(id=screen_id)
+        assert reports.find(id=screen_id) is None
