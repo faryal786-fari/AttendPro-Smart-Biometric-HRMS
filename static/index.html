@@ -3,8 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-04-system-screens-visible-fix">
-<title>AttendPro — Biometric Attendance System</title>
+<meta name="attendpro-build" content="2026-11-20-pts-farooqabad-public-landing">
+<meta name="description" content="Police Training School Farooqabad — professional police training, institutional information and AttendPro digital attendance portal.">
+<meta name="theme-color" content="#102b3b">
+<meta property="og:title" content="Police Training School Farooqabad | AttendPro Digital Portal">
+<meta property="og:description" content="Discipline, knowledge and service. Explore Police Training School Farooqabad and access the secure AttendPro digital portal.">
+<meta property="og:type" content="website">
+<title>Police Training School Farooqabad | AttendPro Digital Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -182,59 +187,17 @@ tr:hover td{background:var(--gray50)}
 .leave-tabs{display:flex;gap:0;border-bottom:1px solid var(--gray200);margin-bottom:16px}
 .l-tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .l-tab.active{color:var(--blue);border-color:var(--blue)}
-/* MASTER REPORT PRINT: print only the generated report, never the dashboard */
-.print-only{display:none}
-.master-print-page{font-family:Arial,Helvetica,sans-serif;color:#000;background:#fff}
-.master-print-page *{box-sizing:border-box}
-.master-print-page.summary{page:attendproSummary}
-.master-print-page.detail{page:attendproDetail;break-before:page;page-break-before:always}
-.master-print-heading{display:grid;grid-template-columns:30% 41% 29%;align-items:center;min-height:46px;margin:0 0 8px;font-size:20px;font-weight:700}
-.master-print-heading>div{padding:4px 6px;text-align:center}
-.master-print-heading .place{text-align:right}
-.master-print-section{margin:0 0 10px;break-inside:auto;page-break-inside:auto}
-.master-print-section-title{font-size:20px;font-weight:700;min-height:26px;padding:3px 4px;text-align:left}
-.master-print-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0 0 6px}
-.master-print-table th,.master-print-table td{border:1px solid #222;text-align:center;vertical-align:middle;padding:3px 4px;overflow-wrap:anywhere}
-.master-print-table th{font-size:15px;font-weight:700}
-.master-print-table td{font-size:10px;font-weight:400}
-.master-print-table .row-no{font-size:13px;font-weight:700}
-.master-print-table .nill{font-size:12px;font-weight:700}
-.master-print-table.summary-cols col:nth-child(1){width:5%}
-.master-print-table.summary-cols col:nth-child(2){width:22%}
-.master-print-table.summary-cols col:nth-child(3){width:9%}
-.master-print-table.summary-cols col:nth-child(4){width:12%}
-.master-print-table.summary-cols col:nth-child(5){width:9%}
-.master-print-table.summary-cols col:nth-child(6){width:9%}
-.master-print-table.summary-cols col:nth-child(7){width:22%}
-.master-print-table.summary-cols col:nth-child(8){width:12%}
-.master-print-table.detail-cols th{font-size:10px}
-.master-print-table.detail-cols col:nth-child(1){width:7%}
-.master-print-table.detail-cols col:nth-child(2){width:26%}
-.master-print-table.detail-cols col:nth-child(3){width:11%}
-.master-print-table.detail-cols col:nth-child(4){width:13%}
-.master-print-table.detail-cols col:nth-child(5){width:9%}
-.master-print-table.detail-cols col:nth-child(6){width:9%}
-.master-print-table.detail-cols col:nth-child(7){width:7%}
-.master-print-table.detail-cols col:nth-child(8){width:18%}
-.master-print-signature{margin:18px 0 0 auto;width:48%;text-align:center;font-size:12px;font-weight:700;white-space:pre-line}
-.master-print-detail-title{font-size:12px;font-weight:700;text-align:center;margin:0 0 8px}
-@page attendproSummary{size:A4 landscape;margin:7mm}
-@page attendproDetail{size:A4 portrait;margin:9mm}
+/* PRINT */
 @media print{
-  @page{margin:8mm}
-  html,body{margin:0!important;padding:0!important;background:#fff!important;color:#000!important}
-  body *{visibility:hidden!important}
-  #printLayout,#printLayout *{visibility:visible!important}
-  #printLayout{display:block!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;padding:0!important;margin:0!important;background:#fff!important;color:#000!important}
-  .master-print-page{display:block!important;background:#fff!important;color:#000!important}
-  .master-print-table thead{display:table-header-group}
-  .master-print-table tr{break-inside:avoid;page-break-inside:avoid}
-  .master-print-section-title{break-after:avoid-page;page-break-after:avoid}
-  .master-print-page.summary{page:attendproSummary}
-  .master-print-page.detail{page:attendproDetail;break-before:page;page-break-before:always}
-  .no-print{display:none!important}
+  .sidebar,.topbar,.filters,.pagination,.no-print{display:none!important}
+  .main{margin-left:0}
+  .content{padding:0}
+  .screen{display:block!important}
+  .print-only{display:block!important}
+  body{font-size:12px}
+  .card{border:1px solid #ddd;box-shadow:none}
 }
-
+.print-only{display:none}
 /* RESPONSIVE */
 @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
@@ -417,9 +380,326 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
 .dark-mode #apNotifPanel{background:#161f35;color:#f8fafc;border-color:#334155}
 #deptSummaryScroll{max-height:340px;overflow:auto;overscroll-behavior:contain}#deptSummaryScroll thead th{position:sticky;top:0;z-index:1}
 
+
+/* ── PUBLIC INSTITUTION LANDING PAGE (separate from the existing AttendPro app) ── */
+:root{--aplp-navy:#102b3b;--aplp-navy2:#183d4b;--aplp-green:#214b3d;--aplp-green2:#2f6652;--aplp-gold:#c7a66a;--aplp-cream:#f7f5ef;--aplp-ink:#1d2c31;--aplp-muted:#68777b;--aplp-line:#e6e3da}
+body.aplp-landing-mode{background:var(--aplp-cream);color:var(--aplp-ink)}
+body.aplp-landing-mode .app{display:none!important}
+body.aplp-landing-mode .login-overlay.open{display:none!important}
+#apPublicLanding{display:none;min-height:100vh;background:var(--aplp-cream);color:var(--aplp-ink);font-family:Inter,Arial,sans-serif;overflow:hidden}
+body.aplp-landing-mode #apPublicLanding{display:block}
+#apPublicLanding *{box-sizing:border-box}
+#apPublicLanding a{color:inherit;text-decoration:none}
+#apPublicLanding button{font:inherit}
+.aplp-container{width:min(1180px,calc(100% - 44px));margin:0 auto}
+.aplp-utility{background:#0b202c;color:rgba(255,255,255,.78);font-size:11px;letter-spacing:.025em}
+.aplp-utility-inner{min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.aplp-utility-left,.aplp-utility-right{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.aplp-utility strong{color:#fff;font-weight:600}
+.aplp-header{position:sticky;top:0;z-index:800;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-bottom:1px solid rgba(16,43,59,.08);box-shadow:0 5px 22px rgba(10,30,40,.045)}
+.aplp-header-inner{height:82px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.aplp-brand{display:flex;align-items:center;gap:12px;min-width:250px}
+.aplp-brand-mark{width:54px;height:54px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #e8e3d8;border-radius:14px;padding:5px;box-shadow:0 5px 15px rgba(16,43,59,.07);flex-shrink:0}
+.aplp-brand-mark img{width:100%;height:100%;object-fit:contain}
+.aplp-brand-copy strong{display:block;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.2;color:var(--aplp-navy);font-weight:700;letter-spacing:.01em}
+.aplp-brand-copy span{display:block;font-size:10px;color:#78847f;letter-spacing:.16em;text-transform:uppercase;margin-top:5px;font-weight:700}
+.aplp-nav{display:flex;align-items:center;gap:27px;margin-left:auto}
+.aplp-nav a{font-size:12px;font-weight:650;color:#44545a;transition:color .2s;position:relative;padding:9px 0}
+.aplp-nav a:after{content:'';position:absolute;left:0;bottom:2px;width:0;height:2px;background:var(--aplp-gold);transition:width .2s}
+.aplp-nav a:hover{color:var(--aplp-green)}
+.aplp-nav a:hover:after{width:100%}
+.aplp-header-actions{display:flex;align-items:center;gap:10px}
+.aplp-login-btn,.aplp-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:5px;background:var(--aplp-green);color:#fff!important;padding:13px 19px;font-size:11px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;box-shadow:0 8px 20px rgba(33,75,61,.18);transition:transform .2s,background .2s,box-shadow .2s;cursor:pointer}
+.aplp-login-btn:hover,.aplp-btn-primary:hover{background:#163b2f;transform:translateY(-2px);box-shadow:0 12px 24px rgba(33,75,61,.24)}
+.aplp-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid rgba(255,255,255,.5);border-radius:5px;background:transparent;color:#fff!important;padding:12px 18px;font-size:11px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;transition:background .2s,border .2s;cursor:pointer}
+.aplp-btn-outline:hover{background:rgba(255,255,255,.12);border-color:#fff}
+.aplp-menu-toggle{display:none;width:42px;height:42px;border:1px solid var(--aplp-line);border-radius:5px;background:#fff;color:var(--aplp-navy);font-size:20px;cursor:pointer}
+.aplp-hero{position:relative;background:var(--aplp-navy);color:#fff;isolation:isolate;overflow:hidden}
+.aplp-hero:before{content:'';position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(8,27,37,.97) 0%,rgba(11,37,47,.91) 45%,rgba(13,40,47,.62) 100%),url('https://ptsfarooqabad.com/public/uploads/242134173.JPG') center 48%/cover no-repeat;transform:scale(1.02)}
+.aplp-hero:after{content:'';position:absolute;z-index:-1;right:-180px;top:-260px;width:680px;height:680px;border:1px solid rgba(199,166,106,.18);border-radius:50%;box-shadow:0 0 0 48px rgba(199,166,106,.035),0 0 0 96px rgba(199,166,106,.025)}
+.aplp-hero-inner{display:grid;grid-template-columns:1.08fr .92fr;gap:55px;align-items:center;min-height:570px;padding-top:72px;padding-bottom:92px}
+.aplp-eyebrow{display:inline-flex;align-items:center;gap:10px;color:#e1c58f;font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin-bottom:22px}
+.aplp-eyebrow:before{content:'';width:29px;height:1px;background:var(--aplp-gold)}
+.aplp-hero h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(42px,5.2vw,68px);font-weight:500;line-height:1.05;letter-spacing:-.035em;max-width:650px}
+.aplp-hero h1 em{font-style:normal;color:#d8bc83;display:block}
+.aplp-hero-copy{max-width:565px;color:rgba(255,255,255,.76);font-size:14px;line-height:1.9;margin-top:23px}
+.aplp-hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:32px}
+.aplp-hero-note{display:flex;align-items:center;gap:12px;margin-top:42px;color:rgba(255,255,255,.58);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.aplp-hero-note:before{content:'';width:40px;height:1px;background:var(--aplp-gold)}
+.aplp-hero-visual{position:relative;max-width:510px;margin-left:auto;width:100%;padding:0 0 28px 28px}
+.aplp-hero-visual:before{content:'';position:absolute;left:0;top:28px;right:28px;bottom:0;border:1px solid rgba(199,166,106,.72)}
+.aplp-hero-photo{position:relative;z-index:1;width:100%;height:370px;object-fit:cover;display:block;border:8px solid rgba(255,255,255,.12);box-shadow:0 22px 55px rgba(0,0,0,.3)}
+.aplp-photo-label{position:absolute;z-index:2;right:-10px;bottom:0;background:#fff;color:var(--aplp-navy);padding:16px 20px;box-shadow:0 12px 30px rgba(0,0,0,.18);min-width:190px}
+.aplp-photo-label small{display:block;color:#8d7954;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.aplp-photo-label strong{display:block;font-family:Georgia,serif;font-size:16px;margin-top:4px}
+.aplp-stats{position:relative;z-index:2;margin-top:-1px;background:#fff;box-shadow:0 15px 40px rgba(16,43,59,.08);display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #eee9de}
+.aplp-stat{padding:24px 28px;display:flex;align-items:center;gap:16px;border-right:1px solid #eee9de}
+.aplp-stat:last-child{border-right:0}
+.aplp-stat-num{font-family:Georgia,serif;font-size:31px;line-height:1;color:var(--aplp-green);white-space:nowrap}
+.aplp-stat-label{font-size:10px;line-height:1.55;color:#75817c;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.aplp-section{padding:96px 0}
+.aplp-section-kicker{display:flex;align-items:center;gap:10px;color:#9b8050;font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin-bottom:15px}
+.aplp-section-kicker:before{content:'';width:26px;height:1px;background:var(--aplp-gold)}
+.aplp-section-title{font-family:Georgia,'Times New Roman',serif;color:var(--aplp-navy);font-weight:500;font-size:clamp(31px,3.4vw,45px);line-height:1.13;letter-spacing:-.02em}
+.aplp-section-lead{color:var(--aplp-muted);font-size:13px;line-height:1.9;max-width:620px;margin-top:15px}
+.aplp-about-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:75px;align-items:center}
+.aplp-about-visual{position:relative;padding:0 28px 28px 0}
+.aplp-about-visual:before{content:'';position:absolute;left:28px;top:28px;right:0;bottom:0;border:1px solid var(--aplp-gold)}
+.aplp-about-visual img{position:relative;z-index:1;width:100%;height:430px;object-fit:cover;display:block;box-shadow:0 18px 38px rgba(16,43,59,.14)}
+.aplp-about-stamp{position:absolute;z-index:2;left:-14px;bottom:10px;background:var(--aplp-green);color:#fff;padding:18px 22px;box-shadow:0 12px 25px rgba(16,43,59,.2)}
+.aplp-about-stamp strong{display:block;font-family:Georgia,serif;font-size:27px;font-weight:500}
+.aplp-about-stamp span{display:block;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#e1c58f;margin-top:2px}
+.aplp-timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}
+.aplp-timeline-item{border-top:2px solid var(--aplp-gold);padding-top:13px}
+.aplp-timeline-item strong{display:block;color:var(--aplp-green);font-family:Georgia,serif;font-size:22px;font-weight:500}
+.aplp-timeline-item span{display:block;color:#64736d;font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.aplp-values{background:#f0eee7;padding:0 0 82px}
+.aplp-values-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:-1px}
+.aplp-value-card{background:#fff;padding:27px 24px;border:1px solid #e8e4d9;min-height:145px;transition:transform .2s,box-shadow .2s}
+.aplp-value-card:hover{transform:translateY(-5px);box-shadow:0 14px 28px rgba(16,43,59,.08)}
+.aplp-value-no{font-family:Georgia,serif;color:#b69a68;font-size:20px}
+.aplp-value-card h3{font-family:Georgia,serif;color:var(--aplp-navy);font-size:19px;font-weight:500;margin-top:10px}
+.aplp-value-card p{color:#718078;font-size:11px;line-height:1.7;margin-top:6px}
+.aplp-principal{background:var(--aplp-navy);color:#fff;position:relative;overflow:hidden}
+.aplp-principal:before{content:'';position:absolute;left:-200px;top:-260px;width:600px;height:600px;border:1px solid rgba(199,166,106,.17);border-radius:50%;box-shadow:0 0 0 45px rgba(199,166,106,.035),0 0 0 90px rgba(199,166,106,.025)}
+.aplp-principal-grid{position:relative;display:grid;grid-template-columns:.8fr 1.2fr;gap:65px;align-items:center}
+.aplp-principal-photo{height:330px;width:100%;object-fit:cover;border:7px solid rgba(255,255,255,.1);box-shadow:0 20px 45px rgba(0,0,0,.25)}
+.aplp-principal .aplp-section-title{color:#fff;max-width:650px}
+.aplp-principal-quote{color:rgba(255,255,255,.77);font-family:Georgia,serif;font-size:20px;line-height:1.65;margin-top:22px;max-width:680px}
+.aplp-principal-byline{display:flex;align-items:center;gap:12px;margin-top:28px;color:#e2c58d;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.aplp-principal-byline:before{content:'';width:32px;height:1px;background:var(--aplp-gold)}
+.aplp-training-head{display:flex;align-items:end;justify-content:space-between;gap:28px}
+.aplp-training-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:38px}
+.aplp-training-card{position:relative;background:#fff;border:1px solid #e9e5db;padding:28px 25px 26px;min-height:205px;transition:transform .2s,box-shadow .2s;overflow:hidden}
+.aplp-training-card:after{content:'';position:absolute;right:-32px;bottom:-42px;width:120px;height:120px;border:1px solid rgba(199,166,106,.28);border-radius:50%;box-shadow:0 0 0 16px rgba(199,166,106,.04)}
+.aplp-training-card:hover{transform:translateY(-5px);box-shadow:0 16px 32px rgba(16,43,59,.09)}
+.aplp-training-icon{width:42px;height:42px;display:grid;place-items:center;background:#edf2ed;color:var(--aplp-green);font-size:20px;border-radius:50%}
+.aplp-training-card .aplp-number{position:absolute;right:22px;top:25px;font-family:Georgia,serif;color:#c7b58f;font-size:22px}
+.aplp-training-card h3{font-family:Georgia,serif;color:var(--aplp-navy);font-size:20px;font-weight:500;margin-top:19px}
+.aplp-training-card p{color:#738079;font-size:11px;line-height:1.8;margin-top:8px;max-width:290px}
+.aplp-facilities{background:#f0eee7}
+.aplp-facilities-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:35px}
+.aplp-facility{background:#fff;border:1px solid #e7e2d7;padding:19px 18px;display:flex;align-items:center;gap:13px;min-height:76px}
+.aplp-facility-icon{width:36px;height:36px;flex-shrink:0;display:grid;place-items:center;background:#f3f0e7;color:#8e7449;border-radius:50%;font-size:17px}
+.aplp-facility strong{font-size:11px;color:#344a4a;letter-spacing:.02em}
+.aplp-gallery-grid{display:grid;grid-template-columns:1.25fr 1fr 1fr;grid-template-rows:210px 210px;gap:13px;margin-top:36px}
+.aplp-gallery-item{position:relative;overflow:hidden;background:#dfe5df}
+.aplp-gallery-item:first-child{grid-row:span 2}
+.aplp-gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s}
+.aplp-gallery-item:hover img{transform:scale(1.06)}
+.aplp-gallery-caption{position:absolute;left:0;right:0;bottom:0;padding:30px 17px 14px;background:linear-gradient(transparent,rgba(7,24,31,.8));color:#fff;font-family:Georgia,serif;font-size:16px}
+.aplp-gallery-caption small{display:block;font:700 9px Inter,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#e5ca92;margin-bottom:3px}
+.aplp-portal-cta{background:linear-gradient(115deg,#1b4336,#102b3b);color:#fff;position:relative;overflow:hidden}
+.aplp-portal-cta:after{content:'';position:absolute;right:-110px;top:-230px;width:540px;height:540px;border:1px solid rgba(199,166,106,.2);border-radius:50%;box-shadow:0 0 0 40px rgba(199,166,106,.04),0 0 0 80px rgba(199,166,106,.025)}
+.aplp-portal-cta-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:35px;padding-top:60px;padding-bottom:60px}
+.aplp-portal-cta .aplp-section-title{color:#fff;max-width:690px}
+.aplp-portal-cta p{color:rgba(255,255,255,.68);font-size:12px;line-height:1.8;margin-top:12px;max-width:600px}
+.aplp-portal-cta .aplp-btn-primary{background:#d0b27a;color:#102b3b!important;white-space:nowrap}
+.aplp-portal-cta .aplp-btn-primary:hover{background:#e0c58f}
+.aplp-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:65px;align-items:start}
+.aplp-contact-card{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:26px}
+.aplp-contact-item{background:#fff;border:1px solid #e8e4d9;padding:17px 18px}
+.aplp-contact-item span{display:block;color:#9a8053;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.aplp-contact-item strong{display:block;color:var(--aplp-navy);font-size:12px;margin-top:7px;overflow-wrap:anywhere}
+.aplp-contact-panel{background:#fff;border:1px solid #e8e4d9;padding:28px;box-shadow:0 14px 32px rgba(16,43,59,.05)}
+.aplp-contact-panel h3{font-family:Georgia,serif;color:var(--aplp-navy);font-size:23px;font-weight:500}
+.aplp-contact-panel p{color:#718078;font-size:12px;line-height:1.8;margin-top:10px}
+.aplp-contact-panel .aplp-btn-primary{margin-top:20px}
+.aplp-footer{background:#0b202c;color:rgba(255,255,255,.62);padding:28px 0}
+.aplp-footer-inner{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.aplp-footer-brand{display:flex;align-items:center;gap:10px;color:#fff;font-family:Georgia,serif;font-size:14px}
+.aplp-footer-brand img{width:34px;height:34px;object-fit:contain;background:#fff;border-radius:5px;padding:3px}
+.aplp-footer small{font-size:10px;line-height:1.6}
+.aplp-backtop{position:fixed;right:20px;bottom:20px;z-index:400;width:42px;height:42px;border:0;border-radius:50%;background:var(--aplp-green);color:#fff;box-shadow:0 7px 20px rgba(0,0,0,.18);cursor:pointer;font-size:18px;opacity:0;pointer-events:none;transition:opacity .2s}
+.aplp-backtop.visible{opacity:1;pointer-events:auto}
+.aplp-app-home{border:1px solid var(--gray200);border-radius:6px;background:#fff;color:var(--text);padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.aplp-app-home:hover{background:var(--gray50);border-color:var(--gray300)}
+.aplp-login-back{display:block;margin:14px auto 0;border:0;background:transparent;color:#64748b;font-size:12px;cursor:pointer}
+.aplp-login-back:hover{color:var(--aplp-green);text-decoration:underline}
+.aplp-news-band{background:#fff;border-bottom:1px solid #eee9de;border-top:1px solid #eee9de}.aplp-news-inner{min-height:68px;display:flex;align-items:center;gap:20px}.aplp-news-label{font-size:9px;font-weight:850;letter-spacing:.17em;text-transform:uppercase;color:#967b4d;white-space:nowrap}.aplp-news-inner p{font-size:11px;color:#697772;flex:1}.aplp-news-status{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--aplp-green);background:#edf2ed;border-radius:20px;padding:7px 12px}
+@media(max-width:1000px){.aplp-nav{gap:16px}.aplp-hero-inner{gap:32px}.aplp-about-grid{gap:42px}.aplp-stat{padding:20px 16px}.aplp-facilities-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:780px){.aplp-utility-inner{justify-content:center;padding:8px 0}.aplp-utility-left{display:none}.aplp-header-inner{height:72px}.aplp-brand{min-width:0}.aplp-brand-mark{width:46px;height:46px}.aplp-brand-copy strong{font-size:13px}.aplp-brand-copy span{font-size:8px}.aplp-menu-toggle{display:block}.aplp-nav{display:none;position:absolute;left:0;right:0;top:72px;background:#fff;padding:14px 22px 20px;border-bottom:1px solid var(--aplp-line);box-shadow:0 12px 22px rgba(16,43,59,.1);align-items:stretch;gap:4px;flex-direction:column}.aplp-nav.open{display:flex}.aplp-nav a{padding:11px 0}.aplp-header-actions .aplp-login-btn{padding:11px 12px;font-size:9px}.aplp-hero-inner{grid-template-columns:1fr;min-height:0;padding-top:62px;padding-bottom:75px}.aplp-hero h1{font-size:48px}.aplp-hero-visual{max-width:560px;margin:8px auto 0;padding-left:17px}.aplp-hero-photo{height:300px}.aplp-stats{grid-template-columns:repeat(2,1fr);margin-top:0}.aplp-stat:nth-child(2){border-right:0}.aplp-stat:nth-child(-n+2){border-bottom:1px solid #eee9de}.aplp-section{padding:72px 0}.aplp-about-grid,.aplp-principal-grid,.aplp-contact-grid{grid-template-columns:1fr;gap:40px}.aplp-about-visual{max-width:560px}.aplp-about-visual img{height:340px}.aplp-values-grid{grid-template-columns:repeat(2,1fr)}.aplp-principal-photo{height:280px;max-width:520px}.aplp-training-grid{grid-template-columns:repeat(2,1fr)}.aplp-gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:220px 180px 180px}.aplp-gallery-item:first-child{grid-row:auto;grid-column:span 2}.aplp-portal-cta-inner{align-items:flex-start;flex-direction:column}.aplp-facilities-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.aplp-container{width:min(100% - 30px,1180px)}.aplp-utility-right{gap:10px;font-size:9px}.aplp-brand-copy strong{font-size:11px}.aplp-brand-copy span{letter-spacing:.1em}.aplp-header-actions{gap:6px}.aplp-header-actions .aplp-login-btn{padding:10px 9px;font-size:8px;letter-spacing:.04em}.aplp-menu-toggle{width:36px;height:36px}.aplp-hero-inner{padding-top:52px;padding-bottom:58px}.aplp-hero h1{font-size:40px}.aplp-hero-copy{font-size:12px}.aplp-hero-actions{align-items:stretch;flex-direction:column}.aplp-hero-actions a,.aplp-hero-actions button{width:100%}.aplp-hero-photo{height:245px}.aplp-photo-label{right:-3px;padding:12px 14px;min-width:160px}.aplp-stat{padding:17px 12px;gap:10px}.aplp-stat-num{font-size:25px}.aplp-stat-label{font-size:8px}.aplp-section{padding:58px 0}.aplp-section-title{font-size:32px}.aplp-about-visual img{height:270px}.aplp-about-stamp{left:-4px;padding:13px 16px}.aplp-timeline{gap:8px}.aplp-timeline-item strong{font-size:18px}.aplp-timeline-item span{font-size:8px}.aplp-values-grid,.aplp-training-grid,.aplp-facilities-grid{grid-template-columns:1fr}.aplp-value-card{min-height:0}.aplp-training-card{min-height:0}.aplp-training-head{align-items:flex-start;flex-direction:column}.aplp-gallery-grid{grid-template-columns:1fr;grid-template-rows:repeat(5,190px)}.aplp-gallery-item:first-child{grid-column:auto}.aplp-contact-card{grid-template-columns:1fr}.aplp-footer-inner{align-items:flex-start;flex-direction:column}.aplp-app-home{padding:7px 8px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){#apPublicLanding *{scroll-behavior:auto!important;transition:none!important}}
+
 </style>
 </head>
-<body>
+
+<body class="aplp-landing-mode">
+<div id="apPublicLanding">
+  <div class="aplp-utility">
+    <div class="aplp-container aplp-utility-inner">
+      <div class="aplp-utility-left"><strong>Punjab Police Training Institution</strong><span>Farooqabad, Punjab, Pakistan</span></div>
+      <div class="aplp-utility-right"><span>DISCIPLINE&nbsp; • &nbsp;TRAINING&nbsp; • &nbsp;SERVICE</span><span>Digital Attendance &amp; Administration</span></div>
+    </div>
+  </div>
+  <header class="aplp-header">
+    <div class="aplp-container aplp-header-inner">
+      <a class="aplp-brand" href="#home" aria-label="Police Training School Farooqabad home">
+        <span class="aplp-brand-mark"><img src="https://ptsfarooqabad.com/public/uploads/ptsmono.png" alt="Police Training School Farooqabad emblem"></span>
+        <span class="aplp-brand-copy"><strong>Police Training School</strong><span>Farooqabad · Punjab</span></span>
+      </a>
+      <nav class="aplp-nav" id="aplpNav" aria-label="Main navigation">
+        <a href="#home">Home</a><a href="#about">About</a><a href="#training">Training</a><a href="#facilities">Facilities</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a>
+      </nav>
+      <div class="aplp-header-actions">
+        <button class="aplp-login-btn" type="button" onclick="openAttendProPortal('dashboard')">Portal Login <span aria-hidden="true">↗</span></button>
+        <button class="aplp-menu-toggle" id="aplpMenuToggle" type="button" aria-label="Open navigation" aria-expanded="false" onclick="toggleAplpMenu()">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="aplp-hero" id="home">
+      <div class="aplp-container aplp-hero-inner">
+        <div>
+          <div class="aplp-eyebrow">Punjab Police Training Institution</div>
+          <h1>Police Training School <em>Farooqabad</em></h1>
+          <p class="aplp-hero-copy">A centre for disciplined, professional and service-oriented police training. Building knowledge, leadership, responsibility and practical readiness through structured learning and institutional discipline.</p>
+          <div class="aplp-hero-actions">
+            <a class="aplp-btn-primary" href="#about">Explore the Institution <span aria-hidden="true">→</span></a>
+            <button class="aplp-btn-outline" type="button" onclick="openAttendProPortal('dashboard')">Open Digital Portal <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="aplp-hero-note">Training for Service</div>
+        </div>
+        <div class="aplp-hero-visual">
+          <img class="aplp-hero-photo" src="https://ptsfarooqabad.com/public/uploads/242134173.JPG" alt="Police Training School Farooqabad attendance ground and campus" fetchpriority="high">
+          <div class="aplp-photo-label"><small>Our Institution</small><strong>Discipline in Every Step</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="aplp-container">
+      <div class="aplp-stats" aria-label="Institution facts">
+        <div class="aplp-stat"><div class="aplp-stat-num">1975</div><div class="aplp-stat-label">Training Centre<br>Established</div></div>
+        <div class="aplp-stat"><div class="aplp-stat-num">2001</div><div class="aplp-stat-label">Police Training<br>School Status</div></div>
+        <div class="aplp-stat"><div class="aplp-stat-num">1,100</div><div class="aplp-stat-label">Training Capacity<br>As listed by Punjab Police</div></div>
+        <div class="aplp-stat"><div class="aplp-stat-num">24/7</div><div class="aplp-stat-label">Digital Portal<br>Access</div></div>
+      </div>
+    </div>
+
+    <section class="aplp-news-band" aria-label="News and updates">
+      <div class="aplp-container aplp-news-inner"><span class="aplp-news-label">News &amp; Updates</span><p>Official institutional announcements and updates will be shared here.</p><span class="aplp-news-status">Updates</span></div>
+    </section>
+
+    <section class="aplp-section" id="about">
+      <div class="aplp-container aplp-about-grid">
+        <div class="aplp-about-visual">
+          <img src="https://ptsfarooqabad.com/public/uploads/1003941961.JPG" alt="Campus attendance ground at Police Training School Farooqabad" loading="lazy">
+          <div class="aplp-about-stamp"><strong>Since 1975</strong><span>Committed to Service</span></div>
+        </div>
+        <div>
+          <div class="aplp-section-kicker">Our Institution</div>
+          <h2 class="aplp-section-title">Building professionals through discipline and knowledge.</h2>
+          <p class="aplp-section-lead">Police Training School Farooqabad provides a structured environment for professional police training, discipline, academic learning, leadership development and technology-enabled training management under Punjab Police.</p>
+          <div class="aplp-timeline">
+            <div class="aplp-timeline-item"><strong>1975</strong><span>Foundation as Police Recruit Training Centre</span></div>
+            <div class="aplp-timeline-item"><strong>2001</strong><span>Elevated to Police Training School</span></div>
+            <div class="aplp-timeline-item"><strong>Today</strong><span>Digital transformation and modern management</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-values">
+      <div class="aplp-container">
+        <div class="aplp-section-kicker">Our Core Values</div>
+        <h2 class="aplp-section-title">The principles behind every professional.</h2>
+        <div class="aplp-values-grid">
+          <article class="aplp-value-card"><div class="aplp-value-no">01</div><h3>Discipline</h3><p>Professional habits, responsibility and consistency in every duty.</p></article>
+          <article class="aplp-value-card"><div class="aplp-value-no">02</div><h3>Integrity</h3><p>Ethical conduct, accountability and responsible public service.</p></article>
+          <article class="aplp-value-card"><div class="aplp-value-no">03</div><h3>Professionalism</h3><p>Knowledge, confidence and practical competence for modern policing.</p></article>
+          <article class="aplp-value-card"><div class="aplp-value-no">04</div><h3>Service</h3><p>Commitment to disciplined, respectful and community-focused service.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-section aplp-principal">
+      <div class="aplp-container aplp-principal-grid">
+        <img class="aplp-principal-photo" src="https://ptsfarooqabad.com/public/uploads/1445287948.jpg" alt="Institutional briefing and trainee assembly at Police Training School Farooqabad" loading="lazy">
+        <div>
+          <div class="aplp-section-kicker">Message from the Principal</div>
+          <h2 class="aplp-section-title">Building disciplined professionals for responsible policing.</h2>
+          <p class="aplp-principal-quote">“Our objective is to develop disciplined, knowledgeable and professionally prepared police personnel through effective training, responsible leadership and continuous learning.”</p>
+          <div class="aplp-principal-byline">Principal · Police Training School Farooqabad</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-section" id="training">
+      <div class="aplp-container">
+        <div class="aplp-training-head">
+          <div><div class="aplp-section-kicker">Training &amp; Development</div><h2 class="aplp-section-title">Professional development for modern policing.</h2><p class="aplp-section-lead">A balanced training environment combining discipline, academic learning, professional skills and technology-enabled support.</p></div>
+        </div>
+        <div class="aplp-training-grid">
+          <article class="aplp-training-card"><span class="aplp-number">01</span><div class="aplp-training-icon">✦</div><h3>Discipline &amp; Drill</h3><p>Structured training focused on discipline, confidence, teamwork and professional bearing.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">02</span><div class="aplp-training-icon">▤</div><h3>Law &amp; Academics</h3><p>Academic instruction designed to strengthen legal knowledge, procedures and professional understanding.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">03</span><div class="aplp-training-icon">♙</div><h3>Leadership &amp; Ethics</h3><p>Professional conduct, responsibility, teamwork and service-oriented leadership development.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">04</span><div class="aplp-training-icon">➤</div><h3>Driving &amp; Traffic</h3><p>Specialized learning opportunities relating to driving, road safety and traffic responsibilities.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">05</span><div class="aplp-training-icon">⌘</div><h3>Digital Learning</h3><p>Technology-enabled training support, biometric attendance and digital management systems.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">06</span><div class="aplp-training-icon">✓</div><h3>Professional Readiness</h3><p>Practical development and structured learning designed to strengthen professional readiness.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-section aplp-facilities" id="facilities">
+      <div class="aplp-container">
+        <div class="aplp-section-kicker">Campus Facilities</div>
+        <h2 class="aplp-section-title">Supporting institutional and training life.</h2>
+        <p class="aplp-section-lead">Core facilities support administration, academics, welfare and professional training activities.</p>
+        <div class="aplp-facilities-grid">
+          <div class="aplp-facility"><span class="aplp-facility-icon">▦</span><strong>Administration Block</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">▤</span><strong>Academic Block</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">♨</span><strong>Mess</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">✚</span><strong>Dispensary</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">▣</span><strong>MT Shed</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">▥</span><strong>Library</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">☕</span><strong>Canteen</strong></div>
+          <div class="aplp-facility"><span class="aplp-facility-icon">◎</span><strong>Attendance Ground</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-section" id="gallery">
+      <div class="aplp-container">
+        <div class="aplp-section-kicker">Campus Gallery</div>
+        <h2 class="aplp-section-title">A glimpse of life at PTS Farooqabad.</h2>
+        <p class="aplp-section-lead">Campus, training and institutional photographs from Police Training School Farooqabad.</p>
+        <div class="aplp-gallery-grid">
+          <figure class="aplp-gallery-item"><img src="https://ptsfarooqabad.com/public/uploads/242134173.JPG" alt="PTS Farooqabad attendance ground" loading="lazy"><figcaption class="aplp-gallery-caption"><small>Campus</small>Attendance Ground</figcaption></figure>
+          <figure class="aplp-gallery-item"><img src="https://ptsfarooqabad.com/public/uploads/1595178809.JPG" alt="Campus canteen building" loading="lazy"><figcaption class="aplp-gallery-caption"><small>Facilities</small>Canteen</figcaption></figure>
+          <figure class="aplp-gallery-item"><img src="https://ptsfarooqabad.com/public/uploads/631291744.JPG" alt="Campus parking facility" loading="lazy"><figcaption class="aplp-gallery-caption"><small>Campus</small>Parking Facility</figcaption></figure>
+          <figure class="aplp-gallery-item"><img src="https://ptsfarooqabad.com/public/uploads/1977724515.jpg" alt="Campus laundry facility" loading="lazy"><figcaption class="aplp-gallery-caption"><small>Facilities</small>Laundry Facility</figcaption></figure>
+          <figure class="aplp-gallery-item"><img src="https://ptsfarooqabad.com/public/uploads/10565007.jpg" alt="Tree planting ceremony at PTS Farooqabad" loading="lazy"><figcaption class="aplp-gallery-caption"><small>Institutional Life</small>Campus Plantation</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-portal-cta">
+      <div class="aplp-container aplp-portal-cta-inner">
+        <div><div class="aplp-section-kicker">AttendPro Digital Portal</div><h2 class="aplp-section-title">Institutional management, connected in one place.</h2><p>Authorized staff can access attendance monitoring, employee records, discrepancy review, reports, biometric device status and system administration through the secure AttendPro portal.</p></div>
+        <button class="aplp-btn-primary" type="button" onclick="openAttendProPortal('dashboard')">Enter AttendPro Portal <span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+
+    <section class="aplp-section" id="contact">
+      <div class="aplp-container aplp-contact-grid">
+        <div><div class="aplp-section-kicker">Contact</div><h2 class="aplp-section-title">Police Training School Farooqabad.</h2><p class="aplp-section-lead">For institutional information and visitor enquiries, contact the school through its published contact channels.</p>
+          <div class="aplp-contact-card">
+            <div class="aplp-contact-item"><span>Location</span><strong>Farooqabad, Punjab, Pakistan</strong></div>
+            <div class="aplp-contact-item"><span>Official Phone</span><strong>(056) 3876118</strong></div>
+            <div class="aplp-contact-item"><span>Official Email</span><strong>policetrainingfarooqabad@gmail.com</strong></div>
+            <div class="aplp-contact-item"><span>Institution</span><strong>Punjab Police Training Institution</strong></div>
+          </div>
+        </div>
+        <div class="aplp-contact-panel"><h3>Authorized Portal Access</h3><p>AttendPro provides authorized users with a central workspace for biometric attendance, employee records, attendance corrections, reporting and system monitoring.</p><button class="aplp-btn-primary" type="button" onclick="openAttendProPortal('dashboard')">Login to AttendPro <span aria-hidden="true">→</span></button></div>
+      </div>
+    </section>
+  </main>
+  <footer class="aplp-footer"><div class="aplp-container aplp-footer-inner"><div class="aplp-footer-brand"><img src="https://ptsfarooqabad.com/public/uploads/ptsmono.png" alt="PTS Farooqabad emblem" loading="lazy"><span>Police Training School Farooqabad</span></div><small>DISCIPLINE · TRAINING · SERVICE<br>AttendPro Digital Attendance &amp; Administration Portal</small><small>© <span id="aplpYear"></span> Police Training School Farooqabad. All rights reserved.</small></div></footer>
+  <button class="aplp-backtop" id="aplpBackTop" type="button" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+</div>
+
 <div class="app">
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -509,6 +789,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <input type="search" id="globalEmployeeSearch" autocomplete="off" placeholder="Search employees A–Z…" oninput="globalSearch(this.value)">
   </div>
   <div class="tb-actions">
+  <button class="aplp-app-home" type="button" onclick="returnToPublicLanding()" title="Return to the institution website">Website</button>
     <button class="icon-btn theme-btn" id="themeToggle" title="Switch dark/light mode" aria-label="Switch dark/light mode" onclick="toggleTheme()">🌙</button>
     <div class="icon-btn" id="apNotificationBell" role="button" tabindex="0" title="Open notifications" aria-label="Open notifications" onclick="toggleApNotifications()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleApNotifications()}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -570,13 +851,15 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
         <circle cx="55" cy="55" r="40" fill="none" stroke="#ef4444" stroke-width="16" stroke-dasharray="25 226" stroke-dashoffset="-210" transform="rotate(-90 55 55)"/>
         <circle cx="55" cy="55" r="40" fill="none" stroke="#f59e0b" stroke-width="16" stroke-dasharray="34 217" stroke-dashoffset="-235" transform="rotate(-90 55 55)"/>
         <circle cx="55" cy="55" r="40" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-dasharray="18 233" stroke-dashoffset="-269" transform="rotate(-90 55 55)"/>
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#94a3b8" stroke-width="16" stroke-dasharray="18 233" stroke-dashoffset="-287" transform="rotate(-90 55 55)"/>
         <text id="donutCenter" x="55" y="59" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">83%</text>
       </svg>
       <div class="donut-legend">
         <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Present<span class="legend-pct" id="legendPresent" style="color:#10b981">118</span></div>
         <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Absent<span class="legend-pct" id="legendAbsent" style="color:#ef4444">14</span></div>
         <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Late<span class="legend-pct" id="legendLate" style="color:#f59e0b">19</span></div>
-        <div class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>Not Checked In<span class="legend-pct" id="legendUnknown" style="color:#8b5cf6">10</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>On Leave<span class="legend-pct" id="legendLeave" style="color:#8b5cf6">10</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#94a3b8"></span>Not Checked In<span class="legend-pct" id="legendUnknown" style="color:#94a3b8">10</span></div>
       </div>
     </div>
   </div>
@@ -584,7 +867,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <div class="card-hdr"><span class="card-title">Dept. Summary</span></div>
     <div class="tbl-wrap" id="deptSummaryScroll">
       <table>
-        <thead><tr><th>Department</th><th>Total</th><th>Present</th><th>Absent</th></tr></thead>
+        <thead><tr><th>Department</th><th>Total</th><th>Present</th><th>Absent</th><th>On Leave</th></tr></thead>
         <tbody id="deptSummaryBody">
           <tr><td>Engineering</td><td>32</td><td style="color:#10b981;font-weight:600">28</td><td style="color:#ef4444;font-weight:600">4</td></tr>
           <tr><td>Finance</td><td>18</td><td style="color:#10b981;font-weight:600">16</td><td style="color:#ef4444;font-weight:600">2</td></tr>
@@ -864,9 +1147,33 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     </div>
   </div>
 </div>
-<!-- MASTER TEMPLATE PRINT AREA: populated only when Print Report is clicked -->
-<div class="print-only" id="printLayout" aria-hidden="true"><div id="printTemplateRoot"></div></div>
-</div><!-- /screen-reports: keep all following screens as siblings, not hidden inside Reports -->
+<!-- PRINT LAYOUT -->
+<div class="print-only" id="printLayout" style="padding:20px">
+  <div style="text-align:center;margin-bottom:20px">
+    <div style="font-size:24px;font-weight:700">🏢 Al-Rehman Industries Ltd.</div>
+    <div id="printTitle" style="font-size:16px;margin-top:4px"></div>
+    <div id="printMeta" style="font-size:12px;color:#666;margin-top:4px"></div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="background:#f1f5f9">
+      <th style="border:1px solid #ddd;padding:6px">AC-No.</th>
+      <th style="border:1px solid #ddd;padding:6px">Name</th>
+      <th style="border:1px solid #ddd;padding:6px">Date</th>
+      <th style="border:1px solid #ddd;padding:6px">Timetable</th>
+      <th style="border:1px solid #ddd;padding:6px">Clock In</th>
+      <th style="border:1px solid #ddd;padding:6px">Clock Out</th>
+      <th style="border:1px solid #ddd;padding:6px">Absent</th>
+      <th style="border:1px solid #ddd;padding:6px">Department</th>
+      <th style="border:1px solid #ddd;padding:6px">Status</th>
+    </tr></thead>
+    <tbody id="printTbody"></tbody>
+  </table>
+  <div style="margin-top:30px;display:flex;justify-content:space-between">
+    <div style="text-align:center"><div style="border-top:1px solid #000;padding-top:4px;width:160px;font-size:11px">Prepared By</div></div>
+    <div style="text-align:center"><div style="border-top:1px solid #000;padding-top:4px;width:160px;font-size:11px">Approved By</div></div>
+  </div>
+</div>
+</div>
 
 <!-- ═══════════════════ DEVICE STATUS ═══════════════════ -->
 <div id="screen-device" class="screen">
@@ -876,7 +1183,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
   <div class="device-info">
     <div style="display:flex;align-items:center;gap:8px"><div class="device-name" id="activeDeviceName">ZKTeco uFace 800</div><button class="device-info-btn" onclick="showDeviceInfo(currentSettings.active_device_id)" title="Device information">i</button></div>
     <div class="device-model" id="activeDeviceModel">Multi-biometric Face + Fingerprint Terminal — S/N: Not configured</div>
-    <div style="margin-top:10px"><span class="status-dot status-pending">⏳ Integration Pending — Preview Mode</span></div>
+    <div style="margin-top:10px"><span class="status-dot status-pending">⏳ MDB Bridge Pending — Configure Source</span></div>
   </div>
   <div id="deviceTopActions" style="display:flex;flex-direction:column;gap:8px" data-permission="super_admin">
     <button class="btn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)" onclick="testAccessDB()">🔌 Test MDB</button>
@@ -916,7 +1223,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
   <div class="access-help">AttendPro reads the MDB database in read-only mode. Enter the path to the file actively updated by the ZKTeco software. A copied MDB only shows older data. Install <code>mdbtools</code> on Ubuntu to read Microsoft Access databases.</div>
 </div>
 <div class="metric-row">
-  <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Connection Method</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">TCP/IP (to be configured)</div></div>
+  <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Connection Method</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">MDB file bridge (read-only)</div></div>
   <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Last Sync</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">Pending integration</div></div>
   <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Total Events</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">No data yet</div></div>
 </div>
@@ -1019,13 +1326,13 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <div id="sOrg" class="card">
       <div class="card-title" style="margin-bottom:16px">Organization Information</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="form-group"><label class="form-label">Organization Name</label><input class="form-input" value="Al-Rehman Industries Ltd."></div>
-        <div class="form-group"><label class="form-label">Short Name</label><input class="form-input" value="ARI"></div>
-        <div class="form-group"><label class="form-label">HR Contact</label><input class="form-input" value="hr@alrehman.com"></div>
-        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" value="+92-42-111-000-000"></div>
-        <div class="form-group" style="grid-column:1/-1"><label class="form-label">Address</label><input class="form-input" value="123 Industrial Area, Lahore, Punjab, Pakistan"></div>
+        <div class="form-group"><label class="form-label">Organization Name</label><input class="form-input" id="apOrgName" value="Al-Rehman Industries Ltd."></div>
+        <div class="form-group"><label class="form-label">Short Name</label><input class="form-input" id="apOrgShortName" value="ARI"></div>
+        <div class="form-group"><label class="form-label">HR Contact</label><input class="form-input" id="apHrContact" value="hr@alrehman.com"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="apOrgPhone" value="+92-42-111-000-000"></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label">Address</label><input class="form-input" id="apOrgAddress" value="123 Industrial Area, Lahore, Punjab, Pakistan"></div>
       </div>
-      <button class="btn btn-primary" style="margin-top:8px" onclick="notify('Settings saved! (Preview only)')">Save Changes</button>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="saveApGeneralSettings('organization')">Save Changes</button>
     </div>
     <div id="sShifts" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Shift Configuration</div>
@@ -1034,7 +1341,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
         <tbody id="apShiftSettingsBody"></tbody>
       </table></div>
       <button class="btn btn-primary" style="margin-top:12px" onclick="openApShiftEditor()" data-permission="super_admin">+ Add Shift</button>
-      <p class="access-help" style="margin-top:10px">Shift definitions on this screen are saved in this browser only. They do not alter biometric data, employee assignments or Supabase settings.</p>
+      <p class="access-help" style="margin-top:10px">Shift definitions are saved centrally in the AttendPro database and shared with authorized users.</p>
     </div>
     <div id="sDepts" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Departments</div>
@@ -1042,26 +1349,27 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
         <thead><tr><th>Department</th><th>Head</th><th>Employees</th><th>Actions</th></tr></thead>
         <tbody id="apDepartmentSettingsBody"></tbody>
       </table></div>
-      <p class="access-help" style="margin-top:10px">Department labels and heads here are browser-only settings. Rename here does not reassign employees or update Supabase.</p>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="openApDepartmentEditor(-1)" data-permission="super_admin">+ Add Department</button>
+      <p class="access-help" style="margin-top:10px">Department names and heads are saved centrally. Renaming a label here does not automatically reassign employee department records.</p>
     </div>
     <div id="sAttendance" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Attendance Rules</div>
-      <div class="form-group"><label class="form-label">Minimum Working Hours (per day)</label><input class="form-input" value="8" style="max-width:120px"></div>
-      <div class="form-group"><label class="form-label">Late Arrival Threshold (minutes)</label><input class="form-input" value="10" style="max-width:120px"></div>
-      <div class="form-group"><label class="form-label">Early Departure Threshold (minutes)</label><input class="form-input" value="15" style="max-width:120px"></div>
-      <div class="form-group"><label class="form-label">Overtime Starts After (minutes beyond shift)</label><input class="form-input" value="30" style="max-width:120px"></div>
-      <button class="btn btn-primary" onclick="notify('Rules saved! (Preview only)')">Save Rules</button>
+      <div class="form-group"><label class="form-label">Minimum Working Hours (per day)</label><input class="form-input" id="apMinWorkingHours" type="number" min="0.5" max="24" step="0.5" value="8" style="max-width:120px"></div>
+      <div class="form-group"><label class="form-label">Late Arrival Threshold (minutes)</label><input class="form-input" id="apLateThreshold" type="number" min="0" max="120" value="10" style="max-width:120px"></div>
+      <div class="form-group"><label class="form-label">Early Departure Threshold (minutes)</label><input class="form-input" id="apEarlyThreshold" type="number" min="0" max="120" value="15" style="max-width:120px"></div>
+      <div class="form-group"><label class="form-label">Overtime Starts After (minutes beyond shift)</label><input class="form-input" id="apOvertimeAfter" type="number" min="0" max="480" value="30" style="max-width:120px"></div>
+      <button class="btn btn-primary" onclick="saveApGeneralSettings('attendance_rules')">Save Rules</button><p class="access-help" style="margin-top:8px">These policy values are centrally stored. Payroll, overtime payout and automatic disciplinary actions are not calculated by this settings panel.</p>
     </div>
     <div id="sNotif" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:16px">Notification Settings</div>
       <div style="display:flex;flex-direction:column;gap:12px">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" checked> Alert on late arrivals (after threshold)</label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" checked> Alert on missing check-ins</label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox"> Alert on missing check-outs</label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" checked> Daily attendance summary email</label>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox"> Device sync failure alerts</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifLate" checked> Alert on late arrivals (after threshold)</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifMissingIn" checked> Alert on missing check-ins</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifMissingOut"> Alert on missing check-outs</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifDaily" checked> Daily attendance summary email</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifDevice"> Device sync failure alerts</label>
       </div>
-      <button class="btn btn-primary" style="margin-top:16px" onclick="notify('Notification settings saved! (Preview only)')">Save Settings</button>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="saveApGeneralSettings('notifications')">Save Settings</button><p class="access-help" style="margin-top:8px">These are notification preferences only. Email/SMS delivery needs a configured provider and background delivery worker.</p>
     </div>
     <div id="sDevices" class="card" style="display:none">
       <div class="card-title" style="margin-bottom:8px">Multiple Device Settings</div>
@@ -1161,6 +1469,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
     <label class="form-label" for="loginPassword">Password</label><input class="form-input" id="loginPassword" type="password" autocomplete="current-password" required>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px" type="submit">Sign In</button>
     <div class="access-help">Use your assigned account credentials. Change your password after your first sign-in.</div>
+    <button class="aplp-login-back" type="button" onclick="returnToPublicLanding()">← Back to institution website</button>
   </form>
 </div>
 
@@ -1177,7 +1486,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
    <div class="modal-hdr"><div class="modal-title" id="apConfigEditorTitle">Edit Settings</div><button class="close-btn" type="button" onclick="closeApConfigEditor()">×</button></div>
    <form class="modal-body" id="apConfigEditorForm" onsubmit="saveApConfigEditor(event)">
      <div id="apConfigEditorFields"></div>
-     <div class="access-help" style="margin:10px 0">These settings are stored in this browser only. The backend, Supabase and the original biometric database remain unchanged.</div>
+     <div class="access-help" style="margin:10px 0">Changes are validated by the backend and saved to the shared AttendPro settings database.</div>
      <div class="access-actions"><button class="btn btn-primary" type="submit">Save</button><button class="btn btn-outline" type="button" onclick="closeApConfigEditor()">Cancel</button></div>
    </form>
  </div>
@@ -1187,7 +1496,7 @@ body.dark-mode .redis-error{background:#7f1d1d;color:#fecaca}
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
 <script>
-window.ATTENDPRO_BUILD = "2026-11-04-system-screens-visible-fix";
+window.ATTENDPRO_BUILD = "2026-11-03-hosted-ui-auth-fixes";
 
 const apEnglishText = new Map([
  ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],
@@ -1352,7 +1661,6 @@ let recentPunches = [];
 let currentSettings = {};
 let userSelectedDate = false;
 let currentReportRows = [];
-let currentReportSourceRows = [];
 let currentReportExportMode = 'attendance';
 
 async function apiJSON(path, options={}) {
@@ -1449,32 +1757,35 @@ function updateKpis(metrics, depts) {
   const early=liveData.filter(r=>r.status==='Early Arrival').length;
   const missingOut=liveData.filter(r=>r.cin!=='—' && (r.cout==='Pending'||r.cout==='—')).length;
   const vals={kpiTotal:metrics.total??employees.length,kpiPresent:metrics.present??0,kpiAbsent:metrics.absent??0,kpiLate:metrics.late??0,
-    kpiEarly:early,kpiLeave:'—',kpiMissingIn:metrics.unknown??0,kpiMissingOut:missingOut||metrics.incomplete||0};
+    kpiEarly:early,kpiLeave:metrics.on_leave??0,kpiMissingIn:metrics.missing_check_in??0,
+    kpiMissingOut:metrics.missing_check_out??missingOut};
   Object.entries(vals).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
   const cards=document.querySelectorAll('#screen-dashboard .kpi-card .kpi-sub');
   const total=Number(metrics.total||0), present=Number(metrics.present||0), absent=Number(metrics.absent||0);
   if(cards[0])cards[0].textContent=`Across ${depts.length} departments`;
   if(cards[1])cards[1].textContent=`${metrics.attendance_percentage??(total?Math.round(present/total*1000)/10:0)}% attendance rate`;
-  if(cards[2])cards[2].textContent=`${total?Math.round(absent/total*1000)/10:0}% absence rate`;
+  if(cards[2])cards[2].textContent=`${metrics.absence_percentage??(metrics.working_employees?Math.round(absent/metrics.working_employees*1000)/10:0)}% absence rate`;
   if(cards[3])cards[3].textContent=`${metrics.late||0} reported late arrivals`;
   if(cards[4])cards[4].textContent='Calculated from available attendance records';
-  if(cards[5])cards[5].textContent='Leave records are not connected';
-  if(cards[6])cards[6].textContent='Employees not yet classified as present/absent';
-  if(cards[7])cards[7].textContent='Incomplete check-in/check-out records';
+  if(cards[5])cards[5].textContent='Approved leave · excluded from attendance rate';
+  if(cards[6])cards[6].textContent='Employees with a missing check-in punch';
+  if(cards[7])cards[7].textContent='Employees with a missing check-out punch';
 }
 function updateDonut() {
   const present=liveData.filter(r=>r.status==='Present'||r.status==='Early Arrival').length;
   const late=liveData.filter(r=>r.status==='Late').length;
   const absent=liveData.filter(r=>r.status==='Absent').length;
+  const onLeave=liveData.filter(r=>r.status==='On Leave').length;
   const unknown=liveData.filter(r=>r.status==='Not Checked In'||r.status==='Missing Check-in').length;
-  const total=Math.max(1,present+late+absent+unknown);
-  const pct=Math.round((present+late)/total*100);
+  const total=Math.max(1,present+late+absent+onLeave+unknown);
+  const working=Math.max(1,total-onLeave);
+  const pct=Math.round((present+late)/working*100);
   const center=document.getElementById('donutCenter'); if(center)center.textContent=`${pct}%`;
-  [['legendPresent',present],['legendAbsent',absent],['legendLate',late],['legendUnknown',unknown]].forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
+  [['legendPresent',present],['legendAbsent',absent],['legendLate',late],['legendLeave',onLeave],['legendUnknown',unknown]].forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
   const circles=document.querySelectorAll('#screen-dashboard .donut-wrap svg circle');
-  if(circles.length>=5){
+  if(circles.length>=6){
     const circ=2*Math.PI*40; let offset=0;
-    [present,absent,late,unknown].forEach((n,i)=>{const len=circ*n/total;const c=circles[i+1];c.setAttribute('stroke-dasharray',`${len} ${Math.max(0,circ-len)}`);c.setAttribute('stroke-dashoffset',String(-offset));offset+=len;});
+    [present,absent,late,onLeave,unknown].forEach((n,i)=>{const len=circ*n/total;const c=circles[i+1];c.setAttribute('stroke-dasharray',`${len} ${Math.max(0,circ-len)}`);c.setAttribute('stroke-dashoffset',String(-offset));offset+=len;});
   }
 }
 async function loadSyncHistory() {
@@ -1554,8 +1865,12 @@ async function loadRealData(forceDate=false) {
     const badge=document.querySelector('.demo-badge');
     if(badge){
       const dev=selectedDash.device||{};
-      if(dev.status==='online') {badge.style.background='#dcfce7';badge.style.borderColor='#86efac';badge.style.color='#166534';badge.textContent=`🟢 Live MDB data · ${currentDataDate}`;}
-      else {badge.style.background='#fef3c7';badge.style.borderColor='#fcd34d';badge.style.color='#92400e';badge.textContent=`📚 Stored attendance data · ${currentDataDate}`;}
+      if(dev.status==='online') {badge.style.background='#dcfce7';badge.style.borderColor='#86efac';badge.style.color='#166534';badge.textContent=`🟢 Live MDB data · ${currentDataDate} · Last sync ${dev.last_sync||'just now'}`;}
+      else {
+        const broken=['missing_file','stale_source','error'].includes(dev.status);
+        badge.style.background=broken?'#fee2e2':'#fef3c7';badge.style.borderColor=broken?'#fecaca':'#fcd34d';badge.style.color=broken?'#991b1b':'#92400e';
+        badge.textContent=`📚 Stored data · ${currentDataDate} · Last MDB sync ${dev.last_sync||'never'}`;
+      }
     }
     const sub=document.querySelector('#screen-dashboard .page-sub'); if(sub)sub.innerHTML=`Attendance overview — <strong>${escapeHtml(currentDataDate)}</strong> · ${devText(selectedDash.device)}`;
     const empSub=document.querySelector('#screen-employees .page-sub');if(empSub)empSub.textContent=`${employees.length} employees from the attendance database`;
@@ -1609,6 +1924,7 @@ function showScreen(name,el){
   if(name==='live')renderLive();
   if(name==='employees')renderEmployees();
   if(name==='records'){setDefaultDates();renderRecords();}
+  if(name==='settings'){loadApConfig();}
 }
 function setLiveFilter(s){document.getElementById('liveStatus').value=s;renderLive()}
 
@@ -1810,7 +2126,7 @@ function showReportPreview(){
   const rows=liveData.slice(0,20);
   document.getElementById('reportPreview').innerHTML=`
     <div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px">
-      <div style="font-size:16px;font-weight:700;text-align:center">Al-Rehman Industries Ltd.</div>
+      <div style="font-size:16px;font-weight:700;text-align:center">${escapeHtml(apLocalConfig.organization?.name||'AttendPro')}</div>
       <div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${type}</div>
       <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${from} to ${to} · Generated: ${new Date().toLocaleString()}</div>
     </div>
@@ -1825,7 +2141,7 @@ function showReportPreview(){
       <span>🏖 Leave: <strong>${rows.filter(r=>r.status==='On Leave').length}</strong></span>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-primary btn-sm" onclick="printMasterAttendanceReport()">🖨 Print Report</button>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button>
       <button class="btn btn-outline btn-sm" onclick="notify('Export to Excel requires backend integration')">📊 Export Excel</button>
       <button class="btn btn-outline btn-sm" onclick="notify('Export to PDF requires backend integration')">📄 Export PDF</button>
     </div>`;
@@ -1862,7 +2178,7 @@ function statusBadge(s){
 function buildDashboard(){
   const tbody=document.getElementById('deptSummaryBody');
   if(tbody && currentDashboard?.departments){
-    tbody.innerHTML=currentDashboard.departments.map(d=>`<tr><td>${escapeHtml(d.department||'Unassigned')}</td><td>${d.total||0}</td><td style="color:#10b981;font-weight:600">${d.present||0}</td><td style="color:#ef4444;font-weight:600">${d.absent||0}</td></tr>`).join('')||'<tr><td colspan="4">No department data</td></tr>';
+    tbody.innerHTML=currentDashboard.departments.map(d=>`<tr><td>${escapeHtml(d.department||'Unassigned')}</td><td>${d.total||0}</td><td style="color:#10b981;font-weight:600">${d.present||0}</td><td style="color:#ef4444;font-weight:600">${d.absent||0}</td><td style="color:#8b5cf6;font-weight:600">${d.on_leave||0}</td></tr>`).join('')||'<tr><td colspan="5">No department data</td></tr>';
   }
   const recent=document.getElementById('recentActivity');
   if(recent){
@@ -1913,7 +2229,7 @@ async function showReportPreview(){
   } catch(e) { notify('Could not load report data: '+e.message); return; }
   currentReportRows=rows;
   const shown=rows.slice(0,100);
-  document.getElementById('reportPreview').innerHTML=`<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">AttendPro — Attendance Report</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr></thead><tbody>${shown.map(r=>`<tr><td style="font-size:11px;font-family:monospace">${escapeHtml(r.id)}</td><td>${escapeHtml(r.name)}</td><td style="font-size:11px">${escapeHtml(r.dept)}</td><td>${escapeHtml(r.cin)}</td><td>${escapeHtml(r.cout)}</td><td>${statusBadge(r.status)}</td></tr>`).join('')}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px"><span>Records: <strong>${rows.length}</strong></span><span>Present: <strong>${rows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length}</strong></span><span>Late: <strong>${rows.filter(r=>r.status==='Late').length}</strong></span><span>Absent: <strong>${rows.filter(r=>r.status==='Absent').length}</strong></span></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="printMasterAttendanceReport()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button></div>`;
+  document.getElementById('reportPreview').innerHTML=`<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">AttendPro — Attendance Report</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr></thead><tbody>${shown.map(r=>`<tr><td style="font-size:11px;font-family:monospace">${escapeHtml(r.id)}</td><td>${escapeHtml(r.name)}</td><td style="font-size:11px">${escapeHtml(r.dept)}</td><td>${escapeHtml(r.cin)}</td><td>${escapeHtml(r.cout)}</td><td>${statusBadge(r.status)}</td></tr>`).join('')}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px"><span>Records: <strong>${rows.length}</strong></span><span>Present: <strong>${rows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length}</strong></span><span>Late: <strong>${rows.filter(r=>r.status==='Late').length}</strong></span><span>Absent: <strong>${rows.filter(r=>r.status==='Absent').length}</strong></span></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button></div>`;
   document.getElementById('printTitle').textContent=type;
   document.getElementById('printMeta').textContent=`Period: ${from} to ${to} · Generated: ${new Date().toLocaleString()}`;
   document.getElementById('printTbody').innerHTML=shown.map(r=>`<tr><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.id)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.name)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.dept)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.cin)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.cout)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.wh||'—')}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.status)}</td></tr>`).join('');
@@ -2484,7 +2800,6 @@ async function showReportPreview(options = {}) {
   if((Date.parse(to)-Date.parse(from))/86400000>366){notify('Select a date range of 366 days or less.','error');return;}
   document.getElementById('rptFrom').value=from;document.getElementById('rptTo').value=to;
   currentReportRows = [];
-  currentReportSourceRows = [];
   currentReportExportMode = 'attendance';
   preview.innerHTML = '<div style="text-align:center;padding:42px;color:var(--text2)">Loading report data…</div>';
   const q = new URLSearchParams({from,to});
@@ -2526,8 +2841,6 @@ async function showReportPreview(options = {}) {
   if(type === 'Absent Employees')sourceRows=sourceRows.filter(r => r.status==='Absent');
   if(type === 'Late Arrivals')sourceRows=sourceRows.filter(r => r.status==='Late');
 
-  // Keep filtered raw records for printing/exporting through the supplied master workbook.
-  currentReportSourceRows = sourceRows.map(r=>({...r}));
   let rows = sourceRows;
   let fields = [['id','AC-No.'],['name','Name'],['date','Date'],['timetable','Timetable'],['cin','Clock In'],['cout','Clock Out'],['absent','Absent'],['dept','Department'],['status','Status']];
   currentReportExportMode = 'attendance';
@@ -2582,7 +2895,7 @@ async function showReportPreview(options = {}) {
   const help = editable
     ? (cloudMode ? 'Edit Clock In, Clock Out, Timetable or Status, then click Save to Supabase. Original biometric data stays unchanged.' : 'Preview cells can be edited for export only. Local source database will not change.')
     : 'View-only mode: reports can be viewed, exported and printed.';
-  preview.innerHTML = `<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">Police Training Collage — Biometric Attendance</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div><div class="access-help" style="text-align:center">${help}</div></div><div class="tbl-wrap"><table><thead><tr>${fields.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${tableRows || `<tr><td colspan="${fields.length}" style="text-align:center;padding:22px">No records for the selected filters.</td></tr>`}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px">${summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="printMasterAttendanceReport()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button><button class="btn btn-outline btn-sm" onclick="downloadReportExcel()">📗 Export Editable Excel</button>${editable&&cloudMode?'<button class="btn btn-primary btn-sm" onclick="saveReportToSupabase()">☁ Save Changes to Supabase</button>':''}</div>`;
+  preview.innerHTML = `<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">Police Training Collage — Biometric Attendance</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div><div class="access-help" style="text-align:center">${help}</div></div><div class="tbl-wrap"><table><thead><tr>${fields.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${tableRows || `<tr><td colspan="${fields.length}" style="text-align:center;padding:22px">No records for the selected filters.</td></tr>`}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px">${summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button><button class="btn btn-outline btn-sm" onclick="downloadReportExcel()">📗 Export Editable Excel</button>${editable&&cloudMode?'<button class="btn btn-primary btn-sm" onclick="saveReportToSupabase()">☁ Save Changes to Supabase</button>':''}</div>`;
 
   document.getElementById('printTitle').textContent = type;
   document.getElementById('printMeta').textContent = `Period: ${from} to ${to} · Generated: ${new Date().toLocaleString()}`;
@@ -2613,12 +2926,12 @@ function downloadReportCsv() {
 async function downloadReportExcel() {
   const rows = currentReportRows || [];
   if (!rows.length) { notify('Generate a report preview first.'); return; }
-  // All report types must use the supplied two-sheet master attendance workbook.
+  if (['department','monthly'].includes(currentReportExportMode)) { downloadApGridXlsx('AttendPro '+currentReportExportMode+' Summary', getApReportGridColumns(), rows, 'attendpro-'+currentReportExportMode+'-summary.xlsx'); return; }
   const from = document.getElementById('rptFrom').value || currentDataDate || today();
   const to = document.getElementById('rptTo').value || from;
   try {
-    let response = await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows:(currentReportSourceRows&&currentReportSourceRows.length?currentReportSourceRows:rows)})});
-    if(response.status===401 && cloudMode){const refresh=await fetch(`${API}/api/auth/refresh`,{method:'POST',credentials:'same-origin'});if(refresh.ok)response=await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows:(currentReportSourceRows&&currentReportSourceRows.length?currentReportSourceRows:rows)})});}
+    let response = await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});
+    if(response.status===401 && cloudMode){const refresh=await fetch(`${API}/api/auth/refresh`,{method:'POST',credentials:'same-origin'});if(refresh.ok)response=await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});}
     if (!response.ok) { let msg=`${response.status} ${response.statusText}`; try { const j=await response.json(); msg=j.detail||msg; } catch(_) {} throw new Error(msg); }
     const blob=await response.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download=`attendpro-report-${from}-to-${to}.xlsx`; document.body.appendChild(a); a.click(); a.remove();
@@ -3060,91 +3373,7 @@ async function ensureApReportExport(format){
  if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}
  if(format==='xlsx')await downloadReportExcel();else downloadReportCsv();
 }
-
-function masterPrintDate(value){
-  const text=String(value||'');
-  const m=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  return m?`${m[2]}/${m[3]}/${m[1]}`:text;
-}
-function masterPrintStatus(row){
-  const raw=String(row.rawStatus||row.status||'').toLowerCase().replace(/[\s-]+/g,'_');
-  if(raw==='absent'||String(row.absent||'').toLowerCase()==='true')return 'Absent';
-  if(raw==='late'||Number(row.late_minutes||0)>0)return 'Late';
-  return String(row.status||titleStatus(raw)||'Present');
-}
-function masterPrintRow(row,index){
-  const status=masterPrintStatus(row);
-  return {
-    no:index+1,
-    id:String(row.id||row.badge_number||row.employee_id||''),
-    name:String(row.name||''),
-    date:masterPrintDate(row.date||row.work_date||''),
-    timetable:String(row.timetable||row.shift||''),
-    cin:String(row.cin||row.clock_in||''),
-    cout:String(row.cout||row.clock_out||''),
-    absent:(status==='Absent'||String(row.absent||'').toLowerCase()==='true')?'True':'',
-    dept:String(row.dept||row.department||'Unassigned'),
-    status,
-    late:Number(row.late_minutes||0),
-    early:Number(row.early_minutes||0)
-  };
-}
-function masterPrintTable(rows,detail=false){
-  const headers=detail
-    ? ['AC-No.','Name','Date','Timetable','Clock In','Clock Out','Absent','Department']
-    : ['No.','Name','Date','Timetable','Clock In','Clock Out','Department','Status'];
-  const cls=detail?'detail-cols':'summary-cols';
-  const colgroup=detail
-    ? '<colgroup><col><col><col><col><col><col><col><col></colgroup>'
-    : '<colgroup><col><col><col><col><col><col><col><col></colgroup>';
-  const body=rows.length?rows.map(r=>{
-    const values=detail?[r.id,r.name,r.date,r.timetable,r.cin,r.cout,r.absent,r.dept]
-      :[r.no,r.name,r.date,r.timetable,r.cin,r.cout,r.dept,r.status];
-    return `<tr>${values.map((v,i)=>`<td class="${!detail&&i===0?'row-no':''}">${escapeHtml(v||'')}</td>`).join('')}</tr>`;
-  }).join(''):`<tr><td class="row-no">1</td><td class="nill">NILL</td>${headers.slice(2).map(()=>'<td></td>').join('')}</tr>`;
-  return `<table class="master-print-table ${cls}">${colgroup}<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
-}
-function printMasterAttendanceReport(){
-  const source=(currentReportSourceRows&&currentReportSourceRows.length)
-    ? currentReportSourceRows
-    : (currentReportRows||[]);
-  if(!source.length){notify('Generate a report preview with matching attendance data before printing.','warning');return;}
-  const rows=source.map(masterPrintRow);
-  const from=document.getElementById('rptFrom')?.value||currentDataDate||today();
-  const to=document.getElementById('rptTo')?.value||from;
-  const period=from===to?masterPrintDate(from):`${masterPrintDate(from)} to ${masterPrintDate(to)}`;
-  const sections=[
-    ['Biometric Absent                                 Morning',rows.filter(r=>r.status==='Absent'||r.absent==='True')],
-    ['Biometric Late Arrivals',rows.filter(r=>r.status==='Late'||r.late>0)],
-    ['Early Departure',rows.filter(r=>r.early>0||String(r.status).toLowerCase()==='early departure')],
-    ['Biometric Not Check In',rows.filter(r=>!r.cin&&!!r.cout)],
-    ['Biometric Not Check Out',rows.filter(r=>!!r.cin&&!r.cout)]
-  ];
-  const summary=`
-    <section class="master-print-page summary">
-      <header class="master-print-heading">
-        <div>Police Training Collage</div>
-        <div>Biometric Attendence ${escapeHtml(period)}</div>
-        <div class="place">Lahore</div>
-      </header>
-      ${sections.map(([title,items])=>`<section class="master-print-section">
-        <div class="master-print-section-title">${escapeHtml(title)}</div>
-        ${masterPrintTable(items,false)}
-      </section>`).join('')}
-      <div class="master-print-signature">Incharge BioMetric<br>Police Training Collage Lahore</div>
-    </section>`;
-  const detail=`
-    <section class="master-print-page detail">
-      ${masterPrintTable(rows,true)}
-    </section>`;
-  const target=document.getElementById('printTemplateRoot');
-  if(!target){notify('The report print area is unavailable. Refresh the page and try again.','error');return;}
-  target.innerHTML=summary+detail;
-  document.title=`AttendPro Biometric Attendance ${from} ${to}`;
-  requestAnimationFrame(()=>setTimeout(()=>window.print(),100));
-}
-
-async function printApReport(){if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}printMasterAttendanceReport();}
+async function printApReport(){if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}window.print();}
 const apDiscColumns=[['work_date','Date'],['name','Employee'],['badge_number','AC-No.'],['department','Department'],['clock_in','Clock In'],['clock_out','Clock Out'],['issue_label','Issue'],['biometric_enrollment','Biometric Setup'],['status','Attendance'],['review_state','Review State'],['resolution','Resolution'],['review_note','Review Note'],['reviewed_by','Reviewed By'],['reviewed_at','Reviewed At']];
 async function apAllDiscrepancies(){
  const q=new URLSearchParams({state:document.getElementById('discState')?.value||'all',page:'1',per_page:'50'});
@@ -3202,74 +3431,116 @@ async function importApEditedCsv(event){
   notify(`Imported ${updates} edited rows. ${skipped} unmatched/invalid rows skipped. Click Save Changes to Supabase to apply corrections.`,updates?'success':'warning');
  }catch(e){notify('CSV import failed: '+e.message,'error');}
 }
-// Shift and department edit controls are deliberately local-only: the existing
-// backend has no CRUD APIs or Supabase tables for these configuration entities.
-const apStorageKey='attendpro:settings-browser-only:v1';
-let apLocalConfig={shifts:[
+
+// Shared AttendPro configuration. This is loaded from the authenticated backend;
+// localStorage is not used for organization, shift, department or HR rules.
+let apLocalConfig={
+ organization:{name:'Al-Rehman Industries Ltd.',short_name:'ARI',hr_contact:'hr@alrehman.com',phone:'+92-42-111-000-000',address:'123 Industrial Area, Lahore, Punjab, Pakistan'},
+ shifts:[
   {name:'Morning Shift',start:'08:00',end:'17:00',late_after:'08:10',grace:10},
   {name:'General Shift',start:'09:00',end:'18:00',late_after:'09:10',grace:10},
   {name:'Evening Shift',start:'14:00',end:'23:00',late_after:'14:15',grace:15}
-], departments:[
- {name:'Engineering',head:'Omar Farooq'}, {name:'Finance',head:'Zara Sheikh'},
- {name:'HR',head:'Admin Rehman'}, {name:'Operations',head:'Khalid Mirza'},
- {name:'Sales',head:'Nadia Pervez'}
-]};
-try{
- const stored=JSON.parse(localStorage.getItem(apStorageKey)||'null');
- if(stored&&Array.isArray(stored.shifts)&&Array.isArray(stored.departments))apLocalConfig=stored;
-}catch(_){}
+ ],
+ departments:[
+  {name:'Engineering',head:'Omar Farooq'},{name:'Finance',head:'Zara Sheikh'},
+  {name:'HR',head:'Admin Rehman'},{name:'Operations',head:'Khalid Mirza'},
+  {name:'Sales',head:'Nadia Pervez'}
+ ],
+ attendance_rules:{minimum_working_hours:8,late_arrival_threshold_minutes:10,early_departure_threshold_minutes:15,overtime_after_minutes:30},
+ notifications:{late_arrivals:true,missing_check_ins:true,missing_check_outs:false,daily_summary_email:true,device_sync_failure:false}
+};
 let apCurrentConfigEditor=null;
+function apDeepCopy(value){return JSON.parse(JSON.stringify(value));}
+function apSetValue(id,value){const el=document.getElementById(id);if(el)el.value=value??'';}
+function apSetChecked(id,value){const el=document.getElementById(id);if(el)el.checked=!!value;}
+function fillApConfigFields(){
+ const org=apLocalConfig.organization||{},rules=apLocalConfig.attendance_rules||{},n=apLocalConfig.notifications||{};
+ apSetValue('apOrgName',org.name);apSetValue('apOrgShortName',org.short_name);apSetValue('apHrContact',org.hr_contact);
+ apSetValue('apOrgPhone',org.phone);apSetValue('apOrgAddress',org.address);
+ apSetValue('apMinWorkingHours',rules.minimum_working_hours);apSetValue('apLateThreshold',rules.late_arrival_threshold_minutes);
+ apSetValue('apEarlyThreshold',rules.early_departure_threshold_minutes);apSetValue('apOvertimeAfter',rules.overtime_after_minutes);
+ apSetChecked('apNotifLate',n.late_arrivals);apSetChecked('apNotifMissingIn',n.missing_check_ins);
+ apSetChecked('apNotifMissingOut',n.missing_check_outs);apSetChecked('apNotifDaily',n.daily_summary_email);
+ apSetChecked('apNotifDevice',n.device_sync_failure);
+}
+async function loadApConfig(){
+ try{
+  const result=await apiJSON('/api/config');
+  apLocalConfig={...apDeepCopy(apLocalConfig),...result,
+   organization:{...apLocalConfig.organization,...(result.organization||{})},
+   attendance_rules:{...apLocalConfig.attendance_rules,...(result.attendance_rules||{})},
+   notifications:{...apLocalConfig.notifications,...(result.notifications||{})}};
+  fillApConfigFields();renderApSettings();
+ }catch(e){notify('Could not load shared settings: '+e.message,'error');}
+}
+async function persistApConfig(){
+ const result=await apiJSON('/api/config',{method:'PUT',body:JSON.stringify(apLocalConfig)});
+ if(result.config)apLocalConfig=result.config;
+ fillApConfigFields();renderApSettings();
+ notify('Settings saved to the shared AttendPro database.','success');
+}
 function renderApSettings(){
  const shifts=document.getElementById('apShiftSettingsBody');
- if(shifts)shifts.innerHTML=apLocalConfig.shifts.map((sh,index)=>`<tr><td>${escapeHtml(sh.name)}</td><td>${escapeHtml(sh.start)}</td><td>${escapeHtml(sh.end)}</td><td>${escapeHtml(sh.late_after)}</td><td>${Number(sh.grace)||0} min</td><td><button type="button" class="btn btn-outline btn-sm" data-permission="super_admin" onclick="openApShiftEditor(${index})">Edit</button></td></tr>`).join('');
+ if(shifts)shifts.innerHTML=(apLocalConfig.shifts||[]).map((sh,index)=>`<tr><td>${escapeHtml(sh.name)}</td><td>${escapeHtml(sh.start)}</td><td>${escapeHtml(sh.end)}</td><td>${escapeHtml(sh.late_after)}</td><td>${Number(sh.grace)||0} min</td><td><button type="button" class="btn btn-outline btn-sm" data-permission="super_admin" onclick="openApShiftEditor(${index})">Edit</button></td></tr>`).join('')||'<tr><td colspan="6">No shifts configured.</td></tr>';
  const depts=document.getElementById('apDepartmentSettingsBody');
- if(depts)depts.innerHTML=apLocalConfig.departments.map((d,index)=>`<tr><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.head)}</td><td>${employees.filter(e=>e.dept===d.name).length}</td><td><button type="button" class="btn btn-outline btn-sm" data-permission="super_admin" onclick="openApDepartmentEditor(${index})">Edit</button></td></tr>`).join('');
+ if(depts)depts.innerHTML=(apLocalConfig.departments||[]).map((d,index)=>`<tr><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.head)}</td><td>${employees.filter(e=>e.dept===d.name).length}</td><td><button type="button" class="btn btn-outline btn-sm" data-permission="super_admin" onclick="openApDepartmentEditor(${index})">Edit</button></td></tr>`).join('')||'<tr><td colspan="4">No departments configured.</td></tr>';
  applyPermissions();
 }
 function openApShiftEditor(index=-1){
  if(!roleAllowed('super_admin')){notify('Only Super Admin can change shift settings.','error');return;}
- apCurrentConfigEditor={type:'shift',index};const sh=apLocalConfig.shifts[index]||{name:'',start:'09:00',end:'17:00',late_after:'09:10',grace:10};
+ apCurrentConfigEditor={type:'shift',index};
+ const sh=apLocalConfig.shifts[index]||{name:'',start:'09:00',end:'17:00',late_after:'09:10',grace:10};
  document.getElementById('apConfigEditorTitle').textContent=index<0?'Add Shift':'Edit Shift';
  document.getElementById('apConfigEditorFields').innerHTML=[['name','Shift Name','text'],['start','Start','time'],['end','End','time'],['late_after','Late After','time'],['grace','Grace Period (minutes)','number']].map(([key,label,type])=>`<div class="form-group"><label class="form-label">${escapeHtml(label)}<input class="form-input" name="${key}" type="${type}" ${key==='grace'?'min="0" max="120"':''} required value="${escapeHtml(sh[key])}"></label></div>`).join('');
  document.getElementById('apConfigEditorModal').classList.add('open');
 }
-function openApDepartmentEditor(index){
+function openApDepartmentEditor(index=-1){
  if(!roleAllowed('super_admin')){notify('Only Super Admin can change department settings.','error');return;}
- apCurrentConfigEditor={type:'department',index};const dep=apLocalConfig.departments[index];if(!dep)return;
- document.getElementById('apConfigEditorTitle').textContent='Edit Department';
- document.getElementById('apConfigEditorFields').innerHTML=[['name','Department Name'],['head','Department Head']].map(([key,label])=>`<div class="form-group"><label class="form-label">${escapeHtml(label)}<input class="form-input" name="${key}" required maxlength="100" value="${escapeHtml(dep[key])}"></label></div>`).join('');
+ apCurrentConfigEditor={type:'department',index};
+ const dep=apLocalConfig.departments[index]||{name:'',head:''};
+ document.getElementById('apConfigEditorTitle').textContent=index<0?'Add Department':'Edit Department';
+ document.getElementById('apConfigEditorFields').innerHTML=[['name','Department Name'],['head','Department Head']].map(([key,label])=>`<div class="form-group"><label class="form-label">${escapeHtml(label)}<input class="form-input" name="${key}" required maxlength="120" value="${escapeHtml(dep[key])}"></label></div>`).join('');
  document.getElementById('apConfigEditorModal').classList.add('open');
 }
 function closeApConfigEditor(){document.getElementById('apConfigEditorModal')?.classList.remove('open');apCurrentConfigEditor=null;}
-function saveApConfigEditor(event){
+async function saveApConfigEditor(event){
  event.preventDefault();if(!apCurrentConfigEditor)return;
  const {type,index}=apCurrentConfigEditor,body=Object.fromEntries(new FormData(event.target));
+ const previous=apDeepCopy(apLocalConfig);
  if(type==='shift'){
-   const name=body.name.trim(),grace=Number(body.grace);
-   if(!name||!Number.isFinite(grace)||grace<0||grace>120){notify('Enter a valid shift name and grace period (0–120).','error');return;}
-   if(apLocalConfig.shifts.some((s,i)=>i!==index&&s.name.toLowerCase()===name.toLowerCase())){notify('A shift with this name already exists.','error');return;}
-   const row={name,start:body.start,end:body.end,late_after:body.late_after,grace};
-   if(index>=0)apLocalConfig.shifts[index]=row;else apLocalConfig.shifts.push(row);
+  const name=String(body.name||'').trim(),grace=Number(body.grace);
+  if(!name||!Number.isInteger(grace)||grace<0||grace>120){notify('Enter a valid shift name and grace period (0–120).','error');return;}
+  if(apLocalConfig.shifts.some((s,i)=>i!==index&&s.name.toLowerCase()===name.toLowerCase())){notify('A shift with this name already exists.','error');return;}
+  const row={name,start:body.start,end:body.end,late_after:body.late_after,grace};
+  if(index>=0)apLocalConfig.shifts[index]=row;else apLocalConfig.shifts.push(row);
  }else{
-   const name=body.name.trim(),head=body.head.trim();if(!name||!head){notify('Department name and head are required.','error');return;}
-   apLocalConfig.departments[index]={name,head};
+  const name=String(body.name||'').trim(),head=String(body.head||'').trim();
+  if(!name){notify('Department name is required.','error');return;}
+  if(apLocalConfig.departments.some((d,i)=>i!==index&&d.name.toLowerCase()===name.toLowerCase())){notify('A department with this name already exists.','error');return;}
+  const row={name,head};
+  if(index>=0)apLocalConfig.departments[index]=row;else apLocalConfig.departments.push(row);
  }
- try{localStorage.setItem(apStorageKey,JSON.stringify(apLocalConfig));notify('Settings saved in this browser only. Supabase and biometric data were not changed.','success');}
- catch(_){notify('Settings updated for this session; browser storage is unavailable.','warning');}
- closeApConfigEditor();renderApSettings();
+ try{await persistApConfig();closeApConfigEditor();}
+ catch(e){apLocalConfig=previous;fillApConfigFields();renderApSettings();notify('Settings were not saved: '+e.message,'error');}
 }
-// Initialize forms without modifying existing app initialization or backend.
-document.addEventListener('DOMContentLoaded',()=>{
- renderApSettings();
- const select=document.getElementById('rptType');
- if(select)select.addEventListener('change',()=>{
-  const ref=currentDataDate||today();
-  if(select.value==='Monthly Attendance Summary'){
-   const first=ref.slice(0,7)+'-01';apReportField('rptFrom',first);apReportField('rptTo',ref);
-  }
- });
-});
-
+async function saveApGeneralSettings(section){
+ const previous=apDeepCopy(apLocalConfig);
+ if(section==='organization'){
+  apLocalConfig.organization={name:document.getElementById('apOrgName').value.trim(),short_name:document.getElementById('apOrgShortName').value.trim(),
+   hr_contact:document.getElementById('apHrContact').value.trim(),phone:document.getElementById('apOrgPhone').value.trim(),address:document.getElementById('apOrgAddress').value.trim()};
+ }else if(section==='attendance_rules'){
+  apLocalConfig.attendance_rules={minimum_working_hours:Number(document.getElementById('apMinWorkingHours').value),
+   late_arrival_threshold_minutes:Number(document.getElementById('apLateThreshold').value),
+   early_departure_threshold_minutes:Number(document.getElementById('apEarlyThreshold').value),
+   overtime_after_minutes:Number(document.getElementById('apOvertimeAfter').value)};
+ }else if(section==='notifications'){
+  apLocalConfig.notifications={late_arrivals:document.getElementById('apNotifLate').checked,
+   missing_check_ins:document.getElementById('apNotifMissingIn').checked,missing_check_outs:document.getElementById('apNotifMissingOut').checked,
+   daily_summary_email:document.getElementById('apNotifDaily').checked,device_sync_failure:document.getElementById('apNotifDevice').checked};
+ }
+ try{await persistApConfig();}
+ catch(e){apLocalConfig=previous;fillApConfigFields();notify('Settings were not saved: '+e.message,'error');}
+}
 /* Browser-side XLSX/CSV attendance correction import */
 // Read standard XLSX files directly in modern browsers, without adding a server API.
 // Only attendance fields are applied, and the existing Save to Supabase action audits edits.
@@ -3362,5 +3633,66 @@ async function importApEditedReport(event){
 }
 
 </script>
+
+<script>
+/* Public landing-page routing. Existing AttendPro application functions and API calls are untouched. */
+function aplpPortalScreenFromHash(){
+  const match=String(window.location.hash||'').match(/^#portal(?:=([a-z-]+))?$/i);
+  const allowed=['dashboard','live','employees','records','discrepancies','leave','reports','device','redis','settings','users'];
+  return match?(allowed.includes((match[1]||'dashboard').toLowerCase())?(match[1]||'dashboard').toLowerCase():'dashboard'):null;
+}
+function aplpActivatePortal(screen='dashboard'){
+  document.body.classList.remove('aplp-landing-mode');
+  const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
+  const toggle=document.getElementById('aplpMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
+  const overlay=document.getElementById('loginOverlay');
+  if(typeof currentUser!=='undefined'&&currentUser){if(overlay)overlay.classList.remove('open');}
+  else if(overlay)overlay.classList.add('open');
+  if(screen){
+    window.setTimeout(()=>{
+      const target=document.querySelector(`[data-screen="${screen}"]`);
+      if(typeof showScreen==='function'&&document.getElementById('screen-'+screen))showScreen(screen,target||null);
+    },280);
+  }
+}
+function openAttendProPortal(screen='dashboard'){
+  const allowed=['dashboard','live','employees','records','discrepancies','leave','reports','device','redis','settings','users'];
+  const target=allowed.includes(String(screen).toLowerCase())?String(screen).toLowerCase():'dashboard';
+  const hash='#portal='+target;
+  if(window.location.hash!==hash){window.location.hash=hash;}
+  aplpActivatePortal(target);
+}
+function returnToPublicLanding(){
+  document.body.classList.add('aplp-landing-mode');
+  const overlay=document.getElementById('loginOverlay');if(overlay)overlay.classList.remove('open');
+  const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
+  const toggle=document.getElementById('aplpMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
+  if(window.location.hash.startsWith('#portal'))history.replaceState(null,'',window.location.pathname+window.location.search);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggleAplpMenu(){
+  const menu=document.getElementById('aplpNav'),toggle=document.getElementById('aplpMenuToggle');
+  if(!menu)return;const open=menu.classList.toggle('open');if(toggle)toggle.setAttribute('aria-expanded',String(open));
+}
+window.addEventListener('hashchange',()=>{
+  const screen=aplpPortalScreenFromHash();
+  if(screen)aplpActivatePortal(screen);
+  else if(!document.body.classList.contains('aplp-landing-mode')){
+    document.body.classList.add('aplp-landing-mode');
+    const overlay=document.getElementById('loginOverlay');if(overlay)overlay.classList.remove('open');
+    const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
+    const toggle=document.getElementById('aplpMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
+  }else{
+    const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
+  }
+});
+document.addEventListener('DOMContentLoaded',()=>{
+  const year=document.getElementById('aplpYear');if(year)year.textContent=String(new Date().getFullYear());
+  const back=document.getElementById('aplpBackTop');
+  window.addEventListener('scroll',()=>{if(back)back.classList.toggle('visible',window.scrollY>520);},{passive:true});
+  const screen=aplpPortalScreenFromHash();if(screen)aplpActivatePortal(screen);
+});
+</script>
+
 </body>
 </html>

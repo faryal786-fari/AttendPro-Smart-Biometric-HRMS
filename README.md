@@ -42,8 +42,8 @@ The source MDB is read-only. `tools/access_live.py` reads it with Ubuntu `mdbtoo
 ## Report template
 `templates/attendance_report_template.xlsx` is converted from the supplied `26.10.2026(1).xls` template; `templates/attendance_report_original.xls` is included for reference. Excel export creates an editable `.xlsx` file using the same two-sheet layout. Editing an exported workbook does not write changes back to the main attendance database or the source MDB.
 
-## Historical data
-The bundled SQLite database includes the supplied historical attendance workbook for 26 October 2026. Historical sample totals are not proof of a live device connection; use Test MDB and Sync Now on the client's actual source.
+## Historical data and private files
+Client attendance databases (`data/attendance.sqlite3`, `att2000.mdb`, and `.env`) are intentionally excluded from GitHub because they can contain private employee data or credentials. Add the approved local SQLite/MDB files only on the trusted machine that runs the on-prem bridge. The offline test suite creates a synthetic 731-employee fixture; those test rows are not client records. Historical sample totals are not proof of a live device connection; use Test MDB and Sync Now against the client's actual source.
 
 
 ## Layout Update — Blue Sidebar + White Workspace (same A-Z project)

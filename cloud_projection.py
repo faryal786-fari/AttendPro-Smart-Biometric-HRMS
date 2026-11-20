@@ -162,7 +162,7 @@ def pull_cloud(db,force=False):
         employees=cloud.rows('attendpro_employees',{'order':'id.asc'})
         # Cloud-only HR profile edits take precedence over imported biometric names.
         try:
-            profile_overrides=cloud.rows('attendpro_employee_profile_overrides')
+            profile_overrides=cloud.rows('attendpro_employee_profile_overrides',{'order':'employee_id.asc'})
         except CloudError as exc:
             # Keep existing attendance readable before optional migration 003 is applied.
             if '404' in str(exc) and 'attendpro_employee_profile_overrides' in str(exc):
@@ -171,9 +171,9 @@ def pull_cloud(db,force=False):
                 profile_overrides=[]
             else:raise
         profile_by_id={int(v['employee_id']):v for v in profile_overrides}
-        originals=cloud.rows('attendpro_source_daily',{'order':'work_date.asc'})
-        overrides=cloud.rows('attendpro_corrections',{'order':'work_date.asc'})
-        reviews=cloud.rows('attendpro_discrepancy_reviews')
+        originals=cloud.rows('attendpro_source_daily',{'order':'work_date.asc,employee_id.asc'})
+        overrides=cloud.rows('attendpro_corrections',{'order':'work_date.asc,employee_id.asc'})
+        reviews=cloud.rows('attendpro_discrepancy_reviews',{'order':'employee_id.asc,work_date.asc,issue_type.asc'})
         for e in employees:
             fields=EMP_COLUMNS;item={k:e.get(k) for k in fields};item['active']=int(bool(item['active']))
             custom=profile_by_id.get(int(e['id']))
@@ -197,8 +197,18 @@ def pull_cloud(db,force=False):
              DO UPDATE SET resolution=excluded.resolution,note=excluded.note,
              reviewed_by=excluded.reviewed_by,reviewed_at=excluded.reviewed_at''',(
               r['employee_id'],r['work_date'],r['issue_type'],r['resolution'],r.get('note') or '',reviewed_by,r['reviewed_at']))
+        # Persist a digest of the authoritative cloud projection. The API/Redis
+        # caches can then be invalidated only when the cloud data actually changes.
+        digest_source={'employees':employees,'profile_overrides':profile_overrides,
+                       'source_daily':originals,'corrections':overrides,'reviews':reviews}
+        digest=hashlib.sha256(json.dumps(digest_source,sort_keys=True,ensure_ascii=False,
+                                         separators=(',',':'),default=str).encode('utf-8')).hexdigest()
+        previous=db.execute("SELECT value FROM cloud_replication_state WHERE key='last_pull_digest'").fetchone()
+        changed=not previous or previous[0]!=digest
+        db.execute("INSERT OR REPLACE INTO cloud_replication_state(key,value) VALUES ('last_pull_digest',?)",(digest,))
         PULL_LAST=time.monotonic();PULL_ERROR=''
-        return {'employees':len(employees),'source_daily':len(originals),'corrections':len(overrides)}
+        return {'employees':len(employees),'source_daily':len(originals),'corrections':len(overrides),
+                'changed':changed,'digest':digest}
     except CloudError as e:
         PULL_ERROR=str(e);raise
     finally:PULL_LOCK.release()

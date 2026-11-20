@@ -5,6 +5,8 @@ import pytest, httpx
 from fastapi.testclient import TestClient
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
+sys.path.insert(0,str(ROOT/'tests'))
+from sample_data import seed_sample_database
 
 
 def test_auth_key_header_is_apikey_not_bearer():
@@ -41,11 +43,10 @@ class FakeCloud:
 class TestSaveCorrection:
  def setup_method(self):
   self.tmp=tempfile.TemporaryDirectory()
-  shutil.copy(ROOT/'data'/'attendance.sqlite3',Path(self.tmp.name)/'attendance.sqlite3')
   os.environ['ATTENDANCE_DATA_DIR']=self.tmp.name
   import app
   self.mod=importlib.reload(app)
-  self.mod.init_db()
+  seed_sample_database(self.mod)
   self.original_cloud=self.mod.cloud;self.original_flag=self.mod.CLOUD_ENABLED
   self.mod.CLOUD_ENABLED=True
   with self.mod.connection() as db:
@@ -99,10 +100,9 @@ def test_supabase_auth_role_gate_on_real_fastapi_routes(monkeypatch):
  import app
  temp=tempfile.TemporaryDirectory()
  try:
-  shutil.copy(ROOT/'data'/'attendance.sqlite3',Path(temp.name)/'attendance.sqlite3')
   monkeypatch.setenv('ATTENDANCE_DATA_DIR',temp.name)
   mod=importlib.reload(app)
-  mod.init_db()
+  seed_sample_database(mod)
   class AuthCloud(FakeCloud):
    role='view_only'
    def login(self,email,password):
@@ -134,3 +134,31 @@ def test_supabase_auth_role_gate_on_real_fastapi_routes(monkeypatch):
  finally:
   importlib.reload(app)
   temp.cleanup()
+
+
+def test_cloud_projection_digest_detects_change_once(monkeypatch, tmp_path):
+ import cloud_projection as projection
+ import app
+ monkeypatch.setenv('ATTENDANCE_DATA_DIR',str(tmp_path))
+ mod=importlib.reload(app)
+ seed_sample_database(mod)
+ class EmptyCloud:
+  def rows(self,table,params=None):
+   return []
+ monkeypatch.setattr(projection,'CLOUD_ENABLED',True)
+ monkeypatch.setattr(projection,'cloud',EmptyCloud())
+ projection.PULL_LAST=0
+ with mod.connection() as db:
+  first=projection.pull_cloud(db,force=True)
+  second=projection.pull_cloud(db,force=True)
+ assert first['changed'] is True
+ assert second['changed'] is False
+ assert first['digest']==second['digest']
+
+
+def test_settings_migration_is_backend_only():
+ sql=(ROOT/'supabase'/'004_persistent_app_settings.sql').read_text()
+ assert 'CREATE TABLE IF NOT EXISTS public.attendpro_app_settings' in sql
+ assert 'ENABLE ROW LEVEL SECURITY' in sql
+ assert 'REVOKE ALL ON TABLE public.attendpro_app_settings FROM PUBLIC, anon, authenticated' in sql
+ assert 'TO service_role' in sql

@@ -4,14 +4,16 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
+sys.path.insert(0,str(ROOT/'tests'))
+from sample_data import seed_sample_database
 
 class TestHourlyScheduler:
  def setup_method(self):
   self.temp=tempfile.TemporaryDirectory()
-  shutil.copy2(ROOT/'data'/'attendance.sqlite3',Path(self.temp.name)/'attendance.sqlite3')
   os.environ['ATTENDANCE_DATA_DIR']=self.temp.name
   import importlib,app
   self.mod=importlib.reload(app)
+  seed_sample_database(self.mod)
   self.client=TestClient(self.mod.app)
   self.client.__enter__()
   self.client.post('/api/auth/login',json={'username':'admin','password':'admin123'})

@@ -30,7 +30,7 @@ This extends the existing AttendPro prototype. The existing HTML/CSS/JS frontend
 - **att2000.mdb is never written**. Device MDB paths and the local import scheduler remain on the machine with access to MDB.
 - Cloud UI reads a periodically refreshed local SQLite projection; this is not WebSocket push streaming.
 - Redis is optional for local reads; Phase 2 adds a one-hour scheduler and one-hour read-through API cache.
-- The offline test suite does not prove compatibility with your production Supabase project or live Microsoft Access MDB.
+- The offline test suite does not prove compatibility with your production Supabase project or live Microsoft Access MDB. Private client SQLite/MDB data and `.env` credentials are deliberately not included in the Git repository.
 
 
 ## Redis Phase 1 + Phase 2 + Phase 3
@@ -38,7 +38,9 @@ This extends the existing AttendPro prototype. The existing HTML/CSS/JS frontend
 Redis stores separate snapshot chunks for employees, original source attendance, effective attendance,
 raw punches, discrepancy reviews, correction overlays, audit events, and devices. Selected authenticated
 GET APIs also use a one-hour read-through response cache. Successful writes and scheduled refreshes
-invalidate that response cache.
+invalidate that response cache. When the periodic Supabase projection digest detects a cloud-side data change, the API cache is invalidated and the Redis snapshot is rebuilt rather than serving old values for the full TTL.
+
+Shared organization, shift, department, attendance-rule and notification-preference settings use `/api/config`. In cloud mode, run `supabase/004_persistent_app_settings.sql` after migrations 001–003; only the FastAPI service-role backend can access the settings table.
 
 The hourly on-prem scheduler reads configured/Automatic Sync-enabled MDB devices no more frequently
 than once per hour, uses a Redis distributed lock, uploads original source data to Supabase, applies the

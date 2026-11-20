@@ -31,6 +31,25 @@ SESSION_LOCK=threading.RLock()
 SESSION_COOKIE='attendpro_session'
 ROLE_LABELS={'view_only':'View Only User','supervisor':'Supervisor','super_admin':'Super Admin'}
 
+DEFAULT_APP_CONFIG = {
+    'organization': {'name':'Al-Rehman Industries Ltd.','short_name':'ARI','hr_contact':'hr@alrehman.com',
+                     'phone':'+92-42-111-000-000','address':'123 Industrial Area, Lahore, Punjab, Pakistan'},
+    'shifts': [
+        {'name':'Morning Shift','start':'08:00','end':'17:00','late_after':'08:10','grace':10},
+        {'name':'General Shift','start':'09:00','end':'18:00','late_after':'09:10','grace':10},
+        {'name':'Evening Shift','start':'14:00','end':'23:00','late_after':'14:15','grace':15},
+    ],
+    'departments': [
+        {'name':'Engineering','head':'Omar Farooq'},{'name':'Finance','head':'Zara Sheikh'},
+        {'name':'HR','head':'Admin Rehman'},{'name':'Operations','head':'Khalid Mirza'},
+        {'name':'Sales','head':'Nadia Pervez'},
+    ],
+    'attendance_rules': {'minimum_working_hours':8,'late_arrival_threshold_minutes':10,
+                         'early_departure_threshold_minutes':15,'overtime_after_minutes':30},
+    'notifications': {'late_arrivals':True,'missing_check_ins':True,'missing_check_outs':False,
+                      'daily_summary_email':True,'device_sync_failure':False},
+}
+
 
 def redis_cached_endpoint(namespace):
     """Cache authenticated JSON read endpoints for the configured Redis window."""
@@ -91,6 +110,9 @@ HOURLY_SCHEDULER_ENABLED = env_flag('ATTENDPRO_HOURLY_SCHEDULER_ENABLED', redis_
 AUTO_BIOMETRIC_LEAVE_ENABLED = env_flag('ATTENDPRO_AUTO_LEAVE_UNCONFIGURED_BIOMETRIC', True)
 HOURLY_JOB_LOCK = threading.Lock()
 SCHEDULER_LOCK_KEY = 'scheduler:hourly-mdb-sync'
+# Manual "Run Scheduler Now" wakes the background loop so the next interval
+# is measured from that completed run instead of keeping an old sleep timer.
+SCHEDULER_WAKE_EVENT = asyncio.Event()
 
 @contextmanager
 def connection():
@@ -144,6 +166,7 @@ def init_db():
   );
   CREATE INDEX IF NOT EXISTS ix_punches_time ON punches(happened_at DESC);
   CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+  CREATE TABLE IF NOT EXISTS app_config(key TEXT PRIMARY KEY,value TEXT NOT NULL,updated_by TEXT,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS watched_files(path TEXT PRIMARY KEY, checksum TEXT NOT NULL, updated_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS device_people(device_user_id TEXT PRIMARY KEY,name TEXT,seen_at TEXT DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS device_map(device_user_id TEXT PRIMARY KEY,employee_id INTEGER NOT NULL REFERENCES employees(id));
@@ -280,13 +303,23 @@ def daily_query(work_date,status='',department='',search=''):
 def overview(db,work_date):
  total=db.execute('SELECT COUNT(*) FROM employees WHERE active=1').fetchone()[0]
  statuses={r['status']:r['n'] for r in db.execute('''SELECT d.status,COUNT(*) n FROM daily d JOIN employees e ON e.id=d.employee_id WHERE d.work_date=? AND e.active=1 GROUP BY d.status''',(work_date,))}
- present=statuses.get('present',0)+statuses.get('late',0)
+ # Late and early-arrival employees are present for headcount purposes.
+ present=statuses.get('present',0)+statuses.get('late',0)+statuses.get('early_arrival',0)
  absent=statuses.get('absent',0)
- unknown=max(0,total-present-absent)
+ on_leave=statuses.get('on_leave',0)
+ unknown=max(0,total-present-absent-on_leave)
  late=statuses.get('late',0)
  punches=db.execute("SELECT COUNT(*) FROM punches WHERE substr(happened_at,1,10)=?",(work_date,)).fetchone()[0]
- inc=db.execute("SELECT COUNT(*) FROM daily WHERE work_date=? AND ((clock_in IS NULL AND clock_out IS NOT NULL) OR (clock_in IS NOT NULL AND clock_out IS NULL))",(work_date,)).fetchone()[0]
- return {'total':total,'present':present,'absent':absent,'late':late,'unknown':unknown,'attendance_percentage':round(100*present/total,1) if total else 0,'incomplete':inc,'punches':punches,'not_checked_in':unknown,'provisional_absent':unknown if (work_date==today_iso() and setting(db,'last_sync','')[:10]==today_iso()) else 0}
+ missing_in=db.execute("SELECT COUNT(*) FROM daily d JOIN employees e ON e.id=d.employee_id WHERE d.work_date=? AND e.active=1 AND d.clock_in IS NULL AND d.clock_out IS NOT NULL",(work_date,)).fetchone()[0]
+ missing_out=db.execute("SELECT COUNT(*) FROM daily d JOIN employees e ON e.id=d.employee_id WHERE d.work_date=? AND e.active=1 AND d.clock_in IS NOT NULL AND d.clock_out IS NULL",(work_date,)).fetchone()[0]
+ working=max(0,total-on_leave)
+ return {'total':total,'present':present,'absent':absent,'on_leave':on_leave,'late':late,
+         'unknown':unknown,'working_employees':working,
+         'attendance_percentage':round(100*present/working,1) if working else 0,
+         'absence_percentage':round(100*absent/working,1) if working else 0,
+         'missing_check_in':missing_in,'missing_check_out':missing_out,
+         'incomplete':missing_in+missing_out,'punches':punches,'not_checked_in':unknown,
+         'provisional_absent':unknown if (work_date==today_iso() and setting(db,'last_sync','')[:10]==today_iso()) else 0}
 
 def active_device_id(db):
  try:return int(setting(db,'active_device_id','') or 0)
@@ -403,10 +436,24 @@ async def auto_poll():
         await asyncio.sleep(5)
         if os.environ.get('APP_WATCH_FOLDER') and time.monotonic()-last_folder_check>25:
             last_folder_check=time.monotonic()
-            await asyncio.to_thread(scan_import_folder)
+            try:
+                folder_result=await asyncio.to_thread(scan_import_folder)
+                if folder_result and folder_result.get('processed') and redis_cache.enabled and not cloud_source_upload_pending():
+                    redis_cache.invalidate_api_cache()
+                    await asyncio.to_thread(refresh_redis_snapshot)
+            except Exception as e:
+                print('Folder import warning:',str(e)[:250])
         if CLOUD_ENABLED and time.monotonic()-last_cloud_check>=20:
             last_cloud_check=time.monotonic()
-            try:await asyncio.to_thread(refresh_cloud_projection)
+            try:
+                cloud_result=await asyncio.to_thread(refresh_cloud_projection)
+                if cloud_result and cloud_result.get('changed') and redis_cache.enabled and not cloud_source_upload_pending():
+                    # Supabase is authoritative. When its projection changes, invalidate
+                    # stale API responses and rebuild the Redis snapshot immediately.
+                    redis_cache.invalidate_api_cache()
+                    cache_result=await asyncio.to_thread(refresh_redis_snapshot)
+                    if not cache_result.get('success'):
+                        print('Redis refresh after Supabase change warning:',cache_result.get('reason','unknown error'))
             except Exception as e:print('Supabase refresh warning:',str(e)[:250])
             try:await asyncio.to_thread(flush_pending_source_upload)
             except Exception as e:print('Supabase source upload pending:',str(e)[:250])
@@ -501,7 +548,7 @@ def refresh_cloud_login(request,response):
  except (CloudError,KeyError):return None
 
 def refresh_cloud_projection(force=False):
- if not CLOUD_ENABLED:return
+ if not CLOUD_ENABLED:return {'cloud':False,'changed':False}
  with WRITE_LOCK:
   with connection() as db:
    # Never pull a stale cloud snapshot over attendance not yet uploaded.
@@ -509,7 +556,7 @@ def refresh_cloud_projection(force=False):
    if pending and pending[0]=='1':
     push_sources(db)  # if cloud unavailable, keep pending data and retry later
     db.execute("INSERT OR REPLACE INTO cloud_replication_state(key,value) VALUES ('pending','0')")
-   pull_cloud(db, force=force)
+   return pull_cloud(db, force=force)
 
 def mark_pending_sync(db):
  db.execute("INSERT OR REPLACE INTO cloud_replication_state(key,value) VALUES ('pending','1')")
@@ -710,18 +757,24 @@ def scheduler_status(request:Request):
     with connection() as db:
         state={r['key']:r['value'] for r in db.execute("SELECT key,value FROM settings WHERE key LIKE 'scheduler_%'").fetchall()}
         devices=rows_as_dict(db.execute("SELECT id,name,mdb_path,auto_sync,sync_interval,last_sync,last_error,status,last_attempt,last_fetched,last_inserted FROM devices ORDER BY id").fetchall())
+    interval=scheduler_interval_seconds()
+    last_finished=state.get('scheduler_last_finished')
+    try:
+        next_run=(datetime.fromisoformat(last_finished)+timedelta(seconds=interval)).isoformat(timespec='seconds') if last_finished else (local_now()+timedelta(seconds=interval)).isoformat(timespec='seconds')
+    except (TypeError,ValueError):
+        next_run=(local_now()+timedelta(seconds=interval)).isoformat(timespec='seconds')
     return {
         'enabled':HOURLY_SCHEDULER_ENABLED,
-        'interval_seconds':scheduler_interval_seconds(),
-        'interval_minutes':scheduler_interval_seconds()//60,
+        'interval_seconds':interval,
+        'interval_minutes':interval//60,
         'redis_connected':redis_cache.ping() if redis_cache.enabled else False,
         'last_started':state.get('scheduler_last_started'),
-        'last_finished':state.get('scheduler_last_finished'),
+        'last_finished':last_finished,
         'last_success':state.get('scheduler_last_success'),
         'last_error':state.get('scheduler_last_error',''),
         'last_trigger':state.get('scheduler_last_trigger',''),
         'last_result':json.loads(state['scheduler_last_result']) if state.get('scheduler_last_result') else None,
-        'next_run':state.get('scheduler_next_run'),
+        'next_run':next_run,
         'devices':[{'id':d['id'],'name':d['name'],'configured':bool(d['mdb_path']),
                     'automatic_sync_enabled':bool(d['auto_sync']),'last_sync':d['last_sync'],
                     'last_error':d['last_error'],'status':d['status'],'last_attempt':d['last_attempt'],
@@ -730,11 +783,12 @@ def scheduler_status(request:Request):
 
 
 @app.post('/api/scheduler/run')
-def scheduler_run_now(request:Request):
+async def scheduler_run_now(request:Request):
     require_roles(request,'super_admin')
-    result=run_hourly_sync_cycle(force=True, trigger='manual')
+    result=await asyncio.to_thread(run_hourly_sync_cycle,True,'manual')
     if not result.get('success'):
         raise HTTPException(503,result.get('message','Scheduler run failed'))
+    SCHEDULER_WAKE_EVENT.set()
     return result
 
 
@@ -794,12 +848,15 @@ def health():
 def dashboard(date:Optional[str]=None):
  with connection() as db:
   d=requested_date(db,date);stats=overview(db,d)
-  depts=rows_as_dict(db.execute('''SELECT e.department, COUNT(*) total,
-   SUM(CASE WHEN d.status IN ('present','late') THEN 1 ELSE 0 END) present,
-   SUM(CASE WHEN d.status='absent' THEN 1 ELSE 0 END) absent
-   FROM employees e LEFT JOIN daily d ON d.employee_id=e.id AND d.work_date=?
-   WHERE e.active=1 GROUP BY e.department ORDER BY total DESC''',(d,)).fetchall())
-  for it in depts:it['present']=it['present'] or 0;it['absent']=it['absent'] or 0
+  depts=rows_as_dict(db.execute('''SELECT COALESCE(NULLIF(TRIM(e.department),''),'Unassigned') department, COUNT(*) total,
+    SUM(CASE WHEN d.status IN ('present','late','early_arrival') THEN 1 ELSE 0 END) present,
+    SUM(CASE WHEN d.status='absent' THEN 1 ELSE 0 END) absent,
+    SUM(CASE WHEN d.status='on_leave' THEN 1 ELSE 0 END) on_leave
+    FROM employees e LEFT JOIN daily d ON d.employee_id=e.id AND d.work_date=?
+    WHERE e.active=1 GROUP BY COALESCE(NULLIF(TRIM(e.department),''),'Unassigned') ORDER BY total DESC''',(d,)).fetchall())
+  for it in depts:
+    it['present']=it['present'] or 0;it['absent']=it['absent'] or 0;it['on_leave']=it['on_leave'] or 0
+    it['unknown']=max(0,int(it['total'])-int(it['present'])-int(it['absent'])-int(it['on_leave']))
   recent=rows_as_dict(db.execute('''SELECT p.happened_at,p.kind,p.source,e.name,e.department,e.badge_number
    FROM punches p LEFT JOIN employees e ON e.id=p.employee_id WHERE substr(p.happened_at,1,10)=?
    ORDER BY p.happened_at DESC,p.id DESC LIMIT 9''',(d,)).fetchall())
@@ -1320,6 +1377,155 @@ async def export_report_excel(request:Request):
     return StreamingResponse(io.BytesIO(content),media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition':f'attachment; filename="{filename}"','Cache-Control':'no-store'})
 
+
+def _copy_default_app_config():
+    return json.loads(json.dumps(DEFAULT_APP_CONFIG))
+
+
+def _merge_app_config(value):
+    config=_copy_default_app_config()
+    if not isinstance(value,dict):
+        return config
+    for section in ('organization','attendance_rules','notifications'):
+        incoming=value.get(section)
+        if isinstance(incoming,dict):
+            config[section].update(incoming)
+    for section in ('shifts','departments'):
+        incoming=value.get(section)
+        if isinstance(incoming,list):
+            config[section]=incoming
+    return config
+
+
+def _validate_app_config(value):
+    if not isinstance(value,dict):
+        raise HTTPException(400,'Settings payload must be a JSON object.')
+    config=_merge_app_config(value)
+    org=config['organization']
+    for field,limit in (('name',160),('short_name',40),('hr_contact',180),('phone',60),('address',300)):
+        org[field]=str(org.get(field) or '').strip()
+        if len(org[field])>limit:
+            raise HTTPException(400,f'Organization field {field} is too long.')
+    if not org['name']:
+        raise HTTPException(400,'Organization name is required.')
+    if org['hr_contact'] and ('@' not in org['hr_contact'] or len(org['hr_contact'])>180):
+        raise HTTPException(400,'HR contact email is invalid.')
+
+    shifts=config['shifts']
+    if not isinstance(shifts,list) or len(shifts)>50:
+        raise HTTPException(400,'Shifts must be a list containing no more than 50 items.')
+    seen=set()
+    for shift in shifts:
+        if not isinstance(shift,dict):
+            raise HTTPException(400,'Each shift must be an object.')
+        name=str(shift.get('name') or '').strip()
+        if not name or len(name)>100:
+            raise HTTPException(400,'Every shift needs a name of 1 to 100 characters.')
+        key=name.casefold()
+        if key in seen:
+            raise HTTPException(400,'Shift names must be unique.')
+        seen.add(key)
+        for field in ('start','end','late_after'):
+            if not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d',str(shift.get(field) or '')):
+                raise HTTPException(400,f'Shift {name}: {field} must use HH:MM.')
+        try:
+            grace=int(shift.get('grace',0))
+        except (TypeError,ValueError):
+            raise HTTPException(400,f'Shift {name}: grace period must be a whole number.')
+        if not 0<=grace<=120:
+            raise HTTPException(400,f'Shift {name}: grace period must be between 0 and 120 minutes.')
+        shift.update({'name':name,'start':str(shift['start']),'end':str(shift['end']),
+                      'late_after':str(shift['late_after']),'grace':grace})
+
+    departments=config['departments']
+    if not isinstance(departments,list) or len(departments)>100:
+        raise HTTPException(400,'Departments must be a list containing no more than 100 items.')
+    seen=set()
+    for department in departments:
+        if not isinstance(department,dict):
+            raise HTTPException(400,'Each department must be an object.')
+        name=str(department.get('name') or '').strip()
+        head=str(department.get('head') or '').strip()
+        if not name or len(name)>100 or len(head)>120:
+            raise HTTPException(400,'Department name is required and department fields must be within allowed lengths.')
+        key=name.casefold()
+        if key in seen:
+            raise HTTPException(400,'Department names must be unique.')
+        seen.add(key)
+        department.update({'name':name,'head':head})
+
+    rules=config['attendance_rules']
+    numeric_limits={
+        'minimum_working_hours':(0.5,24,True),
+        'late_arrival_threshold_minutes':(0,120,False),
+        'early_departure_threshold_minutes':(0,120,False),
+        'overtime_after_minutes':(0,480,False),
+    }
+    for field,(minimum,maximum,allow_float) in numeric_limits.items():
+        try:
+            number=float(rules.get(field))
+        except (TypeError,ValueError):
+            raise HTTPException(400,f'Attendance rule {field} must be numeric.')
+        if number<minimum or number>maximum:
+            raise HTTPException(400,f'Attendance rule {field} must be between {minimum} and {maximum}.')
+        rules[field]=number if allow_float else int(number)
+
+    notifications=config['notifications']
+    for field in ('late_arrivals','missing_check_ins','missing_check_outs','daily_summary_email','device_sync_failure'):
+        if not isinstance(notifications.get(field),bool):
+            raise HTTPException(400,f'Notification setting {field} must be true or false.')
+    return config
+
+
+def _get_app_config(request:Request):
+    user=require_roles(request,'view_only','supervisor','super_admin')
+    if CLOUD_ENABLED:
+        try:
+            row=cloud.one('attendpro_app_settings',{'key':'eq.app_config'})
+        except CloudError as exc:
+            raise HTTPException(503,'Shared settings need Supabase migration 004. Apply supabase/004_persistent_app_settings.sql, then retry. '+str(exc)) from exc
+        if row and isinstance(row.get('value'),dict):
+            return _merge_app_config(row['value'])
+    with connection() as db:
+        row=db.execute("SELECT value FROM app_config WHERE key='app_config'").fetchone()
+    if row:
+        try:
+            return _merge_app_config(json.loads(row['value']))
+        except (TypeError,ValueError):
+            pass
+    return _copy_default_app_config()
+
+
+@app.get('/api/config')
+def get_app_config(request:Request):
+    return _get_app_config(request)
+
+
+@app.put('/api/config')
+async def update_app_config(request:Request):
+    user=require_roles(request,'super_admin')
+    try:
+        body=await request.json()
+    except Exception:
+        raise HTTPException(400,'Invalid JSON settings payload.')
+    config=_validate_app_config(body)
+    if CLOUD_ENABLED:
+        try:
+            cloud.upsert('attendpro_app_settings',{
+                'key':'app_config','value':config,'updated_by':user.get('auth_id')},'key')
+        except CloudError as exc:
+            raise HTTPException(503,'Shared settings could not be saved. Check Supabase migration 004 and permissions: '+str(exc)) from exc
+    with WRITE_LOCK:
+        with connection() as db:
+            db.execute('''INSERT INTO app_config(key,value,updated_by,updated_at)
+                VALUES('app_config',?,?,CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_by=excluded.updated_by,
+                updated_at=CURRENT_TIMESTAMP''',(
+                    json.dumps(config,ensure_ascii=False,separators=(',',':')),
+                    str(user.get('auth_id') or user.get('id') or '')))
+    return {'success':True,'config':config,'saved_to':'supabase' if CLOUD_ENABLED else 'local_database'}
+
+
 @app.get('/api/settings')
 def get_settings():
  with connection() as db:
@@ -1806,7 +2012,12 @@ async def hourly_scheduler_loop():
         next_run=local_now()+timedelta(seconds=delay)
         save_scheduler_state(next_run=next_run.isoformat(timespec='seconds'))
         if delay:
-            await asyncio.sleep(delay)
+            try:
+                await asyncio.wait_for(SCHEDULER_WAKE_EVENT.wait(),timeout=delay)
+                SCHEDULER_WAKE_EVENT.clear()
+                continue
+            except asyncio.TimeoutError:
+                pass
         try:
             await asyncio.to_thread(run_hourly_sync_cycle,False,'scheduler')
         except Exception as exc:

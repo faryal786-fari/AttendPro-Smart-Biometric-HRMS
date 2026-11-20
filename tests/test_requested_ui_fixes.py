@@ -26,9 +26,10 @@ def test_system_user_descriptions_are_english():
     assert 'Full access: add, switch, configure, and sync devices' in text
     assert 'kar sakta' not in text and 'aur' not in text
 
-def test_logout_browser_confirmation_is_english():
-    assert "confirm('Are you sure you want to log out?')" in HTML
-    assert "confirm('Logout karna hai?')" not in HTML
+def test_logout_confirmation_uses_english_in_app_dialog():
+    assert "await appConfirm('Are you sure you want to log out?')" in HTML
+    assert 'window.confirm(' not in HTML
+    assert 'window.alert(' not in HTML
 
 def test_automatic_biometric_rule_is_described_in_english():
     assert 'AttendPro automatically marks the effective attendance as On Leave' in HTML

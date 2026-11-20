@@ -1,34 +1,18 @@
-# Environment and secrets
 .env
-.env.*
-!.env.example
-.env_error_backup
-.env*backup*
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.log
 
-# Biometric databases
+# Private client attendance data: keep local for migration/bridge, never push to GitHub.
+data/
 *.mdb
-*.MDB
 *.accdb
-
-# Local databases
 *.sqlite
 *.sqlite3
-*.db
-*.db-journal
+*.sqlite3-shm
+*.sqlite3-wal
 
-# Local data and backups
-data/
-backups/
-backup/
-
-# Python environments
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-
-# Logs and temporary files
-*.log
-.DS_Store
-Thumbs.db
+# Local Redis / worker state
+.redis/
