@@ -4,15 +4,17 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
+sys.path.insert(0,str(ROOT/'tests'))
+from sample_data import seed_sample_database
 
 class TestApi:
  def setup_method(self):
   self.temp=tempfile.TemporaryDirectory()
-  shutil.copy2(ROOT/'data'/'attendance.sqlite3',Path(self.temp.name)/'attendance.sqlite3')
   os.environ['ATTENDANCE_DATA_DIR']=self.temp.name
-  # Import/reload AFTER setting the DB root, so tests do not edit packaged sample.
+  # Build an isolated synthetic test database; private client data is never required.
   import importlib,app
   self.app=importlib.reload(app)
+  seed_sample_database(self.app)
   self.client=TestClient(self.app.app)
   self.client.__enter__()
   login=self.client.post('/api/auth/login',json={'username':'admin','password':'admin123'})
@@ -105,6 +107,15 @@ class TestApi:
    assert 'Original MDB' in edit.json()['message']
   finally:
    supervisor.__exit__(None,None,None)
+
+ def test_admin_can_edit_employee_profile_without_touching_source(self):
+  employee=self.client.get('/api/employees',params={'page':1,'per_page':1}).json()['items'][0]
+  result=self.client.patch('/api/employees/'+str(employee['id']),json={
+   'name':employee['name'],'department':'Personnel Test','designation':'Staff',
+   'shift':'General','email':'','phone':''})
+  assert result.status_code==200,result.text
+  assert result.json()['original_mdb_changed'] is False
+  assert self.client.get('/api/employee/'+str(employee['id'])).json()['employee']['department']=='Personnel Test'
 
  def test_admin_can_add_employee_to_local_database_and_view_profile(self):
   created=self.client.post('/api/employees',json={'name':'ZZZ Sample New Staff','badge_number':'MANUAL-902','department':'Accounts','designation':'Assistant','shift':'Morning'})

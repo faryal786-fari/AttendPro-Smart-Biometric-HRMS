@@ -28,12 +28,17 @@ Client ki asli `att2000.mdb` **read-only** hai; na ZKTeco machine, na Att.exe, n
 ## 2) SQL schema banayein (YEH PEHLE KARNA HAI)
 
 1. Supabase Dashboard → **SQL Editor → New query**.
-2. `supabase/001_attendpro_schema.sql` ka **poora text** copy-paste karke **Run** karein.
+2. Supabase SQL Editor mein ye migrations isi order mein run karein:
+   - `supabase/001_attendpro_schema.sql`
+   - `supabase/002_hourly_cache_and_biometric_discrepancy.sql`
+   - `supabase/003_employee_profile_overrides.sql`
+   - `supabase/004_persistent_app_settings.sql`
 3. Table Editor mein check karein:
    - `attendpro_employees`, `attendpro_source_daily`, `attendpro_raw_punches`
    - `attendpro_corrections`, `attendpro_correction_audit`
    - `attendpro_app_users`, `attendpro_discrepancy_reviews`
    - `attendpro_devices`, `attendpro_biometric_audit`
+   - `attendpro_app_settings`
 4. SQL RLS ENABLE karta hai aur `anon`/`authenticated` ka direct table access **deny** rakhta hai.
    FastAPI server roles verify karke secure secret key se data access karega.
 
@@ -92,9 +97,10 @@ Cloud mode mein "Username" field mein **email address** dena hota hai.
 
 Permissions server par enforce hote hain, sirf button hide karna security nahi.
 
-## 5) Historical 731 employees / old Excel data Supabase mein migrate karein
+## 5) Apna historical attendance data Supabase mein migrate karein
 
-Project mein pehle se `data/attendance.sqlite3` mein imported historical attendance hai.
+**Important:** GitHub/ZIP package mein private `data/attendance.sqlite3` intentionally included nahi hai. Agar aapke trusted local machine par pehle se imported AttendPro database hai to usay project ke `data/attendance.sqlite3` path par rakhein. Warna pehle approved historical Excel workbook import karein ya live MDB bridge se sync karein. Test suite ka synthetic 731-row fixture client data nahi hai aur migrate nahi karna.
+
 **Dry run** (cloud ko data write nahi karega):
 
 ```bash
@@ -129,7 +135,11 @@ Authenticated browser mein yeh endpoint kholein:
 
 `pending_source_upload = false`, `cloud_pull_error = ""` check karein.
 
-## 7) Live MDB ka connection
+## 7) Shared Settings
+
+Settings screen ki Organization, Shifts, Departments, Attendance Rules aur Notification Preferences ab `/api/config` ke zariye shared database mein save hoti hain. Cloud mode mein migration 004 lazmi hai. Notification preferences save hona email/SMS bhejne ke barabar nahi; email/SMS delivery ke liye provider credentials aur delivery worker alag configure karna hoga. Isi tarah attendance-rule values central policy configuration hain; payroll/overtime automation ko alag se verify/enable karna hoga.
+
+## 8) Live MDB ka connection
 
 ZKTeco old software → `att2000.mdb` (original safe / unchanged)
 
@@ -162,7 +172,7 @@ ZKTeco device → old ZKTeco software → EXISTING att2000.mdb (read-only)
 stale cloud snapshot local pending attendance par overwrite nahi kiya jayega.
 **Supervisor/Admin manual edits** internet/cloud unavailable hone par 503 fail hongi; false success show nahi hogi.
 
-## 8) Supervisor attendance correction ka actual workflow
+## 9) Supervisor attendance correction ka actual workflow
 
 1. Supervisor **Attendance Records → Review/Update** open kare.
 2. Clock In/Out, Status ya Timetable correction kare.
@@ -176,7 +186,7 @@ stale cloud snapshot local pending attendance par overwrite nahi kiya jayega.
 
 **Original `.mdb` / raw_punches unchanged.** Agar Supabase save fail ho to edit reject hoti hai.
 
-## 9) Report preview aur Excel file difference
+## 10) Report preview aur Excel file difference
 
 - **Report Preview:** Supervisor/Admin Clock In, Clock Out, Timetable, Status fields ko edit kare →
   **Save Changes to Supabase** → reason enter kare → confirmation → per-record audited cloud updates.
@@ -185,14 +195,14 @@ stale cloud snapshot local pending attendance par overwrite nahi kiya jayega.
 - Batch save per-row transaction hai; agar 10 mein se 2 fail ho to baqi 8 saved rahenge;
   frontend explicitly failure count dikhata hai. Bulk all-or-nothing transaction abhi implemented nahi.
 
-## 10) Cloud mode vs local mode
+## 11) Cloud mode vs local mode
 
 - `.env` mein `SUPABASE_ENABLED=1` = Supabase Auth + Supabase manual corrections + cloud source sync.
 - Cloud key absent/misconfigured = start.sh cloud mode mein error; **local admin fallback nahi**.
 - `.env` nahi hai = legacy LOCAL demo mode (old login and SQLite). Public network mein default local demo deploy MAT karein.
 - Existing frontend HTML/CSS, sidebar, employee View popup, device cards aur reports same hain.
 
-## 11) Redis + one-hour scheduler + discrepancy protection
+## 12) Redis + one-hour scheduler + discrepancy protection
 
 Phase 1/2/3 ab project mein included hain. `supabase/002_hourly_cache_and_biometric_discrepancy.sql` ko migration 001 ke baad Supabase SQL Editor mein run karein.
 
@@ -215,7 +225,7 @@ Full setup aur discrepancy conditions ke liye `REDIS_PHASE2_PHASE3_SETUP_ROMAN_U
 
 Automatic On Leave exception sirf tab apply hoti hai jab employee ko explicitly Not Configured mark kiya gaya ho aur usi current work date par original MDB check-in punch maujood ho. Unknown enrollment par leave auto-create nahi hoti. Existing human correction overwrite nahi hoti. Original MDB/source punches unchanged rehte hain.
 
-## 12) Deployment security
+## 13) Deployment security
 
 
 - Production mein HTTPS/TLS domain + `ATTENDPRO_HTTPS=1` + `ATTENDPRO_PUBLIC_ORIGIN=https://domain.com`.
