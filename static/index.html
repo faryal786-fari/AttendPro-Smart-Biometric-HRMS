@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-23-ptc-lahore-clean-photo-polish-v3">
+<meta name="attendpro-build" content="2026-11-23-ptc-lahore-campus-gallery-branding-v4">
 <meta name="description" content="Police Training College Lahore — Main Campus at Chung near Thokar Niaz Baig and Campus II at Manawan. Explore the institution and AttendPro digital attendance portal.">
 <meta name="theme-color" content="#102b3b">
 <meta property="og:title" content="Police Training College Lahore | AttendPro Digital Portal">
@@ -11,6 +11,7 @@
 <meta property="og:type" content="website">
 <title>Police Training College Lahore | AttendPro Digital Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/ptc-college-crest.png" type="image/png">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -623,7 +624,64 @@ body.aplp-landing-mode #apPublicLanding{display:block}
   #apPublicLanding .aplp-gallery-info{padding:21px}
 }
 
+
+
+/* ── PTC / ATTENDPRO BRAND ALIGNMENT + ORIGINAL CAMPUS GALLERY ── */
+#apPublicLanding .aplp-brand-mark{background:#fff;border:1px solid #e6e0d3;padding:5px}
+.tb-brand{display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto}
+.tb-brand img{display:block;width:32px;height:32px;object-fit:contain;padding:2px;border:1px solid #e6e0d3;border-radius:9px;background:#fff}
+.tb-brand strong{display:block;color:#102b3b;font-size:11px;line-height:1.2;white-space:nowrap}
+.tb-brand small{display:block;margin-top:2px;color:#9b8050;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+#apPublicLanding .aplp-brand-mark img{display:block;width:100%;height:100%;object-fit:contain}
+#apPublicLanding .aplp-footer-crest{width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 46px;padding:3px;border:1px solid rgba(199,166,106,.55);border-radius:12px;background:#fff}
+#apPublicLanding .aplp-footer-crest img{width:100%;height:100%;object-fit:contain;display:block}
+#apPublicLanding .aplp-footer-brand{display:flex;align-items:center;gap:12px}
+#apPublicLanding .aplp-gallery-real-photos{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;gap:20px;align-items:stretch}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid #e8e4da;border-radius:15px;background:#fff;box-shadow:0 12px 32px rgba(16,43,59,.065)}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-art{height:285px;min-height:0;aspect-ratio:auto;display:flex;align-items:center;justify-content:center;padding:12px;background:#f0f2ed;overflow:hidden}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-art picture{display:flex;width:100%;height:100%;align-items:center;justify-content:center}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-art img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:8px;background:#f0f2ed;transform:none!important}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-entrance .aplp-gallery-art{height:245px}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-building .aplp-gallery-art,
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-grounds .aplp-gallery-art{height:300px}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-caption{position:static;left:auto;right:auto;bottom:auto;padding:15px 18px 17px;background:#fff;color:#102b3b;font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:750;line-height:1.4}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-caption small{display:block;margin-bottom:4px;color:#9b8050;font-size:9px;font-weight:850;letter-spacing:.15em}
+#apPublicLanding .aplp-gallery-real-photos .aplp-gallery-info{min-height:100%;border-radius:15px}
+
+:root{--navy:#102b3b;--navy2:#183d4b;--navy3:#244653}
+.sidebar{background:#102b3b}
+.sb-brand{border-bottom-color:#244653}
+.sb-logo-icon{width:42px;height:42px;flex:0 0 42px;padding:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #c7a66a;border-radius:11px;color:#102b3b}
+.sb-logo-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.sb-logo-icon.login-crest{width:54px;height:54px;flex-basis:54px;margin:0 0 14px;border-radius:13px}
+.sb-brand-sub{color:#d9c69d}
+.nav-item.active{background:#214b3d;color:#fff}
+.btn-primary{background:#214b3d;color:#fff}
+.btn-primary:hover{background:#163b2f}
+.tb-avatar{background:#214b3d}
+.card-action{color:#214b3d}
+.page-title{color:#102b3b}
+.login-card{border-top:4px solid #c7a66a;border-radius:14px}
+.login-card h2{color:#102b3b}
+
+@media(max-width:980px){.tb-brand span{display:none}.tb-brand img{width:30px;height:30px}}
+@media(max-width:700px){.tb-brand{display:none}}
+@media(max-width:780px){
+  #apPublicLanding .aplp-gallery-real-photos{grid-template-columns:1fr;gap:16px}
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-art{height:270px}
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-entrance .aplp-gallery-art{height:220px}
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-building .aplp-gallery-art,
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-grounds .aplp-gallery-art{height:300px}
+}
+@media(max-width:520px){
+  #apPublicLanding .aplp-footer-brand{align-items:flex-start}
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-art{height:250px}
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-entrance .aplp-gallery-art{height:205px}
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-building .aplp-gallery-art,
+  #apPublicLanding .aplp-gallery-real-photos .aplp-gallery-item-grounds .aplp-gallery-art{height:275px}
+}
 </style>
+
 <link rel="preload" as="image" href="/assets/ptc-manawan-entrance.webp" type="image/webp">
 </head>
 
@@ -638,7 +696,7 @@ body.aplp-landing-mode #apPublicLanding{display:block}
   <header class="aplp-header">
     <div class="aplp-container aplp-header-inner">
       <a class="aplp-brand" href="#home" aria-label="Police Training College Lahore home">
-        <span class="aplp-brand-mark"><span class="aplp-monogram" aria-hidden="true">PTC</span></span>
+        <span class="aplp-brand-mark"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="44" height="44" decoding="async"></span>
         <span class="aplp-brand-copy"><strong>Police Training College</strong><span>Chung · Manawan · Lahore</span></span>
       </a>
       <nav class="aplp-nav" id="aplpNav" aria-label="Main navigation">
@@ -783,18 +841,36 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 
     <section class="aplp-section" id="gallery">
       <div class="aplp-container">
-        <div class="aplp-section-kicker">Training Environment</div>
-        <h2 class="aplp-section-title">Knowledge, discipline and practical readiness.</h2>
-        <p class="aplp-section-lead">A clearer look at the College entrance, alongside concise information about its two Lahore campus locations.</p>
-        <div class="aplp-gallery-grid aplp-gallery-photo-grid">
-          <figure class="aplp-gallery-item">
+        <div class="aplp-section-kicker">College Gallery</div>
+        <h2 class="aplp-section-title">A closer look at Police Training College Lahore.</h2>
+        <p class="aplp-section-lead">Original photographs of the College entrance, institutional building and campus grounds.</p>
+        <div class="aplp-gallery-grid aplp-gallery-photo-grid aplp-gallery-real-photos">
+          <figure class="aplp-gallery-item aplp-gallery-item-entrance">
             <div class="aplp-gallery-art">
               <picture>
                 <source srcset="/assets/ptc-manawan-entrance.webp" type="image/webp">
-                <img src="/assets/ptc-manawan-entrance.jpg" alt="Front entrance and sign of Police Training College Lahore." loading="lazy" decoding="async" width="1366" height="512">
+                <img src="/assets/ptc-manawan-entrance.jpg" alt="Police Training College Lahore entrance with the College name fully visible on the sign." loading="lazy" decoding="async" width="1366" height="512">
               </picture>
             </div>
             <figcaption class="aplp-gallery-caption"><small>01 · College Entrance</small>Police Training College Lahore</figcaption>
+          </figure>
+          <figure class="aplp-gallery-item aplp-gallery-item-building">
+            <div class="aplp-gallery-art">
+              <picture>
+                <source srcset="/assets/ptc-lahore-building-reference.webp" type="image/webp">
+                <img src="/assets/ptc-lahore-building-reference.jpg" alt="Police Training College Lahore building with flags above the entrance." loading="lazy" decoding="async" width="820" height="672">
+              </picture>
+            </div>
+            <figcaption class="aplp-gallery-caption"><small>02 · College Building</small>Institutional Building</figcaption>
+          </figure>
+          <figure class="aplp-gallery-item aplp-gallery-item-grounds">
+            <div class="aplp-gallery-art">
+              <picture>
+                <source srcset="/assets/ptc-chung-grounds-reference.webp" type="image/webp">
+                <img src="/assets/ptc-chung-grounds-reference.jpg" alt="Green campus grounds and trees at Police Training College Lahore." loading="lazy" decoding="async" width="592" height="672">
+              </picture>
+            </div>
+            <figcaption class="aplp-gallery-caption"><small>03 · Campus Grounds</small>College Grounds</figcaption>
           </figure>
           <article class="aplp-gallery-info">
             <div class="aplp-gallery-info-kicker">Campus Information</div>
@@ -803,7 +879,7 @@ body.aplp-landing-mode #apPublicLanding{display:block}
               <div><span>Campus I · Main Campus</span><strong>Chung, near Thokar Niaz Baig</strong></div>
               <div><span>Campus II</span><strong>Manawan · G.T. Road, Lahore</strong></div>
             </div>
-            <p>Campus arrangements, course schedules and administrative information should be confirmed through the College administration.</p>
+            <p>Campus-specific schedules and administrative arrangements should be confirmed through the College administration.</p>
             <a href="#contact">View contact information <span aria-hidden="true">→</span></a>
           </article>
         </div>
@@ -833,7 +909,7 @@ body.aplp-landing-mode #apPublicLanding{display:block}
       </div>
     </section>
   </main>
-  <footer class="aplp-footer"><div class="aplp-container aplp-footer-inner"><div class="aplp-footer-brand"><span class="aplp-monogram" aria-hidden="true">PTC</span><span>Police Training College Lahore · Campus II Manawan</span></div><small>DISCIPLINE · TRAINING · SERVICE<br>AttendPro Digital Attendance &amp; Administration Portal</small><small>© <span id="aplpYear"></span> Police Training College Lahore. Institutional information subject to official confirmation.</small></div></footer>
+  <footer class="aplp-footer"><div class="aplp-container aplp-footer-inner"><div class="aplp-footer-brand"><span class="aplp-footer-crest"><img src="/assets/ptc-college-crest.webp" alt="" width="42" height="42" loading="lazy" decoding="async"></span><span>Police Training College Lahore · Chung &amp; Manawan</span></div><small>DISCIPLINE · TRAINING · SERVICE<br>AttendPro Digital Attendance &amp; Administration Portal</small><small>© <span id="aplpYear"></span> Police Training College Lahore. Institutional information subject to official confirmation.</small></div></footer>
   <button class="aplp-backtop" id="aplpBackTop" type="button" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 </div>
 <div class="app">
@@ -841,10 +917,10 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 <aside class="sidebar">
 <div class="sb-brand">
   <div class="logo">
-    <div class="sb-logo-icon">A</div>
+    <div class="sb-logo-icon"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="38" height="38"></div>
     <div>
       <div class="sb-brand-name">AttendPro</div>
-      <div class="sb-brand-sub">Enterprise HRMS</div>
+      <div class="sb-brand-sub">Police Training College Lahore</div>
     </div>
   </div>
 </div>
@@ -919,6 +995,10 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 <div class="topbar">
   <button class="icon-btn sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse / expand left menu" aria-label="Collapse / expand left menu">☰</button>
   <button class="icon-btn workspace-toggle" id="workspaceToggle" onclick="toggleWorkspace()" title="Expand white workspace / restore blue menu" aria-label="Expand white workspace / restore blue menu">⛶</button>
+  <div class="tb-brand" aria-label="Police Training College Lahore AttendPro Portal">
+    <img src="/assets/ptc-college-crest.webp" alt="" width="32" height="32" decoding="async">
+    <span><strong>Police Training College Lahore</strong><small>AttendPro Portal</small></span>
+  </div>
   <span class="demo-badge">⏳ Connecting to attendance database…</span>
   <div class="tb-search">
     <svg class="si" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1599,7 +1679,7 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 </div>
 <div class="login-overlay" id="loginOverlay">
   <form class="login-card" onsubmit="loginUser(event)">
-    <div class="sb-logo-icon" style="margin-bottom:14px">A</div><h2>AttendPro Login</h2><p>Sign in with your assigned user account.</p>
+    <div class="sb-logo-icon login-crest"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="48" height="48"></div><h2>AttendPro Portal Login</h2><p>Police Training College Lahore · Sign in with your assigned account.</p>
     <div class="login-error" id="loginError"></div>
     <label class="form-label" for="loginUsername" id="loginUsernameLabel">Email address</label><input class="form-input" id="loginUsername" type="text" autocomplete="username" placeholder="you@company.com" required>
     <label class="form-label" for="loginPassword">Password</label><input class="form-input" id="loginPassword" type="password" autocomplete="current-password" required>
