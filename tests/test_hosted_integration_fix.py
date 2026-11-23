@@ -16,6 +16,8 @@ def test_no_native_browser_dialogs_in_current_frontend():
     assert 'viewEmployeeRecords(${Number(e.dbId)})' in html
     assert 'openEmployeeEditor(${Number(e.dbId)})' in html
     assert 'id="loginError"' in html
+    assert '/assets/ptc-manawan-entrance.webp' in html
+    assert 'ptc-lahore-building-reference.jpg' not in html
 
 
 def test_vercel_rewrite_and_supabase_profile_override_migration():
@@ -34,9 +36,15 @@ def test_vercel_origin_is_allowlisted_without_disabling_other_csrf_checks():
     try:
         # No lifespan needed to test request middleware; avoid mutating any sample DB.
         client=TestClient(app.app)
-        ok=client.post('/api/auth/login',json={'username':'notanemail','password':'x'},
-                 headers={'Origin':'https://attendpro-smart-biometric-hrms-stat.vercel.app'})
-        assert ok.status_code==400
+        for allowed_origin in (
+            'https://attendpro-smart-biometric-hrms-stat.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-ngnfhaoe7-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-nfn88kyvm-faryal3.vercel.app',
+        ):
+            ok=client.post('/api/auth/login',json={'username':'notanemail','password':'x'},
+                     headers={'Origin':allowed_origin})
+            # 400 is the expected validation response after the origin check passes.
+            assert ok.status_code==400
         bad=client.post('/api/auth/login',json={'username':'notanemail','password':'x'},
                  headers={'Origin':'https://attacker.invalid'})
         assert bad.status_code==403

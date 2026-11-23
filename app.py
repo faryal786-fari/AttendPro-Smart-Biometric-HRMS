@@ -501,6 +501,12 @@ async def protect_cloud_writes(request:Request,call_next):
    origin_allowed.update(x.strip().rstrip('/') for x in item.split(',') if x.strip())
   # Default Vercel production domain is exact, so no attacker-controlled wildcard is needed.
   origin_allowed.add('https://attendpro-smart-biometric-hrms-stat.vercel.app')
+  # Exact current Vercel preview origin: allow login from this deployment without
+  # opening the API to arbitrary *.vercel.app hosts. Keep future previews in the
+  # ATTENDPRO_ALLOWED_ORIGINS environment variable.
+  origin_allowed.add('https://attendpro-smart-biometric-hrms-static-ngnfhaoe7-faryal3.vercel.app')
+  # Exact current preview deployment shown in the user's Vercel screenshot.
+  origin_allowed.add('https://attendpro-smart-biometric-hrms-static-nfn88kyvm-faryal3.vercel.app')
   if origin and origin.rstrip('/') not in origin_allowed:
    return Response('Origin not permitted for this application.',status_code=403)
  return await call_next(request)
