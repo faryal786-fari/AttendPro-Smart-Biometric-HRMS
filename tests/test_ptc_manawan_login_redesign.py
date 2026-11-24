@@ -9,6 +9,7 @@ HTML = (ROOT / "static" / "index.html").read_text()
 def test_ptc_crest_and_flags_assets_are_present_and_referenced():
     assert (ROOT / "static" / "assets" / "ptc-college-crest.webp").is_file()
     assert (ROOT / "static" / "assets" / "ptc-college-crest.png").is_file()
+    assert (ROOT / "static" / "assets" / "ptc-lahore-logo.png").is_file()
     assert (ROOT / "static" / "assets" / "ptc-manawan-flags-campus.webp").is_file()
     assert HTML.count('/assets/ptc-college-crest.webp') >= 5
     assert '/assets/ptc-manawan-flags-campus.webp' in HTML

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-24-ptc-manawan-secure-login-v3">
+<meta name="attendpro-build" content="2026-11-24-ptc-manawan-ui-refresh-v4">
 <meta name="description" content="Police Training College Lahore, Manawan Campus — institutional information and the secure AttendPro trainee and staff management portal.">
 <meta name="theme-color" content="#102b3b">
 <meta property="og:title" content="Police Training College Lahore · Manawan Campus | AttendPro">
@@ -838,6 +838,420 @@ body.portal-login-open #apPublicLanding{display:none!important}
  #apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-info{grid-column:auto}
 }
 
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PTC MANAWAN UI REFRESH v4 — accessible grouped navigation, campus imagery,
+   responsive dedicated login, and tactile interactions.
+   All existing screen IDs, onclick handlers and application data flows remain.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Login must be an independent full-screen view: never show the app underneath. */
+body.portal-login-open .app,
+body.portal-login-open #apPublicLanding,
+body:has(#loginOverlay.open) .app,
+body:has(#loginOverlay.open) #apPublicLanding{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+body.portal-login-open #loginOverlay,
+#loginOverlay.open{
+  display:flex!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:99999!important;
+}
+.login-overlay{
+  padding:clamp(18px,4vw,56px)!important;
+  overflow-y:auto!important;
+  background:
+    radial-gradient(circle at 12% 12%,rgba(48,119,166,.34),transparent 32%),
+    radial-gradient(circle at 92% 84%,rgba(34,106,145,.24),transparent 30%),
+    linear-gradient(125deg,#061727 0%,#0b2d49 52%,#124c70 100%)!important;
+}
+.ptc-login-shell{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(420px,500px)!important;
+  align-items:center!important;
+  gap:clamp(30px,5vw,76px)!important;
+  width:min(1320px,100%)!important;
+  min-height:min(780px,calc(100vh - 72px))!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.ptc-login-brand{
+  min-width:0;
+  padding:clamp(18px,2.5vw,34px) 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+.ptc-login-brand-top{gap:18px}
+.ptc-login-crest{
+  flex-basis:92px!important;
+  width:92px!important;
+  height:92px!important;
+  padding:5px!important;
+  border-radius:20px!important;
+}
+.ptc-login-brand h1{font-size:clamp(54px,6.2vw,82px)!important}
+.ptc-login-photo-card{height:clamp(170px,22vh,230px)!important;max-width:590px}
+.ptc-login-form{
+  width:100%!important;
+  max-width:500px!important;
+  min-height:560px;
+  margin:0 auto!important;
+  padding:clamp(34px,4vw,58px)!important;
+  border:1px solid rgba(226,235,242,.9)!important;
+  border-radius:26px!important;
+  background:#fff!important;
+  color:#152f43!important;
+  box-shadow:0 28px 78px rgba(0,0,0,.28)!important;
+}
+.ptc-login-form-crest{
+  width:86px!important;
+  height:86px!important;
+  margin-bottom:22px!important;
+  border-radius:18px!important;
+}
+.ptc-login-form h2{font-size:clamp(30px,3vw,38px)!important}
+.ptc-login-submit{min-height:54px!important;border-radius:11px!important}
+.ptc-login-form-footer{margin-top:26px}
+.ptc-login-form-footer .aplp-login-back{font-size:11px!important}
+.ptc-login-form-footer a{font-size:10px!important}
+
+/* Logo images share one predictable white-backed display treatment. */
+.sb-logo-icon,.tb-brand img,.ptc-login-crest,.ptc-login-form-crest,
+#apPublicLanding .aplp-brand-mark,#apPublicLanding .aplp-footer-crest{
+  background:#fff!important;
+  overflow:hidden;
+}
+.sb-logo-icon img,.tb-brand img,.ptc-login-crest img,.ptc-login-form-crest img,
+#apPublicLanding .aplp-brand-mark img,#apPublicLanding .aplp-footer-crest img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+.sb-logo-icon{flex:0 0 42px;width:42px;height:42px;border-radius:11px}
+.tb-brand img{width:38px;height:38px;padding:3px}
+#apPublicLanding .aplp-brand-mark{width:54px;height:54px;flex:0 0 54px}
+#apPublicLanding .aplp-footer-crest{width:52px;height:52px;flex:0 0 52px}
+
+/* Location building rendering: image sits directly with the campus address. */
+#apPublicLanding .aplp-location-building{
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(260px,.88fr);
+  align-items:stretch;
+  gap:0;
+  margin-top:18px;
+  overflow:hidden;
+  border:1px solid #e0e8ed;
+  border-radius:18px;
+  background:linear-gradient(145deg,#fff,#f7fafc);
+  box-shadow:0 14px 34px rgba(12,44,66,.085);
+}
+#apPublicLanding .aplp-location-building-visual{
+  position:relative;
+  min-height:270px;
+  margin:0;
+  overflow:hidden;
+  background:#e8eef3;
+}
+#apPublicLanding .aplp-location-building-visual picture,
+#apPublicLanding .aplp-location-building-visual img{
+  display:block;
+  width:100%;
+  height:100%;
+}
+#apPublicLanding .aplp-location-building-visual img{
+  min-height:270px;
+  object-fit:cover;
+  object-position:center;
+}
+#apPublicLanding .aplp-location-building-visual figcaption{
+  position:absolute;
+  left:16px;
+  bottom:16px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:999px;
+  background:rgba(8,35,54,.84);
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+#apPublicLanding .aplp-location-building-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  padding:clamp(22px,3vw,38px);
+}
+#apPublicLanding .aplp-location-building-kicker{
+  color:#287eaa;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+#apPublicLanding .aplp-location-building-copy h3{
+  margin-top:10px;
+  color:#123a55;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:clamp(22px,2.4vw,30px);
+  font-weight:500;
+  line-height:1.2;
+}
+#apPublicLanding .aplp-location-building-copy p{
+  margin-top:12px;
+  color:#667987;
+  font-size:12px;
+  line-height:1.85;
+}
+#apPublicLanding .aplp-location-building-copy a{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:18px;
+  padding:10px 14px;
+  border:1px solid #cfe0eb;
+  border-radius:9px;
+  background:#eff7fc;
+  color:#155d86;
+  font-size:10px;
+  font-weight:850;
+  transition:background .18s,transform .18s,box-shadow .18s;
+}
+#apPublicLanding .aplp-location-building-copy a:hover{
+  transform:translateY(-2px);
+  background:#e3f1f9;
+  box-shadow:0 8px 18px rgba(21,93,134,.12);
+}
+
+/* Collapsible, icon-led sidebar groups inspired by the PTS Farooqabad layout. */
+.sb-nav{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:13px 9px 18px!important;
+}
+.sb-nav-group{
+  min-width:0;
+  border:1px solid rgba(255,255,255,.045);
+  border-radius:12px;
+  overflow:hidden;
+  background:rgba(255,255,255,.018);
+}
+.sb-section-toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  min-height:42px;
+  padding:10px 11px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:11px;
+  background:rgba(255,255,255,.045);
+  color:#b8cbd9;
+  text-align:left;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.105em;
+  text-transform:uppercase;
+  transition:background .18s,color .18s,border-color .18s,transform .15s;
+}
+.sb-section-toggle:hover,
+.sb-nav-group.is-open>.sb-section-toggle{
+  border-color:rgba(117,189,233,.24);
+  background:rgba(40,126,170,.17);
+  color:#fff;
+}
+.sb-section-toggle:active{transform:scale(.99)}
+.sb-section-icon{display:grid;place-items:center;width:18px;height:18px;flex:0 0 18px;color:#82bddd}
+.sb-section-icon svg{width:18px;height:18px}
+.sb-section-label{min-width:0;flex:1}
+.sb-chevron{
+  width:15px;height:15px;flex:0 0 15px;
+  color:#8ea7b8;
+  transition:transform .22s ease;
+}
+.sb-nav-group.is-open .sb-chevron{transform:rotate(180deg)}
+.sb-nav-group-items{
+  max-height:0;
+  overflow:hidden;
+  padding:0 5px;
+  opacity:0;
+  transition:max-height .28s ease,opacity .2s ease,padding .2s ease;
+}
+.sb-nav-group.is-open .sb-nav-group-items{
+  max-height:1600px;
+  padding:6px 5px 8px;
+  opacity:1;
+}
+.sb-nav-group-items>.nav-item{
+  min-height:40px;
+  margin:2px 0;
+  padding:9px 10px;
+  border:1px solid transparent;
+  border-radius:9px;
+  color:rgba(235,245,252,.76);
+  font-size:12px;
+  line-height:1.35;
+  transition:background .18s,color .18s,transform .16s,box-shadow .18s,border-color .18s;
+}
+.sb-nav-group-items>.nav-item:hover{
+  transform:translateY(-1px);
+  border-color:rgba(117,189,233,.14);
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  box-shadow:0 5px 14px rgba(0,0,0,.12);
+}
+.sb-nav-group-items>.nav-item:active{transform:scale(.985)}
+.sb-nav-group-items>.nav-item.active{
+  border-color:rgba(134,203,240,.24);
+  background:linear-gradient(110deg,#155d86,#287eaa);
+  color:#fff;
+  box-shadow:0 7px 18px rgba(5,24,39,.24),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.sb-nav-group-items>.nav-item .ni{
+  width:18px;height:18px;flex:0 0 18px;opacity:.92;
+}
+.sb-nav-group-items>.nav-item .nav-label{
+  min-width:0;
+  flex:1;
+}
+.sb-nav-group-items>.device-nav-list{padding:0 0 2px}
+.sb-nav-group-items>.device-nav-list .nav-item{margin-left:4px;margin-right:4px}
+.sb-nav-group-items>.device-nav-list .device-nav-dot{flex:0 0 8px}
+
+/* Pressed / focus states give buttons and clickable cards a clear tactile response. */
+button,.btn,[role="button"],.nav-item,.aplp-btn-primary,.aplp-btn-outline,.aplp-login-btn{
+  -webkit-tap-highlight-color:transparent;
+}
+button:active,.btn:active,[role="button"]:active,
+.aplp-btn-primary:active,.aplp-btn-outline:active,.aplp-login-btn:active{
+  transform:translateY(1px) scale(.985);
+}
+button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
+.nav-item:focus-visible,.sb-section-toggle:focus-visible{
+  outline:3px solid rgba(80,176,225,.55);
+  outline-offset:2px;
+}
+#apPublicLanding .aplp-value-card:active,
+#apPublicLanding .aplp-training-card:active,
+#apPublicLanding .aplp-campus-card:active,
+#apPublicLanding .aplp-gallery-item:active{
+  transform:translateY(1px) scale(.99);
+  box-shadow:0 5px 14px rgba(12,44,66,.12);
+}
+.kpi-card[onclick],.device-mini-card[onclick],.card[onclick]{
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.kpi-card[onclick]:hover,.device-mini-card[onclick]:hover,.card[onclick]:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 28px rgba(15,23,42,.11);
+}
+.kpi-card[onclick]:active,.device-mini-card[onclick]:active,.card[onclick]:active{
+  transform:translateY(0) scale(.99);
+}
+
+/* Sidebar compact mode retains category controls; mobile becomes a proper drawer. */
+.sidebar-collapsed .sb-section-label,
+.sidebar-collapsed .sb-chevron{display:none!important}
+.sidebar-collapsed .sb-section-toggle{justify-content:center;padding:9px 5px}
+.sidebar-collapsed .sb-nav-group-items{padding-left:2px;padding-right:2px}
+.sidebar-collapsed .sb-nav-group-items>.nav-item{justify-content:center;padding:10px 4px}
+.sidebar-collapsed .sb-nav-group-items>.nav-item .nav-label{display:none!important}
+@media(max-width:860px){
+  .ptc-login-shell{
+    grid-template-columns:1fr!important;
+    width:min(560px,100%)!important;
+    min-height:0!important;
+    gap:14px!important;
+  }
+  .ptc-login-brand{padding:8px 4px 0!important;gap:16px}
+  .ptc-login-brand-top{gap:12px}
+  .ptc-login-crest{flex-basis:66px!important;width:66px!important;height:66px!important;border-radius:15px!important}
+  .ptc-login-brand-main{padding:12px 0 0!important}
+  .ptc-login-brand h1{font-size:44px!important;margin:12px 0 5px!important}
+  .ptc-login-brand-copy{font-size:12px}
+  .ptc-login-photo-card{height:138px!important;margin-top:15px}
+  .ptc-login-feature-row{gap:6px;margin-top:10px}
+  .ptc-login-feature{padding:8px}
+  .ptc-login-brand-footer{display:none}
+  .ptc-login-form{min-height:0!important;padding:25px 22px!important;border-radius:22px!important}
+  .ptc-login-form-crest{width:64px!important;height:64px!important;margin-bottom:14px!important}
+  .ptc-login-form h2{font-size:28px!important}
+  .ptc-login-form-intro{margin-bottom:18px}
+  #apPublicLanding .aplp-location-building{grid-template-columns:1fr}
+  #apPublicLanding .aplp-location-building-visual{min-height:220px}
+  #apPublicLanding .aplp-location-building-visual img{min-height:220px}
+}
+@media(max-width:700px){
+  body:not(.sidebar-hidden){--sidebar-w:0px!important}
+  .sidebar{
+    width:260px!important;
+    transform:translateX(-102%);
+    transition:transform .22s ease;
+    box-shadow:12px 0 34px rgba(0,0,0,.24);
+  }
+  .sidebar-collapsed .sidebar{width:260px!important}
+  .main,.sidebar-collapsed .main{
+    margin-left:0!important;
+    width:100%!important;
+  }
+  body.sidebar-open{overflow:hidden}
+  body.sidebar-open .sidebar{transform:translateX(0)}
+  body.sidebar-open .main:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:80;
+    background:rgba(4,17,29,.48);
+  }
+  .sidebar-resizer{display:none!important}
+  .sidebar-collapsed .sb-brand>div .sb-brand-name,
+  .sidebar-collapsed .sb-brand-sub,
+  .sidebar-collapsed .sb-time,
+  .sidebar-collapsed .sb-date,
+  .sidebar-collapsed .sb-section-label,
+  .sidebar-collapsed .sb-user-info,
+  .sidebar-collapsed .sb-nav-group-items>.nav-item .nav-label{
+    display:initial!important;
+  }
+  .sidebar-collapsed .sb-nav-group-items>.nav-item{justify-content:flex-start;padding:9px 10px}
+  .sidebar-collapsed .sb-section-toggle{justify-content:flex-start;padding:10px 11px}
+  .sidebar-collapsed .sb-section-label{display:block!important}
+  .sidebar-collapsed .sb-chevron{display:block!important}
+  .sb-logo-icon{width:42px;height:42px}
+}
+@media(prefers-reduced-motion:reduce){
+  .sb-section-toggle,.sb-nav-group-items,.nav-item,button,.btn{transition:none!important}
+}
+
+
+@media(max-width:700px){
+  /* The older mobile rule hid labels globally; in drawer mode restore them. */
+  .sb-brand>div .sb-brand-name,.sb-brand-sub,.sb-time,.sb-date,.sb-user-info{
+    display:block!important;
+  }
+  .sb-nav-group-items>.nav-item .nav-label{
+    display:inline!important;
+  }
+  .sb-nav-group-items>.nav-item{
+    justify-content:flex-start!important;
+  }
+  .sb-section-toggle .sb-section-label,.sb-section-toggle .sb-chevron{
+    display:block!important;
+  }
+}
+
 </style>
 
 <link rel="preload" as="image" href="/assets/ptc-manawan-flags-campus.webp" type="image/webp">
@@ -992,6 +1406,21 @@ body.portal-login-open #apPublicLanding{display:none!important}
         <div class="aplp-campus-locations">
           <article class="aplp-campus-card"><small>Police Training College Lahore · Campus II</small><h3>Manawan, Lahore</h3><p>KC Factory site, G.T. Road, Manawan, near New Khan Metro Bus Depot, Lahore.</p><a href="https://www.google.com/maps/search/?api=1&query=Police+Training+School+Manawan+Lahore" target="_blank" rel="noopener">View Manawan campus map ↗</a></article>
         </div>
+        <div class="aplp-location-building" aria-label="Manawan campus building reference image">
+          <figure class="aplp-location-building-visual">
+            <picture>
+              <source srcset="/assets/ptc-manawan-location-building.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-location-building.jpg" alt="Architectural building reference rendering supplied for the Manawan campus location section" loading="lazy" decoding="async" width="925" height="570">
+            </picture>
+            <figcaption>Campus Building · Reference View</figcaption>
+          </figure>
+          <div class="aplp-location-building-copy">
+            <span class="aplp-location-building-kicker">Campus Location · Manawan</span>
+            <h3>Police Training College Lahore</h3>
+            <p>Campus II is located at KC Factory site, G.T. Road, Manawan, Lahore, near New Khan Metro Bus Depot.</p>
+            <a href="https://www.google.com/maps/search/?api=1&query=Police+Training+School+Manawan+Lahore" target="_blank" rel="noopener noreferrer">Open campus location <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
         <p class="aplp-source-note">Punjab Police's published history records that Campus II was moved from the site near Thokar Niaz Baig to Manawan in June 2006.</p>
       </div>
     </section>
@@ -1063,64 +1492,39 @@ body.portal-login-open #apPublicLanding{display:none!important}
   <div class="sb-time" id="sbTime">--:--:--</div>
   <div class="sb-date" id="sbDate">Loading…</div>
 </div>
-<nav class="sb-nav">
+<nav class="sb-nav" aria-label="AttendPro navigation">
   <div class="sb-section">Main</div>
-  <div class="nav-item active" onclick="showScreen('dashboard',this)" data-screen="dashboard">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    Dashboard
-  </div>
-  <div class="nav-item" onclick="showScreen('live',this)" data-screen="live">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-    Live Attendance
-  </div>
+  <div class="nav-item active" onclick="showScreen('dashboard',this)" data-screen="dashboard"><span class="nav-label">Dashboard</span></div>
+  <div class="nav-item" onclick="showScreen('live',this)" data-screen="live"><span class="nav-label">Live Attendance</span></div>
+
   <div class="sb-section">Trainee Management</div>
   <div class="nav-item" onclick="showScreen('trainees',this)" data-screen="trainees"><span class="nav-label">All Trainees</span></div>
   <div class="nav-item" onclick="showScreen('pts-trainee-attendance',this)" data-screen="pts-trainee-attendance"><span class="nav-label">Trainee Attendance</span></div>
+
+  <div class="sb-section">Staff Management</div>
+  <div class="nav-item" onclick="showScreen('employees',this)" data-screen="employees"><span class="nav-label">All PTS Staff</span></div>
+
+  <div class="sb-section">Leave &amp; Permissions</div>
   <div class="nav-item" onclick="showScreen('pts-trainee-leave',this)" data-screen="pts-trainee-leave"><span class="nav-label">Trainee Leave</span></div>
   <div class="nav-item" onclick="showScreen('pts-trainee-osd',this)" data-screen="pts-trainee-osd"><span class="nav-label">Trainee OSD / Permission</span></div>
-  <div class="sb-section">Staff Management</div>
-  <div class="nav-item" onclick="showScreen('employees',this)" data-screen="employees">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    All PTS Staff
-  </div>
   <div class="nav-item" onclick="showScreen('pts-staff-leave',this)" data-screen="pts-staff-leave"><span class="nav-label">Staff Leave</span></div>
   <div class="nav-item" onclick="showScreen('pts-staff-osd',this)" data-screen="pts-staff-osd"><span class="nav-label">Staff OSD / Permission</span></div>
   <div class="nav-item" onclick="showScreen('pts-duty-rest',this)" data-screen="pts-duty-rest"><span class="nav-label">Duty Rest</span></div>
-  <div class="nav-item" onclick="showScreen('records',this)" data-screen="records">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-    Attendance Records
-  </div>
-  <div class="nav-item" onclick="showScreen('discrepancies',this)" data-screen="discrepancies">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 1.5 21h21z"/><path d="M12 9v5m0 4h.01"/></svg>
-    <span class="nav-label">Discrepancies</span>
-  </div>
-  <div class="nav-item" onclick="showScreen('leave',this)" data-screen="leave">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    Leave & Holidays
-  </div>
+  <div class="nav-item" onclick="showScreen('leave',this)" data-screen="leave"><span class="nav-label">Leave &amp; Holidays</span></div>
+
+  <div class="sb-section">Attendance &amp; Records</div>
+  <div class="nav-item" onclick="showScreen('records',this)" data-screen="records"><span class="nav-label">Attendance Records</span></div>
+  <div class="nav-item" onclick="showScreen('discrepancies',this)" data-screen="discrepancies"><span class="nav-label">Discrepancies</span></div>
+
   <div class="sb-section">Reports</div>
-  <div class="nav-item" onclick="showScreen('reports',this)" data-screen="reports">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-    Reports & Exports
-  </div>
+  <div class="nav-item" onclick="showScreen('reports',this)" data-screen="reports"><span class="nav-label">Reports &amp; Exports</span></div>
+
   <div class="sb-section">System</div>
-  <div class="nav-item" onclick="showScreen('device',this)" data-screen="device">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    <span class="nav-label">Device Status</span>
-  </div>
+  <div class="nav-item" onclick="showScreen('device',this)" data-screen="device"><span class="nav-label">Device Status</span></div>
   <div class="device-nav-list" id="deviceNavList"></div>
-  <div class="nav-item" onclick="showScreen('redis',this)" data-screen="redis" title="Redis cache and scheduler monitor">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/><path d="M4 17v2"/></svg>
-    <span class="nav-label">Redis &amp; Scheduler</span>
-  </div>
-  <div class="nav-item" onclick="showScreen('settings',this)" data-screen="settings" data-permission="super_admin">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 1 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    <span class="nav-label">Settings</span>
-  </div>
-  <div class="nav-item" onclick="showScreen('users',this)" data-screen="users" data-permission="super_admin">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    <span class="nav-label">System Users</span>
-  </div>
+  <div class="nav-item" onclick="showScreen('redis',this)" data-screen="redis" title="Redis cache and scheduler monitor"><span class="nav-label">Redis &amp; Scheduler</span></div>
+  <div class="nav-item" onclick="showScreen('settings',this)" data-screen="settings" data-permission="super_admin"><span class="nav-label">Settings</span></div>
+  <div class="nav-item" onclick="showScreen('users',this)" data-screen="users" data-permission="super_admin"><span class="nav-label">System Users</span></div>
 </nav>
 <div class="sb-bottom">
   <div class="sb-user">
@@ -1961,7 +2365,7 @@ body.portal-login-open #apPublicLanding{display:none!important}
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
 <script>
-window.ATTENDPRO_BUILD = "2026-11-24-ptc-manawan-secure-login-v3";
+window.ATTENDPRO_BUILD = "2026-11-24-ptc-manawan-ui-refresh-v4";
 
 const apEnglishText = new Map([
  ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],
@@ -4426,7 +4830,189 @@ window.addEventListener('hashchange',()=>{
     const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
   }
 });
+
+/* PTC Manawan navigation refresh: group the existing screen links without
+   changing any data-screen names, permission flags, or original click handlers. */
+function initPtcSidebarNavigation(){
+  const nav=document.querySelector('.sb-nav');
+  if(!nav||nav.dataset.ptcGrouped==='1')return;
+  nav.dataset.ptcGrouped='1';
+
+  const records=nav.querySelector('[data-screen="records"]');
+  if(records&&!Array.from(nav.querySelectorAll('.sb-section')).some(x=>x.textContent.trim()==='Attendance & Leave')){
+    const heading=document.createElement('div');
+    heading.className='sb-section';
+    heading.textContent='Attendance & Leave';
+    nav.insertBefore(heading,records);
+  }
+
+  const iconPaths={
+    dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    live:'<path d="M3 12h3l3-8 5 16 3-8h4"/>',
+    trainees:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6m3-3h-6"/>',
+    'pts-trainee-attendance':'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4m8-4v4M3 10h18m-13 5 2 2 4-4"/>',
+    'pts-trainee-leave':'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4m8-4v4M3 10h18m5 5h.01"/>',
+    'pts-trainee-osd':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6m-11 5h6m-6 4h6"/>',
+    employees:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    'pts-staff-leave':'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4m8-4v4M3 10h18m4 4 2 2 4-4"/>',
+    'pts-staff-osd':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6m-11 5h6m-6 4h6"/>',
+    'pts-duty-rest':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2M5 4l2 2m12-2-2 2"/>',
+    records:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6m-11 5h6m-6 4h6"/>',
+    discrepancies:'<path d="M12 3 1.5 21h21z"/><path d="M12 9v5m0 4h.01"/>',
+    leave:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    reports:'<path d="M3 3v18h18"/><path d="m7 14 4-4 4 3 6-8"/>',
+    device:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>',
+    redis:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+    settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2A2 2 0 0 0 5.8 17.8l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 1.6 12H1.5a2 2 0 1 1 0-4h.2A2 2 0 0 0 3.1 4.6L3 4.5a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 9.3.4V.3a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1.5 2.9z"/>',
+    users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+    default:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8m-4-4h8"/>'
+  };
+  const sectionIcons={
+    main:'dashboard',
+    'trainee management':'trainees',
+    'staff management':'employees',
+    'leave & permissions':'leave',
+    'attendance & records':'records',
+    reports:'reports',
+    system:'settings'
+  };
+  const makeIcon=(key,extraClass='ni')=>{
+    const paths=iconPaths[key]||iconPaths.default;
+    return `<svg class="${extraClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+  };
+  const decorateItem=item=>{
+    if(!item||!item.classList||!item.classList.contains('nav-item'))return;
+    if(!item.querySelector(':scope > svg.ni')){
+      const key=item.dataset.screen||'device';
+      item.insertAdjacentHTML('afterbegin',makeIcon(key));
+    }
+    Array.from(item.childNodes).forEach(node=>{
+      if(node.nodeType===Node.TEXT_NODE&&node.textContent.trim()){
+        const label=document.createElement('span');
+        label.className='nav-label';
+        label.textContent=node.textContent.trim();
+        node.replaceWith(label);
+      }
+    });
+    const label=item.querySelector(':scope > .nav-label')||item.querySelector('.nav-label');
+    if(label&&!item.hasAttribute('aria-label'))item.setAttribute('aria-label',label.textContent.trim());
+  };
+
+  const children=Array.from(nav.children);
+  const fragment=document.createDocumentFragment();
+  let group=null,items=null;
+  children.forEach(node=>{
+    if(node.classList&&node.classList.contains('sb-section')){
+      const title=node.textContent.trim();
+      const key=title.toLowerCase();
+      const slug=key.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      group=document.createElement('section');
+      group.className='sb-nav-group';
+      group.dataset.group=slug;
+      const toggle=document.createElement('button');
+      toggle.type='button';
+      toggle.className='sb-section-toggle';
+      toggle.setAttribute('aria-expanded','false');
+      const controlsId='sb-group-'+slug;
+      toggle.setAttribute('aria-controls',controlsId);
+      const iconKey=sectionIcons[key]||'default';
+      toggle.innerHTML=`<span class="sb-section-icon">${makeIcon(iconKey,'')}</span><span class="sb-section-label"></span><svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+      toggle.querySelector('.sb-section-label').textContent=title;
+      items=document.createElement('div');
+      items.className='sb-nav-group-items';
+      items.id=controlsId;
+      const thisGroup=group;
+      const thisToggle=toggle;
+      toggle.addEventListener('click',()=>{
+        thisGroup.classList.toggle('is-open');
+        thisToggle.setAttribute('aria-expanded',String(thisGroup.classList.contains('is-open')));
+        persistOpenGroups();
+      });
+      group.append(toggle,items);
+      fragment.appendChild(group);
+      node.remove();
+    }else if(items){
+      if(node.classList&&node.classList.contains('nav-item'))decorateItem(node);
+      items.appendChild(node);
+    }
+  });
+  nav.replaceChildren(fragment);
+
+  function persistOpenGroups(){
+    try{
+      const open=Array.from(nav.querySelectorAll('.sb-nav-group.is-open')).map(g=>g.dataset.group);
+      localStorage.setItem('attendpro-open-nav-groups',JSON.stringify(open));
+    }catch(_){}
+  }
+  function setOpen(group,open){
+    if(!group)return;
+    group.classList.toggle('is-open',!!open);
+    const btn=group.querySelector('.sb-section-toggle');
+    if(btn)btn.setAttribute('aria-expanded',String(!!open));
+  }
+  let saved=[];
+  try{saved=JSON.parse(localStorage.getItem('attendpro-open-nav-groups')||'[]');if(!Array.isArray(saved))saved=[];}catch(_){}
+  const active=nav.querySelector('.nav-item.active')||nav.querySelector('[data-screen="dashboard"]');
+  const activeGroup=active&&active.closest('.sb-nav-group');
+  if(!saved.length)saved=['main'];
+  if(activeGroup&&!saved.includes(activeGroup.dataset.group))saved.push(activeGroup.dataset.group);
+  nav.querySelectorAll('.sb-nav-group').forEach(g=>setOpen(g,saved.includes(g.dataset.group)));
+
+  const deviceList=nav.querySelector('#deviceNavList');
+  if(deviceList){
+    new MutationObserver(()=>deviceList.querySelectorAll('.nav-item').forEach(decorateItem)).observe(deviceList,{childList:true,subtree:true});
+  }
+  nav.addEventListener('click',event=>{
+    const item=event.target.closest('.nav-item');
+    if(!item)return;
+    const parent=item.closest('.sb-nav-group');
+    if(parent){setOpen(parent,true);persistOpenGroups();}
+    if(window.innerWidth<=700)document.body.classList.remove('sidebar-open');
+  });
+  new MutationObserver(records=>{
+    records.forEach(record=>{
+      if(record.type==='attributes'&&record.target.classList.contains('nav-item')&&record.target.classList.contains('active')){
+        const parent=record.target.closest('.sb-nav-group');
+        if(parent){setOpen(parent,true);persistOpenGroups();}
+      }
+    });
+  }).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});
+
+  /* On phones, turn the existing hamburger into an off-canvas menu toggle. */
+  const originalToggle=window.toggleSidebar;
+  if(typeof originalToggle==='function'&&!window.__ptcMobileSidebarWrapped){
+    window.__ptcMobileSidebarWrapped=true;
+    window.toggleSidebar=function(){
+      if(window.innerWidth<=700){
+        document.body.classList.toggle('sidebar-open');
+        return;
+      }
+      return originalToggle.apply(this,arguments);
+    };
+  }
+  document.addEventListener('click',event=>{
+    if(window.innerWidth<=700&&document.body.classList.contains('sidebar-open')&&event.target.closest('.main')&&!event.target.closest('#sidebarToggle')){
+      document.body.classList.remove('sidebar-open');
+    }
+  });
+}
+
+/* If the login overlay opens for any auth/route path, force the app shell off. */
+function initPtcLoginIsolation(){
+  const overlay=document.getElementById('loginOverlay');
+  if(!overlay||overlay.dataset.isolationReady==='1')return;
+  overlay.dataset.isolationReady='1';
+  const sync=()=>{
+    if(overlay.classList.contains('open'))document.body.classList.add('portal-login-open');
+    else if(typeof currentUser!=='undefined'&&currentUser)document.body.classList.remove('portal-login-open');
+  };
+  new MutationObserver(sync).observe(overlay,{attributes:true,attributeFilter:['class']});
+  sync();
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
+  initPtcSidebarNavigation();
+  initPtcLoginIsolation();
   setPtsDashboardMode('trainee');
   const year=document.getElementById('aplpYear');if(year)year.textContent=String(new Date().getFullYear());
   const back=document.getElementById('aplpBackTop');
