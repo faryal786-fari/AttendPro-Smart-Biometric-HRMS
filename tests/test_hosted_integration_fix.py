@@ -19,7 +19,7 @@ def test_no_native_browser_dialogs_in_current_frontend():
     assert '/assets/ptc-manawan-entrance.webp' in html
     assert 'ptc-lahore-building-reference.jpg' not in html
     assert 'ptsKpiTotal' in html
-    assert 'PTC Manawan Portal Login' in html
+    assert 'Welcome back' in html and 'PTC Manawan' in html
     assert '/assets/ptc-college-crest.webp' in html
 
 
@@ -43,6 +43,9 @@ def test_vercel_origin_is_allowlisted_without_disabling_other_csrf_checks():
             'https://attendpro-smart-biometric-hrms-stat.vercel.app',
             'https://attendpro-smart-biometric-hrms-static-ngnfhaoe7-faryal3.vercel.app',
             'https://attendpro-smart-biometric-hrms-static-nfn88kyvm-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-op69zq26j-faryal3.vercel.app',
+            'https://ptclahore.co',
+            'https://www.ptclahore.co',
         ):
             ok=client.post('/api/auth/login',json={'username':'notanemail','password':'x'},
                      headers={'Origin':allowed_origin})

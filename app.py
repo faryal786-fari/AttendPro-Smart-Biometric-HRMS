@@ -546,8 +546,12 @@ async def protect_cloud_writes(request:Request,call_next):
   # opening the API to arbitrary *.vercel.app hosts. Keep future previews in the
   # ATTENDPRO_ALLOWED_ORIGINS environment variable.
   origin_allowed.add('https://attendpro-smart-biometric-hrms-static-ngnfhaoe7-faryal3.vercel.app')
-  # Exact current preview deployment shown in the user's Vercel screenshot.
+  # Exact current preview deployment shown in the user's Vercel screenshot (24 Nov 2026).
   origin_allowed.add('https://attendpro-smart-biometric-hrms-static-nfn88kyvm-faryal3.vercel.app')
+  origin_allowed.add('https://attendpro-smart-biometric-hrms-static-op69zq26j-faryal3.vercel.app')
+  # Approved PTC Lahore public production domain; keep exact origins only.
+  origin_allowed.add('https://ptclahore.co')
+  origin_allowed.add('https://www.ptclahore.co')
   if origin and origin.rstrip('/') not in origin_allowed:
    return Response('Origin not permitted for this application.',status_code=403)
  return await call_next(request)

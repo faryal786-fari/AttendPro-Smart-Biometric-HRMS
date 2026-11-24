@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-24-ptc-lahore-manawan-training-portal-v1">
+<meta name="attendpro-build" content="2026-11-24-ptc-manawan-secure-login-v3">
 <meta name="description" content="Police Training College Lahore, Manawan Campus — institutional information and the secure AttendPro trainee and staff management portal.">
 <meta name="theme-color" content="#102b3b">
 <meta property="og:title" content="Police Training College Lahore · Manawan Campus | AttendPro">
@@ -725,9 +725,122 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 #apPublicLanding .aplp-btn-primary:hover,#apPublicLanding .aplp-login-btn:hover{background:#0d4569;border-color:#0d4569}
 #apPublicLanding .aplp-section-kicker{color:#4e9bc6}
 
+
+/* PTC Manawan secure sign-in and upgraded institutional cards */
+body.portal-login-open{overflow:hidden!important;background:#071a2c!important}
+body.portal-login-open .app,
+body.portal-login-open #apPublicLanding{display:none!important}
+.login-overlay{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;overflow-y:auto;padding:clamp(14px,3vw,42px);background:radial-gradient(circle at 12% 12%,rgba(48,119,166,.34),transparent 32%),linear-gradient(125deg,#061727 0%,#0b2d49 52%,#124c70 100%);backdrop-filter:none}
+.login-overlay.open{display:flex}
+.login-overlay:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 49.9%,rgba(255,255,255,.035) 50%,transparent 50.1%);opacity:.55}
+.ptc-login-shell{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(390px,.82fr);width:min(1160px,100%);min-height:min(720px,calc(100vh - 48px));overflow:hidden;border:1px solid rgba(255,255,255,.18);border-radius:28px;background:#fff;box-shadow:0 35px 100px rgba(0,0,0,.42)}
+.ptc-login-brand{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-width:0;padding:clamp(28px,4.2vw,54px);overflow:hidden;color:#fff;background:linear-gradient(145deg,rgba(4,24,42,.96),rgba(11,54,83,.94)),url('/assets/ptc-manawan-entrance.webp') center/cover}
+.ptc-login-brand:before{content:"";position:absolute;right:-180px;top:-190px;width:470px;height:470px;border:1px solid rgba(117,189,233,.2);border-radius:50%;box-shadow:0 0 0 36px rgba(117,189,233,.035),0 0 0 78px rgba(117,189,233,.025);pointer-events:none}
+.ptc-login-brand:after{content:"";position:absolute;left:-160px;bottom:-240px;width:450px;height:450px;border:1px solid rgba(220,185,112,.18);border-radius:50%;pointer-events:none}
+.ptc-login-brand-top,.ptc-login-brand-main,.ptc-login-brand-footer{position:relative;z-index:1}
+.ptc-login-brand-top{display:flex;align-items:center;gap:16px}
+.ptc-login-crest{display:grid;place-items:center;flex:0 0 82px;width:82px;height:82px;padding:5px;border-radius:20px;background:#fff;border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.ptc-login-crest img,.ptc-login-form-crest img{display:block;width:100%;height:100%;object-fit:contain}
+.ptc-login-institution{display:flex;flex-direction:column;gap:4px}
+.ptc-login-institution small{color:#9bd6f4;font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+.ptc-login-institution strong{font-size:clamp(15px,1.7vw,20px);font-weight:750;line-height:1.25}
+.ptc-login-institution span{color:rgba(255,255,255,.68);font-size:12px;letter-spacing:.04em}
+.ptc-login-brand-main{margin:auto 0;padding:38px 0 22px}
+.ptc-login-eyebrow{display:flex;align-items:center;gap:10px;color:#9bd6f4;font-size:10px;font-weight:850;letter-spacing:.2em;text-transform:uppercase}
+.ptc-login-eyebrow span{width:8px;height:8px;border-radius:50%;background:#45d6a2;box-shadow:0 0 0 5px rgba(69,214,162,.13)}
+.ptc-login-brand h1{margin:20px 0 8px;color:#fff;font-size:clamp(46px,6.4vw,76px);font-weight:850;letter-spacing:-.065em;line-height:.98}
+.ptc-login-brand h1 em{display:block;margin-top:8px;color:#76c4f1;font-style:normal}
+.ptc-login-brand-copy{max-width:420px;color:rgba(255,255,255,.7);font-size:14px;line-height:1.75}
+.ptc-login-photo-card{position:relative;height:clamp(160px,22vh,220px);margin-top:26px;overflow:hidden;border:1px solid rgba(255,255,255,.28);border-radius:18px;background:#123b56;box-shadow:0 18px 42px rgba(0,0,0,.28)}
+.ptc-login-photo-card:after{content:"";position:absolute;inset:35% 0 0;background:linear-gradient(transparent,rgba(3,19,33,.88))}
+.ptc-login-photo-card img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 48%}
+.ptc-login-photo-caption{position:absolute;z-index:1;left:18px;right:18px;bottom:15px;display:flex;flex-direction:column;gap:4px}
+.ptc-login-photo-caption span{color:#b8e5fb;font-size:9px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+.ptc-login-photo-caption strong{color:#fff;font-family:Georgia,serif;font-size:17px;font-weight:500}
+.ptc-login-feature-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}
+.ptc-login-feature{display:flex;flex-direction:column;gap:5px;min-width:0;padding:11px 12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.065);backdrop-filter:blur(8px)}
+.ptc-login-feature span{color:#83c9f0;font-size:9px;font-weight:850;letter-spacing:.14em}
+.ptc-login-feature strong{color:#fff;font-size:10px;font-weight:800}
+.ptc-login-feature small{color:rgba(255,255,255,.57);font-size:9px;line-height:1.35}
+.ptc-login-brand-footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:18px;border-top:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55);font-size:8px;font-weight:800;letter-spacing:.16em}
+.ptc-login-form{display:flex;flex-direction:column;justify-content:center;align-items:stretch;width:auto;max-width:none;min-width:0;padding:clamp(30px,4.5vw,58px);border-radius:0;background:#fff;color:#152f43;box-shadow:none}
+.ptc-login-form-crest{display:grid;place-items:center;width:76px;height:76px;margin-bottom:24px;padding:6px;border:1px solid #e5eaf0;border-radius:18px;background:#fff;box-shadow:0 12px 28px rgba(12,48,73,.08)}
+.ptc-login-form-kicker{color:#277eae;font-size:9px;font-weight:850;letter-spacing:.2em}
+.ptc-login-form h2{margin:10px 0 6px;color:#102d43;font-size:clamp(28px,3vw,36px);font-weight:800;letter-spacing:-.04em}
+.ptc-login-form-intro{margin:0 0 26px;color:#6d7f8e;font-size:13px;line-height:1.7}
+.ptc-login-form .form-label{display:block;margin:0 0 7px;color:#31495c;font-size:11px;font-weight:800}
+.ptc-login-form .form-input{width:100%;height:48px;margin:0 0 19px;padding:0 14px;border:1px solid #dce4eb;border-radius:10px;background:#f9fbfd;color:#152f43;font-size:14px;outline:none;transition:border-color .18s,box-shadow .18s,background .18s}
+.ptc-login-form .form-input:focus{border-color:#2a8dc4;background:#fff;box-shadow:0 0 0 4px rgba(42,141,196,.12)}
+.ptc-login-submit{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:50px;margin-top:3px;border:0;border-radius:10px;background:linear-gradient(100deg,#0d456b,#176f9f);color:#fff;font-size:13px;font-weight:800;box-shadow:0 12px 24px rgba(17,87,130,.2);transition:transform .18s,box-shadow .18s}
+.ptc-login-submit:hover{transform:translateY(-2px);box-shadow:0 16px 28px rgba(17,87,130,.27)}
+.ptc-login-submit span{font-size:18px}
+.ptc-login-authorized{display:flex;align-items:center;gap:11px;margin-top:22px;padding:13px 14px;border:1px solid #e8edf1;border-radius:11px;background:#f7fafc}
+.ptc-login-shield{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#e7f6ef;color:#19885c;font-size:15px;font-weight:900}
+.ptc-login-authorized strong,.ptc-login-authorized small{display:block}
+.ptc-login-authorized strong{color:#29465a;font-size:10px}
+.ptc-login-authorized small{margin-top:3px;color:#81909b;font-size:9px}
+.ptc-login-form-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:24px;padding-top:18px;border-top:1px solid #edf0f3}
+.ptc-login-form-footer a{color:#176c9b;font-size:10px;font-weight:850;letter-spacing:.04em;text-decoration:none}
+.ptc-login-form-footer a:hover{text-decoration:underline}
+.ptc-login-form .aplp-login-back{padding:0;border:0;background:transparent;color:#6f8090;font-size:10px;cursor:pointer}
+.ptc-login-form .aplp-login-back:hover{color:#176c9b}
+.ptc-login-form .login-error{margin:0 0 17px;padding:11px 13px;border:1px solid #fecaca;border-radius:9px;background:#fff1f2;color:#991b1b;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+#apPublicLanding .aplp-stats{overflow:hidden;border-radius:18px;box-shadow:0 18px 44px rgba(13,39,58,.1)}
+#apPublicLanding .aplp-stat{transition:background .2s}
+#apPublicLanding .aplp-stat:hover{background:#f5f9fc}
+#apPublicLanding .aplp-value-card,#apPublicLanding .aplp-training-card,#apPublicLanding .aplp-campus-card{position:relative;overflow:hidden;border:1px solid #e0e8ed;border-radius:17px;background:linear-gradient(150deg,#fff 0%,#fbfdff 100%);box-shadow:0 10px 28px rgba(12,44,66,.055);transition:transform .22s,box-shadow .22s,border-color .22s}
+#apPublicLanding .aplp-value-card:before,#apPublicLanding .aplp-training-card:before,#apPublicLanding .aplp-campus-card:before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,#176c9b,#75c5ee,#c8a66a)}
+#apPublicLanding .aplp-value-card:hover,#apPublicLanding .aplp-training-card:hover,#apPublicLanding .aplp-campus-card:hover{transform:translateY(-5px);border-color:#c8dce8;box-shadow:0 20px 38px rgba(12,44,66,.12)}
+#apPublicLanding .aplp-value-card h3,#apPublicLanding .aplp-training-card h3{color:#123a55}
+#apPublicLanding .aplp-campus-card{padding:27px;min-height:190px}
+#apPublicLanding .aplp-gallery-item{border:1px solid #dce5eb;border-radius:17px;box-shadow:0 14px 34px rgba(12,44,66,.1)}
+#apPublicLanding .aplp-gallery-item img{transition:transform .5s}
+#apPublicLanding .aplp-gallery-item:hover img{transform:scale(1.045)}
+#apPublicLanding .aplp-gallery-info{border:1px solid #dce5eb;border-radius:17px;box-shadow:0 14px 34px rgba(12,44,66,.075)}
+.sb-logo-icon{overflow:hidden;border:1px solid rgba(255,255,255,.35);background:#fff!important;color:transparent!important}
+.sb-logo-icon img{display:block;width:100%;height:100%;object-fit:contain;padding:2px}
+#apPublicLanding .aplp-brand-mark,#apPublicLanding .aplp-footer-crest{display:grid;place-items:center;overflow:hidden;background:#fff;border:1px solid #e7edf2;border-radius:50%;padding:4px}
+#apPublicLanding .aplp-brand-mark img,#apPublicLanding .aplp-footer-crest img{display:block;width:100%;height:100%;object-fit:contain}
+
+#apPublicLanding .aplp-gallery-manawan-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(280px,.9fr);grid-template-rows:340px;gap:16px}
+#apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-item:first-child{grid-row:auto}
+#apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-item{min-height:0}
+#apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-art{height:100%;min-height:0;overflow:hidden}
+#apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+@media(max-width:980px){
+ .ptc-login-shell{grid-template-columns:minmax(0,1fr) minmax(340px,.9fr)}
+ .ptc-login-brand{padding:30px}
+ .ptc-login-form{padding:34px}
+ #apPublicLanding .aplp-gallery-manawan-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:270px auto}
+ #apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-info{grid-column:1/-1}
+}
+@media(max-width:720px){
+ .login-overlay{align-items:flex-start;padding:10px}
+ .ptc-login-shell{grid-template-columns:1fr;min-height:0;width:100%;max-width:520px;border-radius:20px}
+ .ptc-login-brand{gap:20px;padding:22px}
+ .ptc-login-brand-top{gap:12px}
+ .ptc-login-crest{flex-basis:62px;width:62px;height:62px;border-radius:15px}
+ .ptc-login-institution strong{font-size:14px}
+ .ptc-login-brand-main{padding:18px 0 0}
+ .ptc-login-brand h1{font-size:45px;margin:13px 0 5px}
+ .ptc-login-brand-copy{font-size:12px}
+ .ptc-login-photo-card{height:155px;margin-top:17px}
+ .ptc-login-feature-row{gap:6px}
+ .ptc-login-feature{padding:9px 8px}
+ .ptc-login-feature strong{font-size:9px}
+ .ptc-login-feature small{font-size:8px}
+ .ptc-login-brand-footer{padding-top:13px;font-size:7px}
+ .ptc-login-form{padding:26px 22px 24px}
+ .ptc-login-form-crest{width:60px;height:60px;margin-bottom:16px}
+ .ptc-login-form h2{font-size:28px}
+ .ptc-login-form-intro{margin-bottom:20px}
+ #apPublicLanding .aplp-gallery-manawan-grid{grid-template-columns:1fr;grid-template-rows:220px 220px auto}
+ #apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-info{grid-column:auto}
+}
+
 </style>
 
-<link rel="preload" as="image" href="/assets/ptc-manawan-entrance.webp" type="image/webp">
+<link rel="preload" as="image" href="/assets/ptc-manawan-flags-campus.webp" type="image/webp">
 </head>
 
 <body class="aplp-landing-mode">
@@ -771,13 +884,13 @@ body.aplp-landing-mode #apPublicLanding{display:block}
         <div class="aplp-hero-visual">
           <div class="aplp-campus-art">
             <picture>
-              <source srcset="/assets/ptc-manawan-entrance.webp" type="image/webp">
-              <img src="/assets/ptc-manawan-entrance.jpg"
-                alt="Front entrance and sign of Police Training College Lahore."
-                width="1366" height="512" fetchpriority="high" decoding="async">
+              <source srcset="/assets/ptc-manawan-flags-campus.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-flags-campus.webp"
+                alt="Police Training College Lahore campus entrance with Pakistan and institutional flags."
+                width="511" height="391" fetchpriority="high" decoding="async">
             </picture>
           </div>
-          <div class="aplp-photo-label"><small>Manawan Campus Entrance</small><strong>Police Training College Lahore</strong></div>
+          <div class="aplp-photo-label"><small>Campus II · Manawan Lahore</small><strong>Discipline · Training · Service</strong></div>
         </div>
       </div>
     </section>
@@ -887,11 +1000,15 @@ body.aplp-landing-mode #apPublicLanding{display:block}
       <div class="aplp-container">
         <div class="aplp-section-kicker">Manawan Campus Gallery</div>
         <h2 class="aplp-section-title">Police Training College Lahore · Manawan.</h2>
-        <p class="aplp-section-lead">Campus entrance imagery supplied for the Manawan portal and institutional website.</p>
+        <p class="aplp-section-lead">Campus photographs supplied for the Police Training College Lahore · Manawan institutional portal.</p>
         <div class="aplp-gallery-grid aplp-gallery-manawan-grid">
           <figure class="aplp-gallery-item">
+            <div class="aplp-gallery-art"><img src="/assets/ptc-manawan-flags-campus.webp" alt="Police Training College Lahore campus building with Pakistan and institutional flags" loading="lazy" decoding="async" width="511" height="391"></div>
+            <figcaption class="aplp-gallery-caption"><small>01 · Campus Identity</small>Police Training College Lahore</figcaption>
+          </figure>
+          <figure class="aplp-gallery-item">
             <div class="aplp-gallery-art"><picture><source srcset="/assets/ptc-manawan-entrance.webp" type="image/webp"><img src="/assets/ptc-manawan-entrance.jpg" alt="Police Training College Lahore Manawan campus entrance and institutional sign" loading="lazy" decoding="async" width="1366" height="512"></picture></div>
-            <figcaption class="aplp-gallery-caption"><small>01 · Manawan Campus</small>Police Training College Lahore</figcaption>
+            <figcaption class="aplp-gallery-caption"><small>02 · Main Entrance</small>Manawan Campus · Lahore</figcaption>
           </figure>
           <article class="aplp-gallery-info">
             <div class="aplp-gallery-info-kicker">Campus II · Lahore</div>
@@ -1767,16 +1884,58 @@ body.aplp-landing-mode #apPublicLanding{display:block}
  </div>
 </div>
 
-<div class="login-overlay" id="loginOverlay">
-  <form class="login-card" onsubmit="loginUser(event)">
-    <div class="sb-logo-icon login-crest"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="48" height="48"></div><h2>PTC Manawan Portal Login</h2><p>Police Training College Lahore · Manawan Campus. Sign in with your assigned account.</p>
-    <div class="login-error" id="loginError"></div>
-    <label class="form-label" for="loginUsername" id="loginUsernameLabel">Email address</label><input class="form-input" id="loginUsername" type="text" autocomplete="username" placeholder="you@company.com" required>
-    <label class="form-label" for="loginPassword">Password</label><input class="form-input" id="loginPassword" type="password" autocomplete="current-password" required>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px" type="submit">Sign In</button>
-    <div class="access-help">Use your assigned account credentials. Change your password after your first sign-in.</div>
-    <button class="aplp-login-back" type="button" onclick="returnToPublicLanding()">← Back to institution website</button>
-  </form>
+<div class="login-overlay" id="loginOverlay" aria-label="PTC Manawan secure portal sign in">
+  <div class="ptc-login-shell">
+    <section class="ptc-login-brand" aria-label="Police Training College Lahore identity">
+      <div class="ptc-login-brand-top">
+        <span class="ptc-login-crest"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="78" height="78"></span>
+        <span class="ptc-login-institution">
+          <small>Punjab Police</small>
+          <strong>Police Training College Lahore</strong>
+          <span>Manawan Campus · Lahore</span>
+        </span>
+      </div>
+      <div class="ptc-login-brand-main">
+        <div class="ptc-login-eyebrow"><span></span> Authorized Digital Access</div>
+        <h1>PTC <em>Manawan</em></h1>
+        <p class="ptc-login-brand-copy">Biometric Attendance &amp; Trainee Management System</p>
+        <div class="ptc-login-photo-card">
+          <img src="/assets/ptc-manawan-flags-campus.webp" alt="Police Training College Lahore campus with Pakistan and institutional flags" width="511" height="391">
+          <div class="ptc-login-photo-caption">
+            <span>Campus II · Manawan, Lahore</span>
+            <strong>Discipline · Training · Service</strong>
+          </div>
+        </div>
+        <div class="ptc-login-feature-row">
+          <div class="ptc-login-feature"><span>01</span><strong>Secure Access</strong><small>Authorized accounts</small></div>
+          <div class="ptc-login-feature"><span>02</span><strong>Role Based</strong><small>Controlled permissions</small></div>
+          <div class="ptc-login-feature"><span>03</span><strong>Digital Records</strong><small>Attendance &amp; training</small></div>
+        </div>
+      </div>
+      <div class="ptc-login-brand-footer">
+        <span>POLICE TRAINING COLLEGE LAHORE</span>
+        <span>DISCIPLINE&nbsp; • &nbsp;TRAINING&nbsp; • &nbsp;SERVICE</span>
+      </div>
+    </section>
+
+    <form class="login-card ptc-login-form" onsubmit="loginUser(event)">
+      <div class="ptc-login-form-crest"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="62" height="62"></div>
+      <div class="ptc-login-form-kicker">ATTENDPRO · SECURE PORTAL</div>
+      <h2>Welcome back</h2>
+      <p class="ptc-login-form-intro">Sign in with your assigned Police Training College account to continue.</p>
+      <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+      <label class="form-label" for="loginUsername" id="loginUsernameLabel">Email address</label>
+      <input class="form-input" id="loginUsername" type="text" autocomplete="username" placeholder="you@ptclahore.co" required>
+      <label class="form-label" for="loginPassword">Password</label>
+      <input class="form-input" id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+      <button class="btn btn-primary ptc-login-submit" type="submit">Sign In <span aria-hidden="true">→</span></button>
+      <div class="ptc-login-authorized"><span class="ptc-login-shield">✓</span><span><strong>Authorized users only</strong><small>Access is monitored and role-controlled.</small></span></div>
+      <div class="ptc-login-form-footer">
+        <button class="aplp-login-back" type="button" onclick="returnToPublicLanding()">← Back to institution website</button>
+        <a href="https://ptclahore.co/" target="_blank" rel="noopener noreferrer">https://ptclahore.co ↗</a>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="modal-overlay" id="apEmployeeEditOverlay" onclick="if(event.target===this)closeEmployeeEditor()">
@@ -1802,7 +1961,7 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
 <script>
-window.ATTENDPRO_BUILD = "2026-11-24-ptc-lahore-manawan-print-v2";
+window.ATTENDPRO_BUILD = "2026-11-24-ptc-manawan-secure-login-v3";
 
 const apEnglishText = new Map([
  ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],
@@ -1979,7 +2138,15 @@ async function apiJSON(path, options={}) {
   }
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
-    try { const body = await response.json(); detail = body.detail || body.message || detail; } catch(_) {}
+    const raw = await response.text().catch(() => '');
+    if (raw) {
+      try {
+        const body = JSON.parse(raw);
+        detail = body.detail || body.message || detail;
+      } catch (_) {
+        detail = raw.trim().slice(0, 280) || detail;
+      }
+    }
     throw new Error(detail);
   }
   return response.json();
@@ -2765,23 +2932,50 @@ async function initAuth() {
     const newUserLabel=document.getElementById('newUserNameLabel'),newUserInput=document.getElementById('newUserName');
     if(newUserLabel)newUserLabel.textContent=cloudMode?'Email address':'Username';
     if(newUserInput){newUserInput.type=cloudMode?'email':'text';newUserInput.placeholder=cloudMode?'name@company.com':'Username';}
-    if(result.authenticated){currentUser=result.user;document.getElementById('loginOverlay').classList.remove('open');applyPermissions();await loadRealData(true);}
-    else document.getElementById('loginOverlay').classList.add('open');
-  } catch(e) { document.getElementById('loginOverlay').classList.add('open'); }
+    if(result.authenticated){
+      currentUser=result.user;
+      document.body.classList.remove('portal-login-open');
+      document.getElementById('loginOverlay').classList.remove('open');
+      applyPermissions();
+      await loadRealData(true);
+    } else if(typeof aplpPortalScreenFromHash==='function' && aplpPortalScreenFromHash()) {
+      document.body.classList.add('portal-login-open');
+      document.getElementById('loginOverlay').classList.add('open');
+    } else {
+      document.body.classList.remove('portal-login-open');
+      document.getElementById('loginOverlay').classList.remove('open');
+    }
+  } catch(e) {
+    if(typeof aplpPortalScreenFromHash==='function' && aplpPortalScreenFromHash()) {
+      document.body.classList.add('portal-login-open');
+      document.getElementById('loginOverlay').classList.add('open');
+    } else {
+      document.body.classList.remove('portal-login-open');
+      document.getElementById('loginOverlay').classList.remove('open');
+    }
+  }
 }
 async function loginUser(event) {
   if(event)event.preventDefault();
   const error=document.getElementById('loginError');error.style.display='none';
   try {
     const result=await apiJSON('/api/auth/login',{method:'POST',body:JSON.stringify({username:document.getElementById('loginUsername').value.trim(),password:document.getElementById('loginPassword').value})});
-    currentUser=result.user;document.getElementById('loginOverlay').classList.remove('open');document.getElementById('loginPassword').value='';applyPermissions();await loadRealData(true);
+    currentUser=result.user;
+    document.body.classList.remove('portal-login-open');
+    document.getElementById('loginOverlay').classList.remove('open');
+    document.getElementById('loginPassword').value='';
+    applyPermissions();
+    await loadRealData(true);
   } catch(e) {error.textContent=englishMessage(e.message||'Login failed. Please try again.');error.style.display='block';}
 }
 async function logoutUser() {
   if(!currentUser)return;
   if(!await appConfirm('Are you sure you want to log out?'))return;
   try{await apiJSON('/api/auth/logout',{method:'POST'});}catch(_){}
-  currentUser=null;document.getElementById('loginOverlay').classList.add('open');applyPermissions();
+  currentUser=null;
+  document.body.classList.add('portal-login-open');
+  document.getElementById('loginOverlay').classList.add('open');
+  applyPermissions();
 }
 async function changeMyPassword() {
   const current=document.getElementById('currentPassword').value,newPass=document.getElementById('newPassword').value;
@@ -4188,7 +4382,9 @@ function aplpActivatePortal(screen='dashboard'){
   const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
   const toggle=document.getElementById('aplpMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
   const overlay=document.getElementById('loginOverlay');
-  if(typeof currentUser!=='undefined'&&currentUser){if(overlay)overlay.classList.remove('open');}
+  const authenticated=(typeof currentUser!=='undefined'&&!!currentUser);
+  document.body.classList.toggle('portal-login-open',!authenticated);
+  if(authenticated){if(overlay)overlay.classList.remove('open');}
   else if(overlay)overlay.classList.add('open');
   if(screen){
     window.setTimeout(()=>{
@@ -4206,6 +4402,7 @@ function openAttendProPortal(screen='dashboard'){
 }
 function returnToPublicLanding(){
   document.body.classList.add('aplp-landing-mode');
+  document.body.classList.remove('portal-login-open');
   const overlay=document.getElementById('loginOverlay');if(overlay)overlay.classList.remove('open');
   const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
   const toggle=document.getElementById('aplpMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
@@ -4221,6 +4418,7 @@ window.addEventListener('hashchange',()=>{
   if(screen)aplpActivatePortal(screen);
   else if(!document.body.classList.contains('aplp-landing-mode')){
     document.body.classList.add('aplp-landing-mode');
+    document.body.classList.remove('portal-login-open');
     const overlay=document.getElementById('loginOverlay');if(overlay)overlay.classList.remove('open');
     const menu=document.getElementById('aplpNav');if(menu)menu.classList.remove('open');
     const toggle=document.getElementById('aplpMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
