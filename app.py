@@ -7,7 +7,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 from typing import Optional
 from urllib.parse import quote
-from fastapi import FastAPI, HTTPException, Request, Response, Depends
+from fastapi import FastAPI, HTTPException, Request, Response, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -198,6 +198,47 @@ def init_db():
    id INTEGER PRIMARY KEY AUTOINCREMENT, employee_id INTEGER NOT NULL REFERENCES employees(id),
    prior_status TEXT NOT NULL, new_status TEXT NOT NULL, changed_by TEXT NOT NULL,
    note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  -- PTC Lahore Manawan training data. Existing employees/daily tables remain the staff source.
+  CREATE TABLE IF NOT EXISTS pts_trainees(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, employee_no TEXT NOT NULL,
+   name TEXT NOT NULL, father_name TEXT NOT NULL DEFAULT '', course_name TEXT NOT NULL DEFAULT '',
+   platoon TEXT NOT NULL DEFAULT '', course_start_date TEXT, course_end_date TEXT,
+   status TEXT NOT NULL DEFAULT 'active', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  CREATE INDEX IF NOT EXISTS ix_pts_trainees_course ON pts_trainees(employee_no,course_name,platoon,course_start_date,course_end_date,status);
+  CREATE TABLE IF NOT EXISTS pts_trainee_attendance(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, trainee_id INTEGER NOT NULL REFERENCES pts_trainees(id) ON DELETE CASCADE,
+   attendance_date TEXT NOT NULL, shift TEXT NOT NULL DEFAULT 'Morning', status TEXT NOT NULL,
+   check_in TEXT, check_out TEXT, course_name TEXT NOT NULL DEFAULT '',
+   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   UNIQUE(trainee_id,attendance_date,shift));
+  CREATE INDEX IF NOT EXISTS ix_pts_trainee_attendance_date ON pts_trainee_attendance(attendance_date,shift,status);
+  CREATE TABLE IF NOT EXISTS pts_leave_records(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, person_type TEXT NOT NULL CHECK(person_type IN ('trainee','staff')),
+   person_id TEXT NOT NULL, person_name TEXT NOT NULL, course_name TEXT NOT NULL DEFAULT '',
+   platoon TEXT NOT NULL DEFAULT '', staff_category TEXT NOT NULL DEFAULT '', staff_branch TEXT NOT NULL DEFAULT '',
+   leave_type TEXT NOT NULL, start_at TEXT NOT NULL, end_at TEXT NOT NULL, reason TEXT NOT NULL,
+   reference_no TEXT NOT NULL DEFAULT '', remarks TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'pending',
+   created_by TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  CREATE INDEX IF NOT EXISTS ix_pts_leave_dates ON pts_leave_records(person_type,status,start_at,end_at);
+  CREATE TABLE IF NOT EXISTS pts_osd_records(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, person_type TEXT NOT NULL CHECK(person_type IN ('trainee','staff')),
+   person_id TEXT NOT NULL, person_name TEXT NOT NULL, course_name TEXT NOT NULL DEFAULT '',
+   platoon TEXT NOT NULL DEFAULT '', staff_category TEXT NOT NULL DEFAULT '', staff_branch TEXT NOT NULL DEFAULT '',
+   start_at TEXT NOT NULL, end_at TEXT NOT NULL, reason TEXT NOT NULL, duty_place TEXT NOT NULL DEFAULT '',
+   reference_no TEXT NOT NULL DEFAULT '', remarks TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'pending',
+   created_by TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  CREATE INDEX IF NOT EXISTS ix_pts_osd_dates ON pts_osd_records(person_type,status,start_at,end_at);
+  CREATE TABLE IF NOT EXISTS pts_duty_rest_records(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, person_type TEXT NOT NULL DEFAULT 'staff' CHECK(person_type='staff'),
+   person_id TEXT NOT NULL, person_name TEXT NOT NULL, staff_category TEXT NOT NULL DEFAULT '',
+   staff_branch TEXT NOT NULL DEFAULT '', start_at TEXT NOT NULL, end_at TEXT NOT NULL,
+   reason TEXT NOT NULL DEFAULT 'Duty Rest', reference_no TEXT NOT NULL DEFAULT '',
+   remarks TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'approved', created_by TEXT NOT NULL DEFAULT '',
+   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  CREATE INDEX IF NOT EXISTS ix_pts_duty_rest_dates ON pts_duty_rest_records(status,start_at,end_at);
 
   ''')
   prepare_raw_tables(db)
@@ -876,6 +917,531 @@ def dashboard(date:Optional[str]=None):
     'recent':recent,'hourly':hourly,'dates':dates,'device':device_status(db),
     'devices':device_list['items'],'active_device_id':device_list['active_device_id'],
     'last_import':dict(last_import) if last_import else None,'server_time':stamp(),'watch_folder':bool(os.environ.get('APP_WATCH_FOLDER'))}
+
+# ── PTC LAHORE / MANAWAN TRAINING MANAGEMENT ───────────────────────────────
+PTS_TABLES = {'leave':'pts_leave_records','osd':'pts_osd_records','duty_rest':'pts_duty_rest_records'}
+PTS_RECORD_FIELDS = ('person_type','person_id','person_name','course_name','platoon','staff_category',
+                     'staff_branch','leave_type','start_at','end_at','reason','duty_place',
+                     'reference_no','remarks','status')
+
+def _pts_rows(table):
+    if CLOUD_ENABLED:
+        return cloud_or_503(lambda: cloud.rows(table, {'order':'id.asc'}))
+    with connection() as db:
+        return rows_as_dict(db.execute(f'SELECT * FROM {table} ORDER BY id ASC').fetchall())
+
+def _pts_active_on(record, day):
+    status=str(record.get('status') or '').lower()
+    if status not in ('approved','active','confirmed','exempt'):
+        return False
+    def local_day(value):
+        if not value: return ''
+        raw=str(value)
+        try:
+            parsed=datetime.fromisoformat(raw.replace('Z','+00:00'))
+            if parsed.tzinfo is None: parsed=parsed.replace(tzinfo=ZoneInfo('Asia/Karachi'))
+            return parsed.astimezone(ZoneInfo('Asia/Karachi')).date().isoformat()
+        except ValueError: return raw[:10]
+    start=local_day(record.get('start_at') or record.get('start_date'))
+    end=local_day(record.get('end_at') or record.get('end_date'))
+    return (not start or start <= day) and (not end or end >= day)
+
+def _pts_insert(table, values):
+    if CLOUD_ENABLED:
+        result=cloud_or_503(lambda: cloud.rest('POST',table,payload=values,
+            headers={'Prefer':'return=representation'}))
+        return result[0] if isinstance(result,list) and result else (result or {})
+    keys=list(values)
+    with connection() as db:
+        cur=db.execute(f"INSERT INTO {table} ({','.join(keys)}) VALUES ({','.join('?' for _ in keys)})",
+                       [values[k] for k in keys])
+        return dict(db.execute(f'SELECT * FROM {table} WHERE id=?',(cur.lastrowid,)).fetchone())
+
+@app.get('/api/pts/dashboard')
+def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning'):
+    require_roles(request,'view_only','supervisor','super_admin')
+    day=str(date or today_iso())
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',day):
+        raise HTTPException(400,'Date must use YYYY-MM-DD format.')
+    if shift not in ('Morning','Evening'):
+        raise HTTPException(400,'Shift must be Morning or Evening.')
+    trainees=_pts_rows('pts_trainees')
+    attendance=_pts_rows('pts_trainee_attendance')
+    leaves=_pts_rows('pts_leave_records')
+    osd_rows=_pts_rows('pts_osd_records')
+    active_trainees=[t for t in trainees if str(t.get('status') or 'active').lower() not in ('completed','deleted')]
+    day_attendance=[r for r in attendance if str(r.get('attendance_date') or '')[:10]==day and str(r.get('shift') or 'Morning').lower()==shift.lower()]
+    present_ids={str(r.get('trainee_id')) for r in day_attendance if str(r.get('status') or '').lower() in ('present','late','early_arrival')}
+    absent_ids={str(r.get('trainee_id')) for r in day_attendance if str(r.get('status') or '').lower()=='absent'}
+    active_leave=[r for r in leaves if r.get('person_type')=='trainee' and _pts_active_on(r,day)]
+    active_osd=[r for r in osd_rows if r.get('person_type')=='trainee' and _pts_active_on(r,day)]
+    leave_ids={str(r.get('person_id')) for r in active_leave}
+    long_weekend_ids={str(r.get('person_id')) for r in active_leave if 'long' in str(r.get('leave_type') or '').lower()}
+    medical_ids={str(r.get('person_id')) for r in active_leave if 'medical' in str(r.get('leave_type') or '').lower()}
+    osd_ids={str(r.get('person_id')) for r in active_osd}
+    for row in day_attendance:
+        trainee=next((t for t in active_trainees if str(t.get('id'))==str(row.get('trainee_id'))),None)
+        if not trainee: continue
+        employee_no=str(trainee.get('employee_no') or '')
+        state=str(row.get('status') or '').lower()
+        if state=='leave': leave_ids.add(employee_no)
+        elif state=='long_weekend': long_weekend_ids.add(employee_no); leave_ids.add(employee_no)
+        elif state=='medical_rest': medical_ids.add(employee_no); leave_ids.add(employee_no)
+        elif state=='osd': osd_ids.add(employee_no)
+    repatriate_ids={str(t.get('employee_no')) for t in trainees if str(t.get('status') or '').lower() in ('repatriated','repatriate')}
+    course_map={}
+    for t in active_trainees:
+        course=str(t.get('course_name') or 'Unassigned')
+        item=course_map.setdefault(course,{'course':course,'total':0,'present':0,'absent':0,'leave':0})
+        item['total']+=1
+    for row in day_attendance:
+        trainee=next((t for t in active_trainees if str(t.get('id'))==str(row.get('trainee_id'))),None)
+        course=str(row.get('course_name') or (trainee or {}).get('course_name') or 'Unassigned')
+        item=course_map.setdefault(course,{'course':course,'total':0,'present':0,'absent':0,'leave':0})
+        state=str(row.get('status') or '').lower()
+        if state in ('present','late','early_arrival'): item['present']+=1
+        elif state=='absent': item['absent']+=1
+    metrics={
+      'total_enrolled':len(trainees), 'active_enrolled':len(active_trainees),
+      'present':len(present_ids), 'absent':len(absent_ids), 'leave':len(leave_ids),
+      'long_weekend':len(long_weekend_ids), 'osd':len(osd_ids),
+      'medical_rest':len(medical_ids), 'repatriate':len(repatriate_ids),
+      'attendance_records':len(day_attendance)
+    }
+    return {'date':day,'shift':shift,'metrics':metrics,
+            'course_wise':sorted(course_map.values(),key=lambda x:x['course'].lower()),
+            'data_ready':bool(trainees),'message':None if trainees else 'No Manawan trainee roster has been imported yet.'}
+
+@app.get('/api/pts/trainees')
+def list_pts_trainees(request:Request, search:str='', course:str='', status:str=''):
+    require_roles(request,'view_only','supervisor','super_admin')
+    items=_pts_rows('pts_trainees')
+    if search:
+        q=search.strip().lower()
+        items=[r for r in items if q in str(r.get('employee_no') or '').lower() or q in str(r.get('name') or '').lower() or q in str(r.get('father_name') or '').lower()]
+    if course: items=[r for r in items if str(r.get('course_name') or '')==course]
+    if status: items=[r for r in items if str(r.get('status') or 'active')==status]
+    return {'items':items,'total':len(items)}
+
+@app.post('/api/pts/trainees')
+async def create_pts_trainee(request:Request):
+    actor=require_roles(request,'supervisor','super_admin')
+    body=await request.json()
+    employee_no=str(body.get('employee_no') or '').strip()
+    name=str(body.get('name') or '').strip()
+    if not employee_no or not name: raise HTTPException(400,'Employee ID / Cap No. and trainee name are required.')
+    status=str(body.get('status') or 'active').lower()
+    if status not in ('active','repatriated','completed'): raise HTTPException(400,'Invalid trainee status.')
+    values={'employee_no':employee_no,'name':name,'father_name':str(body.get('father_name') or '').strip(),
+      'course_name':str(body.get('course_name') or '').strip(),'platoon':str(body.get('platoon') or '').strip(),
+      'course_start_date':body.get('course_start_date') or None,'course_end_date':body.get('course_end_date') or None,
+      'status':status}
+    def same_enrollment(row):
+        return (str(row.get('employee_no') or '').strip()==employee_no and
+          str(row.get('course_name') or '').strip()==values['course_name'] and
+          str(row.get('platoon') or '').strip()==values['platoon'] and
+          str(row.get('course_start_date') or '')[:10]==str(values['course_start_date'] or '')[:10] and
+          str(row.get('course_end_date') or '')[:10]==str(values['course_end_date'] or '')[:10])
+    if CLOUD_ENABLED:
+        try:
+            duplicate=next((row for row in cloud.rows('pts_trainees',{'employee_no':'eq.'+employee_no}) if same_enrollment(row)),None)
+            if duplicate: raise HTTPException(409,'This exact trainee course enrollment already exists.')
+        except CloudError as e: raise HTTPException(503,str(e)) from e
+    else:
+        with connection() as db:
+            existing=rows_as_dict(db.execute('SELECT * FROM pts_trainees WHERE employee_no=?',(employee_no,)).fetchall())
+            if any(same_enrollment(row) for row in existing):
+                raise HTTPException(409,'This exact trainee course enrollment already exists.')
+    try: saved=_pts_insert('pts_trainees',values)
+    except CloudError as e: raise HTTPException(503,str(e)) from e
+    return {'success':True,'item':saved}
+
+@app.patch('/api/pts/trainees/{trainee_id}')
+async def update_pts_trainee(trainee_id:int,request:Request):
+    require_roles(request,'supervisor','super_admin')
+    body=await request.json(); allowed=('employee_no','name','father_name','course_name','platoon','course_start_date','course_end_date','status')
+    values={k:body[k] for k in allowed if k in body}
+    if not values: raise HTTPException(400,'No trainee fields were supplied.')
+    if 'status' in values and values['status'] not in ('active','repatriated','completed'): raise HTTPException(400,'Invalid trainee status.')
+    if CLOUD_ENABLED:
+        rows=cloud_or_503(lambda:cloud.patch('pts_trainees',{'id':'eq.'+str(trainee_id)},values))
+        if not rows: raise HTTPException(404,'Trainee not found.')
+        return {'success':True,'item':rows[0]}
+    with connection() as db:
+        cur=db.execute('UPDATE pts_trainees SET '+','.join(k+'=?' for k in values)+',updated_at=CURRENT_TIMESTAMP WHERE id=?',list(values.values())+[trainee_id])
+        if not cur.rowcount: raise HTTPException(404,'Trainee not found.')
+        return {'success':True,'item':dict(db.execute('SELECT * FROM pts_trainees WHERE id=?',(trainee_id,)).fetchone())}
+
+@app.get('/api/pts/attendance')
+def list_pts_attendance(request:Request,date:str='',shift:str='Morning'):
+    require_roles(request,'view_only','supervisor','super_admin')
+    day=str(date or today_iso())
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',day): raise HTTPException(400,'Attendance date must use YYYY-MM-DD.')
+    if shift not in ('Morning','Evening'): raise HTTPException(400,'Shift must be Morning or Evening.')
+    trainees=[t for t in _pts_rows('pts_trainees') if str(t.get('status') or 'active').lower()=='active']
+    attendance=[r for r in _pts_rows('pts_trainee_attendance') if str(r.get('attendance_date') or '')[:10]==day and str(r.get('shift') or 'Morning').lower()==shift.lower()]
+    by_id={str(r.get('trainee_id')):r for r in attendance}
+    items=[]
+    for trainee in trainees:
+        row=dict(trainee);saved=by_id.get(str(trainee.get('id')),{})
+        row.update({'attendance_status':saved.get('status') or '', 'check_in':saved.get('check_in') or '',
+                    'check_out':saved.get('check_out') or '', 'attendance_record_id':saved.get('id')})
+        items.append(row)
+    items.sort(key=lambda r:(str(r.get('course_name') or '').lower(),str(r.get('platoon') or '').lower(),str(r.get('name') or '').lower()))
+    return {'date':day,'shift':shift,'items':items,'total':len(items)}
+
+@app.post('/api/pts/attendance/bulk')
+async def bulk_pts_attendance(request:Request):
+    require_roles(request,'supervisor','super_admin')
+    body=await request.json();items=body.get('items') or []
+    if not isinstance(items,list) or not items: raise HTTPException(400,'Provide at least one trainee attendance row.')
+    clean=[]
+    for row in items:
+        try: trainee_id=int(row.get('trainee_id'))
+        except (TypeError,ValueError): continue
+        attendance_date=str(row.get('attendance_date') or '').strip();shift=str(row.get('shift') or 'Morning')
+        status=str(row.get('status') or '').lower()
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',attendance_date) or shift not in ('Morning','Evening') or status not in ('present','absent','late','early_arrival','leave','osd','medical_rest','long_weekend'):
+            continue
+        clean.append({'trainee_id':trainee_id,'attendance_date':attendance_date,'shift':shift,'status':status,
+          'check_in':str(row.get('check_in') or ''),'check_out':str(row.get('check_out') or ''),
+          'course_name':str(row.get('course_name') or '').strip()})
+    if not clean: raise HTTPException(400,'No valid trainee attendance rows were supplied.')
+    if CLOUD_ENABLED:
+        saved=cloud_or_503(lambda:cloud.upsert('pts_trainee_attendance',clean,'trainee_id,attendance_date,shift'))
+        count=len(saved)
+    else:
+        count=0
+        with connection() as db:
+            valid_ids={int(r[0]) for r in db.execute('SELECT id FROM pts_trainees').fetchall()}
+            for row in clean:
+                if row['trainee_id'] not in valid_ids: continue
+                db.execute('''INSERT INTO pts_trainee_attendance(trainee_id,attendance_date,shift,status,check_in,check_out,course_name)
+                  VALUES(?,?,?,?,?,?,?) ON CONFLICT(trainee_id,attendance_date,shift) DO UPDATE SET
+                  status=excluded.status,check_in=excluded.check_in,check_out=excluded.check_out,
+                  course_name=excluded.course_name,updated_at=CURRENT_TIMESTAMP''',
+                  [row[k] for k in ('trainee_id','attendance_date','shift','status','check_in','check_out','course_name')])
+                count+=1
+    return {'success':True,'saved':count,'message':f'{count} trainee attendance records saved.'}
+
+@app.post('/api/pts/attendance')
+async def upsert_pts_attendance(request:Request):
+    require_roles(request,'supervisor','super_admin')
+    body=await request.json()
+    try:
+        trainee_id=int(body.get('trainee_id'))
+    except (TypeError,ValueError): raise HTTPException(400,'A valid trainee ID is required.')
+    attendance_date=str(body.get('attendance_date') or '').strip()
+    shift=str(body.get('shift') or 'Morning')
+    status=str(body.get('status') or '').lower()
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',attendance_date): raise HTTPException(400,'Attendance date must use YYYY-MM-DD.')
+    if shift not in ('Morning','Evening'): raise HTTPException(400,'Shift must be Morning or Evening.')
+    if status not in ('present','absent','late','early_arrival','leave','osd','medical_rest','long_weekend'):
+        raise HTTPException(400,'Invalid trainee attendance status.')
+    values={'trainee_id':trainee_id,'attendance_date':attendance_date,'shift':shift,'status':status,
+            'check_in':str(body.get('check_in') or ''),'check_out':str(body.get('check_out') or ''),
+            'course_name':str(body.get('course_name') or '').strip()}
+    if CLOUD_ENABLED:
+        saved=cloud_or_503(lambda:cloud.upsert('pts_trainee_attendance',values,'trainee_id,attendance_date,shift'))
+        return {'success':True,'item':saved[0] if saved else values}
+    with connection() as db:
+        trainee=db.execute('SELECT id,course_name FROM pts_trainees WHERE id=?',(trainee_id,)).fetchone()
+        if not trainee: raise HTTPException(404,'Trainee not found.')
+        if not values['course_name']: values['course_name']=trainee['course_name'] or ''
+        db.execute('''INSERT INTO pts_trainee_attendance(trainee_id,attendance_date,shift,status,check_in,check_out,course_name)
+          VALUES(?,?,?,?,?,?,?) ON CONFLICT(trainee_id,attendance_date,shift) DO UPDATE SET
+          status=excluded.status,check_in=excluded.check_in,check_out=excluded.check_out,
+          course_name=excluded.course_name,updated_at=CURRENT_TIMESTAMP''',
+          [values[k] for k in ('trainee_id','attendance_date','shift','status','check_in','check_out','course_name')])
+        row=db.execute('SELECT * FROM pts_trainee_attendance WHERE trainee_id=? AND attendance_date=? AND shift=?',
+                       (trainee_id,attendance_date,shift)).fetchone()
+        return {'success':True,'item':dict(row)}
+
+@app.get('/api/pts/templates/trainee-roster')
+def download_pts_trainee_template(request:Request):
+    require_roles(request,'view_only','supervisor','super_admin')
+    path=ROOT/'templates'/'PTS_Manawan_Trainee_Roster_Template.xlsx'
+    if not path.exists(): raise HTTPException(404,'Trainee roster template is not installed.')
+    return FileResponse(path,filename='PTS_Manawan_Trainee_Roster_Template.xlsx',
+                        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@app.post('/api/pts/trainees/import')
+async def import_pts_trainees(request:Request,file:UploadFile=File(...)):
+    require_roles(request,'supervisor','super_admin')
+    name=(file.filename or '').lower()
+    raw=await file.read()
+    if not raw: raise HTTPException(400,'The uploaded file is empty.')
+    rows=[]
+    try:
+        if name.endswith('.csv'):
+            text=raw.decode('utf-8-sig')
+            rows=list(csv.DictReader(io.StringIO(text)))
+        elif name.endswith('.xlsx'):
+            from openpyxl import load_workbook
+            wb=load_workbook(io.BytesIO(raw),read_only=True,data_only=True)
+            ws=wb.active
+            values=list(ws.iter_rows(values_only=True))
+            if not values: raise ValueError('The workbook is empty.')
+            headers=[str(x or '').strip().lower() for x in values[0]]
+            rows=[dict(zip(headers,row)) for row in values[1:] if any(x is not None for x in row)]
+        else: raise HTTPException(400,'Upload an .xlsx or .csv roster file.')
+    except HTTPException: raise
+    except Exception as e: raise HTTPException(400,'Could not read the roster file: '+str(e)[:180]) from e
+    def pick(row,*keys):
+        norm={re.sub(r'[^a-z0-9]','',str(k).lower()):v for k,v in row.items()}
+        for key in keys:
+            k=re.sub(r'[^a-z0-9]','',key.lower())
+            if norm.get(k) not in (None,''): return str(norm[k]).strip()
+        return ''
+    clean=[]; skipped=0
+    for row in rows:
+        employee_no=pick(row,'Employee ID/Cap No.','Employee ID','Cap No.','ID')
+        trainee_name=pick(row,'Name','Trainee Name','Full Name')
+        if not employee_no or not trainee_name: skipped+=1; continue
+        clean.append({'employee_no':employee_no,'name':trainee_name,
+          'father_name':pick(row,'Father Name'),'course_name':pick(row,'Course','Course Name'),
+          'platoon':pick(row,'Platoon'),'course_start_date':(pick(row,'Course Start Date')[:10] or None),
+          'course_end_date':(pick(row,'Course End Date')[:10] or None),
+          'status':(pick(row,'Status').lower() if pick(row,'Status').lower() in ('active','repatriated','completed') else 'active')})
+    if not clean: raise HTTPException(400,'No valid trainee rows found. Employee ID/Cap No. and Name are required.')
+    count=0
+    existing_rows=_pts_rows('pts_trainees')
+    for row in clean:
+        if row['status'] not in ('active','repatriated','completed'): row['status']='active'
+        match=next((old for old in existing_rows if
+          str(old.get('employee_no') or '').strip()==row['employee_no'] and
+          str(old.get('course_name') or '').strip()==row['course_name'] and
+          str(old.get('platoon') or '').strip()==row['platoon'] and
+          str(old.get('course_start_date') or '')[:10]==str(row['course_start_date'] or '')[:10] and
+          str(old.get('course_end_date') or '')[:10]==str(row['course_end_date'] or '')[:10]),None)
+        if CLOUD_ENABLED:
+            if match:
+                cloud_or_503(lambda old=match,row=row:cloud.patch('pts_trainees',{'id':'eq.'+str(old['id'])},row))
+            else:
+                _pts_insert('pts_trainees',row)
+        else:
+            with connection() as db:
+                if match:
+                    keys=[k for k in row if k!='employee_no']
+                    db.execute('UPDATE pts_trainees SET '+','.join(k+'=?' for k in keys)+',updated_at=CURRENT_TIMESTAMP WHERE id=?',
+                               [row[k] for k in keys]+[match['id']])
+                else:
+                    keys=list(row)
+                    db.execute(f"INSERT INTO pts_trainees ({','.join(keys)}) VALUES ({','.join('?' for _ in keys)})",
+                               [row[k] for k in keys])
+        count+=1
+    return {'success':True,'processed':count,'skipped':skipped,'message':f'{count} trainee rows imported or updated; {skipped} invalid rows skipped.'}
+
+def _pts_parse_import_datetime(value):
+    if value in (None,''): raise ValueError('date/time is missing')
+    if isinstance(value,datetime): dt=value
+    elif isinstance(value,date): dt=datetime.combine(value,datetime.min.time())
+    elif isinstance(value,(int,float)):
+        from openpyxl.utils.datetime import from_excel
+        dt=from_excel(value)
+    else:
+        raw=str(value).strip()
+        dt=None
+        for fmt in ('%d-%b-%Y %I:%M %p','%d-%b-%Y %H:%M','%Y-%m-%d %H:%M','%Y-%m-%d','%d/%m/%Y %I:%M %p','%d/%m/%Y %H:%M','%d/%m/%Y'):
+            try: dt=datetime.strptime(raw,fmt); break
+            except ValueError: pass
+        if dt is None:
+            try: dt=datetime.fromisoformat(raw.replace('Z','+00:00'))
+            except ValueError as e: raise ValueError('use DD-MMM-YYYY hh:mm AM/PM or YYYY-MM-DD') from e
+    if dt.tzinfo is None: dt=dt.replace(tzinfo=ZoneInfo('Asia/Karachi'))
+    return dt
+
+def _pts_import_rows(raw,filename):
+    if filename.lower().endswith('.csv'):
+        return list(csv.DictReader(io.StringIO(raw.decode('utf-8-sig'))))
+    if filename.lower().endswith('.xlsx'):
+        from openpyxl import load_workbook
+        wb=load_workbook(io.BytesIO(raw),read_only=True,data_only=True)
+        ws=wb.active; values=list(ws.iter_rows(values_only=True))
+        if not values: return []
+        headers=[str(x or '').strip() for x in values[0]]
+        return [dict(zip(headers,row)) for row in values[1:] if any(x is not None for x in row)]
+    raise HTTPException(400,'Upload an .xlsx or .csv file.')
+
+def _pts_pick_raw(row,*keys):
+    normalized={re.sub(r'[^a-z0-9]','',str(k).lower()):v for k,v in row.items()}
+    for key in keys:
+        value=normalized.get(re.sub(r'[^a-z0-9]','',key.lower()))
+        if value not in (None,''): return value
+    return ''
+
+@app.get('/api/pts/templates/{template_type}')
+def download_pts_import_template(template_type:str,request:Request):
+    require_roles(request,'view_only','supervisor','super_admin')
+    filenames={'leave':'PTS_Leave_Import_Template.xlsx','osd':'PTS_OSD_Import_Template.xlsx','trainee-roster':'PTS_Manawan_Trainee_Roster_Template.xlsx'}
+    filename=filenames.get(template_type)
+    if not filename: raise HTTPException(404,'Template not found.')
+    path=ROOT/'templates'/filename
+    if not path.exists(): raise HTTPException(404,'Template file is not installed.')
+    return FileResponse(path,filename=filename,media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@app.post('/api/pts/records/import')
+async def import_pts_records(request:Request,record_type:str='leave',person_type:str='trainee',file:UploadFile=File(...)):
+    actor=require_roles(request,'supervisor','super_admin')
+    if record_type not in ('leave','osd'): raise HTTPException(400,'Only Leave and OSD templates can be imported.')
+    if person_type not in ('trainee','staff'): raise HTTPException(400,'Select Trainee or Staff before importing.')
+    raw=await file.read()
+    if not raw: raise HTTPException(400,'The uploaded file is empty.')
+    try: rows=_pts_import_rows(raw,file.filename or '')
+    except HTTPException: raise
+    except Exception as e: raise HTTPException(400,'Could not read import file: '+str(e)[:180]) from e
+    trainees=_pts_rows('pts_trainees') if person_type=='trainee' else []
+    if CLOUD_ENABLED:
+        staff_rows=cloud_or_503(lambda:cloud.rows('attendpro_employees',{'active':'eq.true'})) if person_type=='staff' else []
+    else:
+        with connection() as db:
+            staff_rows=rows_as_dict(db.execute('SELECT id,badge_number,device_user_id,name,department,active FROM employees WHERE active=1').fetchall()) if person_type=='staff' else []
+    existing_osd=_pts_rows('pts_osd_records') if record_type=='osd' else []
+    imported=0; rejected=[]
+    for index,row in enumerate(rows,start=2):
+        try:
+            employee_no=str(_pts_pick_raw(row,'Employee ID/Cap No.','Employee ID','Cap No.','ID') or '').strip()
+            if not employee_no: raise ValueError('Employee ID/Cap No. is required')
+            start_local=_pts_parse_import_datetime(_pts_pick_raw(row,'Start Date & Time','Start Date'))
+            end_local=_pts_parse_import_datetime(_pts_pick_raw(row,'End Date & Time','End Date'))
+            if end_local<start_local: raise ValueError('End Date & Time must be after Start Date & Time')
+            start_utc=start_local.astimezone(ZoneInfo('UTC')).isoformat()
+            end_utc=end_local.astimezone(ZoneInfo('UTC')).isoformat()
+            course_input=str(_pts_pick_raw(row,'Course','Course Name') or '').strip()
+            platoon_input=str(_pts_pick_raw(row,'Platoon') or '').strip()
+            category_input=str(_pts_pick_raw(row,'Staff Category') or '').strip()
+            branch_input=str(_pts_pick_raw(row,'Staff Branch','Branch / Posting Place') or '').strip()
+            course_name=''; platoon=''; staff_category=''; staff_branch=''; person_name=''
+            if person_type=='trainee':
+                same_id=[t for t in trainees if str(t.get('employee_no') or '').strip()==employee_no]
+                candidates=[]; missing_course_dates=False
+                for trainee in same_id:
+                    course_start=str(trainee.get('course_start_date') or '')[:10]
+                    course_end=str(trainee.get('course_end_date') or '')[:10]
+                    if not course_start or not course_end:
+                        missing_course_dates=True; continue
+                    if not (course_start<=start_local.date().isoformat() and course_end>=end_local.date().isoformat()): continue
+                    if course_input and course_input.casefold()!=str(trainee.get('course_name') or '').casefold(): continue
+                    if platoon_input and platoon_input.casefold()!=str(trainee.get('platoon') or '').casefold(): continue
+                    if str(trainee.get('status') or 'active').lower()!='active': continue
+                    candidates.append(trainee)
+                if len(candidates)!=1:
+                    if len(candidates)>1: raise ValueError('More than one course matches this ID and date; provide Course and/or Platoon.')
+                    if same_id and missing_course_dates: raise ValueError('Trainee course has no Start/End Date; set course dates before importing leave/OSD.')
+                    raise ValueError('No active trainee course matches this ID and the selected period.')
+                matched=candidates[0]; person_name=str(matched.get('name') or '').strip()
+                course_name=str(matched.get('course_name') or '').strip(); platoon=str(matched.get('platoon') or '').strip()
+            else:
+                candidates=[r for r in staff_rows if employee_no in {str(r.get('badge_number') or '').strip(),str(r.get('device_user_id') or '').strip(),str(r.get('id') or '').strip()}]
+                if category_input:
+                    candidates=[r for r in candidates if category_input.casefold() in (str(r.get('designation') or '').casefold(),str(r.get('staff_category') or '').casefold(),str(r.get('department') or '').casefold())]
+                if branch_input:
+                    candidates=[r for r in candidates if branch_input.casefold()==str(r.get('department') or '').casefold()]
+                if len(candidates)!=1:
+                    if len(candidates)>1: raise ValueError('Staff ID maps to multiple records; provide Staff Category and Staff Branch.')
+                    raise ValueError('Staff Employee ID was not found in the active PTC staff directory.')
+                matched=candidates[0]; person_name=str(matched.get('name') or '').strip()
+                staff_category=category_input or str(matched.get('designation') or matched.get('staff_category') or '').strip()
+                staff_branch=branch_input or str(matched.get('department') or '').strip()
+            reason=str(_pts_pick_raw(row,'Reason') or '').strip()
+            reference_no=str(_pts_pick_raw(row,'Order / Reference No.','Reference No.','Reference Number') or '').strip()
+            remarks=str(_pts_pick_raw(row,'Remarks') or '').strip()
+            values={'person_type':person_type,'person_id':employee_no,'person_name':person_name,
+              'course_name':course_name,'platoon':platoon,'staff_category':staff_category,'staff_branch':staff_branch,
+              'start_at':start_utc,'end_at':end_utc,'reason':reason or ('Leave' if record_type=='leave' else 'Official duty'),
+              'reference_no':reference_no,'remarks':remarks,'status':'approved',
+              'created_by':str(actor.get('auth_id') or actor.get('id') or '')}
+            if record_type=='leave':
+                values['leave_type']=str(_pts_pick_raw(row,'Leave Type') or 'Leave').strip()
+                if 'emergency' in values['leave_type'].lower(): values['status']='pending'
+            else:
+                values['duty_place']=str(_pts_pick_raw(row,'Duty Place') or '').strip()
+                overlap=False
+                for old in existing_osd:
+                    if old.get('person_type')!=person_type or str(old.get('person_id'))!=employee_no: continue
+                    if str(old.get('status') or '').lower() not in ('approved','pending'): continue
+                    try:
+                        old_start=datetime.fromisoformat(str(old.get('start_at')).replace('Z','+00:00'))
+                        old_end=datetime.fromisoformat(str(old.get('end_at')).replace('Z','+00:00'))
+                        new_start=datetime.fromisoformat(start_utc);new_end=datetime.fromisoformat(end_utc)
+                        if new_start<old_end and new_end>old_start: overlap=True;break
+                    except (TypeError,ValueError): continue
+                if overlap: raise ValueError('An active OSD / Short Permission already overlaps this period.')
+            _pts_insert(PTS_TABLES[record_type],values)
+            if record_type=='osd': existing_osd.append(dict(values))
+            imported+=1
+        except HTTPException: raise
+        except Exception as e:
+            rejected.append({'row':index,'employee_id':str(_pts_pick_raw(row,'Employee ID/Cap No.','Employee ID','Cap No.','ID') or ''),'reason':str(e)[:240]})
+    return {'success':True,'imported':imported,'rejected_count':len(rejected),'rejected':rejected,
+            'message':f'{imported} {record_type.upper()} records imported; {len(rejected)} rows rejected.'}
+
+@app.patch('/api/pts/records/{record_type}/{record_id}')
+async def update_pts_record(record_type:str,record_id:int,request:Request):
+    require_roles(request,'supervisor','super_admin')
+    if record_type not in PTS_TABLES: raise HTTPException(400,'Invalid record type.')
+    body=await request.json(); values={}
+    if 'status' in body:
+        status=str(body.get('status') or '').lower()
+        if status not in ('pending','approved','rejected','cancelled','exempt'):
+            raise HTTPException(400,'Invalid record status.')
+        values['status']=status
+    if 'remarks' in body: values['remarks']=str(body.get('remarks') or '')[:2000]
+    if not values: raise HTTPException(400,'No editable record fields were supplied.')
+    if CLOUD_ENABLED:
+        rows=cloud_or_503(lambda:cloud.patch(PTS_TABLES[record_type],{'id':'eq.'+str(record_id)},values))
+        if not rows: raise HTTPException(404,'Record not found.')
+        return {'success':True,'item':rows[0]}
+    with connection() as db:
+        cur=db.execute('UPDATE '+PTS_TABLES[record_type]+' SET '+','.join(k+'=?' for k in values)+',updated_at=CURRENT_TIMESTAMP WHERE id=?',list(values.values())+[record_id])
+        if not cur.rowcount: raise HTTPException(404,'Record not found.')
+        row=db.execute('SELECT * FROM '+PTS_TABLES[record_type]+' WHERE id=?',(record_id,)).fetchone()
+        return {'success':True,'item':dict(row)}
+
+@app.get('/api/pts/records')
+def list_pts_records(request:Request, record_type:str='leave', person_type:str='trainee'):
+    require_roles(request,'view_only','supervisor','super_admin')
+    if record_type not in PTS_TABLES: raise HTTPException(400,'Invalid record type.')
+    if person_type not in ('trainee','staff'): raise HTTPException(400,'Invalid person type.')
+    items=[r for r in _pts_rows(PTS_TABLES[record_type]) if (record_type=='duty_rest' or r.get('person_type')==person_type)]
+    return {'items':items,'total':len(items)}
+
+@app.post('/api/pts/records')
+async def create_pts_record(request:Request):
+    actor=require_roles(request,'supervisor','super_admin')
+    body=await request.json()
+    record_type=str(body.get('record_type') or '')
+    person_type=str(body.get('person_type') or 'trainee')
+    if record_type not in PTS_TABLES: raise HTTPException(400,'Invalid record type.')
+    if person_type not in ('trainee','staff') or (record_type=='duty_rest' and person_type!='staff'):
+        raise HTTPException(400,'Invalid person type for this record.')
+    person_id=str(body.get('person_id') or '').strip(); person_name=str(body.get('person_name') or '').strip()
+    start_at=str(body.get('start_at') or '').strip(); end_at=str(body.get('end_at') or '').strip()
+    reason=str(body.get('reason') or '').strip()
+    if not person_id or not person_name or not start_at or not end_at or not reason:
+        raise HTTPException(400,'Person ID, name, start, end and reason are required.')
+    try:
+        start_value=datetime.fromisoformat(start_at.replace('Z','+00:00'))
+        end_value=datetime.fromisoformat(end_at.replace('Z','+00:00'))
+        if end_value<start_value: raise ValueError('end before start')
+    except ValueError: raise HTTPException(400,'Use valid ISO date/time values and ensure the end is after the start.')
+    values={'person_type':person_type,'person_id':person_id,'person_name':person_name,
+      'course_name':str(body.get('course_name') or '').strip(),'platoon':str(body.get('platoon') or '').strip(),
+      'staff_category':str(body.get('staff_category') or '').strip(),'staff_branch':str(body.get('staff_branch') or '').strip(),
+      'start_at':start_at,'end_at':end_at,'reason':reason,'reference_no':str(body.get('reference_no') or '').strip(),
+      'remarks':str(body.get('remarks') or '').strip(),'status':str(body.get('status') or 'pending').lower(),
+      'created_by':str(actor.get('auth_id') or actor.get('id') or '')}
+    if record_type=='leave':
+        values['leave_type']=str(body.get('leave_type') or reason).strip()
+    if record_type=='osd': values['duty_place']=str(body.get('duty_place') or '').strip()
+    if record_type=='duty_rest':
+        values.pop('course_name',None); values.pop('platoon',None)
+        values['reason']=reason or 'Duty Rest'
+    if values['status'] not in ('pending','approved','rejected','cancelled','exempt'):
+        raise HTTPException(400,'Invalid record status.')
+    try: saved=_pts_insert(PTS_TABLES[record_type],values)
+    except CloudError as e: raise HTTPException(503,str(e)) from e
+    return {'success':True,'item':saved}
 
 @app.get('/api/attendance')
 @redis_cached_endpoint('attendance')
