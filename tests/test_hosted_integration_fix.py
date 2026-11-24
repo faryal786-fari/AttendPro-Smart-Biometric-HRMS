@@ -44,6 +44,10 @@ def test_vercel_origin_is_allowlisted_without_disabling_other_csrf_checks():
             'https://attendpro-smart-biometric-hrms-static-ngnfhaoe7-faryal3.vercel.app',
             'https://attendpro-smart-biometric-hrms-static-nfn88kyvm-faryal3.vercel.app',
             'https://attendpro-smart-biometric-hrms-static-op69zq26j-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-3vgqakyfk-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-9z1ab23c-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-git-main-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static.vercel.app',
             'https://ptclahore.co',
             'https://www.ptclahore.co',
         ):
@@ -51,8 +55,13 @@ def test_vercel_origin_is_allowlisted_without_disabling_other_csrf_checks():
                      headers={'Origin':allowed_origin})
             # 400 is the expected validation response after the origin check passes.
             assert ok.status_code==400
-        bad=client.post('/api/auth/login',json={'username':'notanemail','password':'x'},
-                 headers={'Origin':'https://attacker.invalid'})
-        assert bad.status_code==403
+        for rejected_origin in (
+            'https://attacker.invalid',
+            'https://another-project-faryal3.vercel.app',
+            'https://attendpro-smart-biometric-hrms-static-3vgqakyfk-someoneelse.vercel.app',
+        ):
+            bad=client.post('/api/auth/login',json={'username':'notanemail','password':'x'},
+                     headers={'Origin':rejected_origin})
+            assert bad.status_code==403
     finally:
         app.CLOUD_ENABLED=old

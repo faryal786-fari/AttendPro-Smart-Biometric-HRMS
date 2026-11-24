@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-24-ptc-manawan-ui-refresh-v4">
+<meta name="attendpro-build" content="2026-11-24-ptc-manawan-ui-refresh-v5">
 <meta name="description" content="Police Training College Lahore, Manawan Campus — institutional information and the secure AttendPro trainee and staff management portal.">
 <meta name="theme-color" content="#102b3b">
 <meta property="og:title" content="Police Training College Lahore · Manawan Campus | AttendPro">
@@ -1252,6 +1252,91 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
   }
 }
 
+
+
+/* ── PTC MANAWAN UI FIX PACK v5 ─────────────────────────────────────────── */
+/* The topbar crest was inheriting width:100% from a shared image rule. */
+.tb-brand{height:38px;max-width:min(420px,34vw);overflow:hidden;flex:0 1 auto}
+.tb-brand img{
+  display:block!important;
+  width:38px!important;height:38px!important;
+  min-width:38px!important;max-width:38px!important;
+  min-height:38px!important;max-height:38px!important;
+  flex:0 0 38px!important;object-fit:contain!important;
+}
+.tb-brand span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* Hero photo: edge-to-edge crop, no ivory letterbox/frame. */
+#apPublicLanding .aplp-campus-art{
+  height:auto!important;aspect-ratio:1.55/1!important;padding:0!important;
+  border:1px solid rgba(255,255,255,.34)!important;border-radius:18px!important;
+  background:#0b2538!important;overflow:hidden!important;
+  box-shadow:0 24px 58px rgba(0,0,0,.28)!important;
+}
+#apPublicLanding .aplp-campus-art picture{display:block!important;width:100%!important;height:100%!important}
+#apPublicLanding .aplp-campus-art img{
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center 50%!important;
+  border:0!important;border-radius:17px!important;background:transparent!important;
+}
+
+/* Login card uses the same full-frame campus image, with a larger presentation. */
+#loginOverlay .ptc-login-photo-card{
+  width:100%;max-width:620px;height:auto!important;aspect-ratio:1.55/1;
+  margin-top:24px;border:1px solid rgba(255,255,255,.3);border-radius:18px;
+  background:#0b2538;box-shadow:0 20px 44px rgba(0,0,0,.3);
+}
+#loginOverlay .ptc-login-photo-card img{
+  width:100%!important;height:100%!important;object-fit:cover!important;
+  object-position:center 50%!important;border-radius:17px;
+}
+
+/* The new user-supplied Commandant Office photo is intentionally portrait. */
+#apPublicLanding .aplp-location-building{
+  grid-template-columns:minmax(300px,.82fr) minmax(320px,1.18fr);
+  align-items:stretch;
+}
+#apPublicLanding .aplp-location-building-visual{
+  min-height:520px;background:#0b2538;
+}
+#apPublicLanding .aplp-location-building-visual picture{
+  display:block;width:100%;height:100%;
+}
+#apPublicLanding .aplp-location-building-visual img{
+  display:block;width:100%;height:100%;min-height:520px;
+  object-fit:cover;object-position:center 50%;
+}
+#apPublicLanding .aplp-location-building-visual figcaption{
+  left:18px;bottom:18px;padding:10px 14px;
+  border:1px solid rgba(255,255,255,.24);border-radius:10px;
+  background:rgba(7,29,45,.88);font-size:9px;letter-spacing:.13em;
+}
+
+/* One sidebar category at a time; clear open/pressed card feedback. */
+.sb-nav-group{transition:border-color .18s,background .18s,box-shadow .18s}
+.sb-nav-group.is-open{border-color:rgba(117,189,233,.22);box-shadow:0 8px 20px rgba(0,0,0,.10)}
+.sb-section-toggle{cursor:pointer}
+.sb-section-toggle:active{transform:translateY(1px) scale(.99)}
+.card[onclick],.kpi-card[onclick],.device-mini-card[onclick],.role-card[onclick],
+.aplp-value-card[onclick],.aplp-training-card[onclick],.aplp-campus-card[onclick]{cursor:pointer}
+.card[onclick]:active,.kpi-card[onclick]:active,.device-mini-card[onclick]:active,.role-card[onclick]:active{
+  transform:translateY(1px) scale(.99);box-shadow:0 5px 14px rgba(15,23,42,.12);
+}
+
+@media(max-width:780px){
+  #apPublicLanding .aplp-campus-art{aspect-ratio:1.45/1!important}
+  #loginOverlay .ptc-login-photo-card{height:205px!important;aspect-ratio:auto!important}
+  #apPublicLanding .aplp-location-building{grid-template-columns:1fr}
+  #apPublicLanding .aplp-location-building-visual{min-height:480px;height:480px}
+  #apPublicLanding .aplp-location-building-visual img{min-height:480px}
+  .tb-brand{max-width:220px}
+}
+@media(max-width:520px){
+  #apPublicLanding .aplp-campus-art{aspect-ratio:1.35/1!important}
+  #apPublicLanding .aplp-location-building-visual{min-height:420px;height:420px}
+  #apPublicLanding .aplp-location-building-visual img{min-height:420px}
+}
+
 </style>
 
 <link rel="preload" as="image" href="/assets/ptc-manawan-flags-campus.webp" type="image/webp">
@@ -1298,10 +1383,10 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
         <div class="aplp-hero-visual">
           <div class="aplp-campus-art">
             <picture>
-              <source srcset="/assets/ptc-manawan-flags-campus.webp" type="image/webp">
-              <img src="/assets/ptc-manawan-flags-campus.webp"
+              <source srcset="/assets/ptc-manawan-flags-card.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-flags-card.webp"
                 alt="Police Training College Lahore campus entrance with Pakistan and institutional flags."
-                width="511" height="391" fetchpriority="high" decoding="async">
+                width="511" height="330" fetchpriority="high" decoding="async">
             </picture>
           </div>
           <div class="aplp-photo-label"><small>Campus II · Manawan Lahore</small><strong>Discipline · Training · Service</strong></div>
@@ -1409,10 +1494,10 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
         <div class="aplp-location-building" aria-label="Manawan campus building reference image">
           <figure class="aplp-location-building-visual">
             <picture>
-              <source srcset="/assets/ptc-manawan-location-building.webp" type="image/webp">
-              <img src="/assets/ptc-manawan-location-building.jpg" alt="Architectural building reference rendering supplied for the Manawan campus location section" loading="lazy" decoding="async" width="925" height="570">
+              <source srcset="/assets/ptc-manawan-commandant-office.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-commandant-office.jpg" alt="Police Training College Manawan Commandant Office entrance with flags" loading="lazy" decoding="async" width="415" height="520">
             </picture>
-            <figcaption>Campus Building · Reference View</figcaption>
+            <figcaption>Commandant Office · Manawan Campus</figcaption>
           </figure>
           <div class="aplp-location-building-copy">
             <span class="aplp-location-building-kicker">Campus Location · Manawan</span>
@@ -2304,7 +2389,7 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
         <h1>PTC <em>Manawan</em></h1>
         <p class="ptc-login-brand-copy">Biometric Attendance &amp; Trainee Management System</p>
         <div class="ptc-login-photo-card">
-          <img src="/assets/ptc-manawan-flags-campus.webp" alt="Police Training College Lahore campus with Pakistan and institutional flags" width="511" height="391">
+          <img src="/assets/ptc-manawan-flags-card.webp" alt="Police Training College Lahore campus entrance with Pakistan and institutional flags" width="511" height="330">
           <div class="ptc-login-photo-caption">
             <span>Campus II · Manawan, Lahore</span>
             <strong>Discipline · Training · Service</strong>
@@ -2336,7 +2421,7 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
       <div class="ptc-login-authorized"><span class="ptc-login-shield">✓</span><span><strong>Authorized users only</strong><small>Access is monitored and role-controlled.</small></span></div>
       <div class="ptc-login-form-footer">
         <button class="aplp-login-back" type="button" onclick="returnToPublicLanding()">← Back to institution website</button>
-        <a href="https://ptclahore.co/" target="_blank" rel="noopener noreferrer">https://ptclahore.co ↗</a>
+        <a href="/" aria-label="Return to the institution website">Institution Website ↗</a>
       </div>
     </form>
   </div>
@@ -3319,6 +3404,9 @@ function applyPermissions() {
   const sn=document.getElementById('sidebarUserName'),sr=document.getElementById('sidebarUserRole'),av=document.getElementById('userAvatar');
   if(sn)sn.textContent=name;if(sr)sr.textContent=roleName;if(av)av.textContent=name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
 }
+// Backward-compatible name used by the PTS trainee/leave record renderers.
+// Keep both names so existing modules continue to apply the same role rules.
+function applyRolePermissions(){ return applyPermissions(); }
 let cloudMode = false;
 let originalReportRows = [];
 async function initAuth() {
@@ -4838,13 +4926,8 @@ function initPtcSidebarNavigation(){
   if(!nav||nav.dataset.ptcGrouped==='1')return;
   nav.dataset.ptcGrouped='1';
 
-  const records=nav.querySelector('[data-screen="records"]');
-  if(records&&!Array.from(nav.querySelectorAll('.sb-section')).some(x=>x.textContent.trim()==='Attendance & Leave')){
-    const heading=document.createElement('div');
-    heading.className='sb-section';
-    heading.textContent='Attendance & Leave';
-    nav.insertBefore(heading,records);
-  }
+  // Keep the original category structure. Leave & Permissions already contains
+  // trainee/staff leave, OSD and duty-rest links; do not inject a duplicate group.
 
   const iconPaths={
     dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
@@ -4924,8 +5007,9 @@ function initPtcSidebarNavigation(){
       const thisGroup=group;
       const thisToggle=toggle;
       toggle.addEventListener('click',()=>{
-        thisGroup.classList.toggle('is-open');
-        thisToggle.setAttribute('aria-expanded',String(thisGroup.classList.contains('is-open')));
+        const shouldOpen=!thisGroup.classList.contains('is-open');
+        nav.querySelectorAll('.sb-nav-group').forEach(other=>setOpen(other,false));
+        if(shouldOpen)setOpen(thisGroup,true);
         persistOpenGroups();
       });
       group.append(toggle,items);
@@ -4954,9 +5038,10 @@ function initPtcSidebarNavigation(){
   try{saved=JSON.parse(localStorage.getItem('attendpro-open-nav-groups')||'[]');if(!Array.isArray(saved))saved=[];}catch(_){}
   const active=nav.querySelector('.nav-item.active')||nav.querySelector('[data-screen="dashboard"]');
   const activeGroup=active&&active.closest('.sb-nav-group');
-  if(!saved.length)saved=['main'];
-  if(activeGroup&&!saved.includes(activeGroup.dataset.group))saved.push(activeGroup.dataset.group);
-  nav.querySelectorAll('.sb-nav-group').forEach(g=>setOpen(g,saved.includes(g.dataset.group)));
+  const savedGroup=saved.length?Array.from(nav.querySelectorAll('.sb-nav-group')).find(g=>g.dataset.group===String(saved[saved.length-1])):null;
+  const initialGroup=activeGroup||savedGroup||nav.querySelector('.sb-nav-group[data-group="main"]');
+  nav.querySelectorAll('.sb-nav-group').forEach(g=>setOpen(g,g===initialGroup));
+  persistOpenGroups();
 
   const deviceList=nav.querySelector('#deviceNavList');
   if(deviceList){
@@ -4966,14 +5051,14 @@ function initPtcSidebarNavigation(){
     const item=event.target.closest('.nav-item');
     if(!item)return;
     const parent=item.closest('.sb-nav-group');
-    if(parent){setOpen(parent,true);persistOpenGroups();}
+    if(parent){nav.querySelectorAll('.sb-nav-group').forEach(other=>setOpen(other,other===parent));persistOpenGroups();}
     if(window.innerWidth<=700)document.body.classList.remove('sidebar-open');
   });
   new MutationObserver(records=>{
     records.forEach(record=>{
       if(record.type==='attributes'&&record.target.classList.contains('nav-item')&&record.target.classList.contains('active')){
         const parent=record.target.closest('.sb-nav-group');
-        if(parent){setOpen(parent,true);persistOpenGroups();}
+        if(parent){nav.querySelectorAll('.sb-nav-group').forEach(other=>setOpen(other,other===parent));persistOpenGroups();}
       }
     });
   }).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});

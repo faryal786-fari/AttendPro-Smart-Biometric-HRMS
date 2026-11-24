@@ -542,17 +542,23 @@ async def protect_cloud_writes(request:Request,call_next):
    origin_allowed.update(x.strip().rstrip('/') for x in item.split(',') if x.strip())
   # Default Vercel production domain is exact, so no attacker-controlled wildcard is needed.
   origin_allowed.add('https://attendpro-smart-biometric-hrms-stat.vercel.app')
-  # Exact current Vercel preview origin: allow login from this deployment without
-  # opening the API to arbitrary *.vercel.app hosts. Keep future previews in the
-  # ATTENDPRO_ALLOWED_ORIGINS environment variable.
+  # Vercel production aliases and exact legacy previews.
+  origin_allowed.add('https://attendpro-smart-biometric-hrms-static.vercel.app')
   origin_allowed.add('https://attendpro-smart-biometric-hrms-static-ngnfhaoe7-faryal3.vercel.app')
-  # Exact current preview deployment shown in the user's Vercel screenshot (24 Nov 2026).
   origin_allowed.add('https://attendpro-smart-biometric-hrms-static-nfn88kyvm-faryal3.vercel.app')
   origin_allowed.add('https://attendpro-smart-biometric-hrms-static-op69zq26j-faryal3.vercel.app')
   # Approved PTC Lahore public production domain; keep exact origins only.
   origin_allowed.add('https://ptclahore.co')
   origin_allowed.add('https://www.ptclahore.co')
-  if origin and origin.rstrip('/') not in origin_allowed:
+  normalized_origin = origin.rstrip('/') if origin else ''
+  # Vercel creates a new 8-12 character deployment hash for each preview.
+  # Accept only the AttendPro project under the known Vercel account, not every
+  # *.vercel.app site. This keeps login POST requests working after redeploys.
+  own_vercel_preview = bool(re.fullmatch(
+   r'https://attendpro-smart-biometric-hrms-static(?:-[a-z0-9]{6,12}|-git-[a-z0-9-]+)?-faryal3\.vercel\.app',
+   normalized_origin,
+  ))
+  if origin and normalized_origin not in origin_allowed and not own_vercel_preview:
    return Response('Origin not permitted for this application.',status_code=403)
  return await call_next(request)
 

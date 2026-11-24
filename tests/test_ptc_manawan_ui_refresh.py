@@ -16,6 +16,10 @@ def test_user_supplied_ptc_logo_and_location_building_assets_are_present():
         "ptc-manawan-flags-campus.webp",
         "ptc-manawan-location-building.jpg",
         "ptc-manawan-location-building.webp",
+        "ptc-manawan-flags-card.jpg",
+        "ptc-manawan-flags-card.webp",
+        "ptc-manawan-commandant-office.jpg",
+        "ptc-manawan-commandant-office.webp",
     ):
         assert (assets / name).is_file(), name
     assert HTML.count("/assets/ptc-college-crest.webp") >= 5
@@ -27,8 +31,8 @@ def test_location_section_contains_the_supplied_building_reference_photo():
     assert location is not None
     image = location.select_one("img")
     assert image is not None
-    assert image.get("src") == "/assets/ptc-manawan-location-building.jpg"
-    assert "Reference View" in location.get_text(" ", strip=True)
+    assert image.get("src") == "/assets/ptc-manawan-commandant-office.jpg"
+    assert "Commandant Office" in location.get_text(" ", strip=True)
 
 
 def test_sidebar_groups_keep_every_existing_screen_route():
@@ -54,6 +58,9 @@ def test_sidebar_groups_keep_every_existing_screen_route():
     assert sum("Leave & Holidays" in item.get_text(" ", strip=True) for item in nav.select(".nav-item")) == 1
     assert "attendpro-open-nav-groups" in HTML
     assert "aria-expanded" in HTML
+    assert "nav.querySelectorAll('.sb-nav-group').forEach(other=>setOpen(other,false))" in HTML
+    assert "Attendance &amp; Leave'" not in HTML
+    assert "function applyRolePermissions()" in HTML
 
 
 def test_login_overlay_hides_the_dashboard_even_if_only_overlay_class_is_set():
@@ -61,6 +68,9 @@ def test_login_overlay_hides_the_dashboard_even_if_only_overlay_class_is_set():
     assert "body.portal-login-open .app" in HTML
     assert "function initPtcLoginIsolation()" in HTML
     assert "z-index:99999!important" in HTML
+    assert ".tb-brand img{" in HTML
+    assert "width:38px!important;height:38px!important" in HTML
+    assert "object-fit:cover!important" in HTML
 
 
 def test_mobile_sidebar_uses_a_drawer_and_existing_hamburger():

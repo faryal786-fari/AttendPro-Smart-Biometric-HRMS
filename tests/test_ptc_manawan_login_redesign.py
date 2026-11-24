@@ -25,9 +25,9 @@ def test_login_is_a_full_screen_manawan_branded_page_not_a_translucent_modal():
     assert form.find(id="loginUsername") is not None
     assert form.find(id="loginPassword") is not None
     assert form.find(id="loginError") is not None
-    assert "ptclahore.co" in form.get_text(" ", strip=True)
-    assert form.find("a", href="https://ptclahore.co/") is not None
-    assert "ptc-manawan-flags-campus.webp" in str(overlay)
+    assert "Institution Website" in form.get_text(" ", strip=True)
+    assert form.find("a", href="/") is not None
+    assert "ptc-manawan-flags-card.webp" in str(overlay)
     assert "portal-login-open" in HTML
     assert "body.portal-login-open .app" in HTML
     assert "background:radial-gradient" in HTML
