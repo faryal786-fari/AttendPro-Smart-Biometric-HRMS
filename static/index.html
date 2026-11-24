@@ -188,17 +188,24 @@ tr:hover td{background:var(--gray50)}
 .leave-tabs{display:flex;gap:0;border-bottom:1px solid var(--gray200);margin-bottom:16px}
 .l-tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .l-tab.active{color:var(--blue);border-color:var(--blue)}
-/* PRINT */
-@media print{
-  .sidebar,.topbar,.filters,.pagination,.no-print{display:none!important}
-  .main{margin-left:0}
-  .content{padding:0}
-  .screen{display:block!important}
-  .print-only{display:block!important}
-  body{font-size:12px}
-  .card{border:1px solid #ddd;box-shadow:none}
-}
+/* MASTER REPORT PRINT: print only the generated report, never the dashboard */
 .print-only{display:none}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body *{visibility:hidden!important}
+  #printLayout,#printLayout *{visibility:visible!important}
+  #printLayout{display:block!important;position:absolute;left:0;top:0;width:100%;padding:0!important;margin:0!important;background:#fff!important;color:#111!important;font-size:10px!important}
+  #printLayout .print-sheet{width:100%;background:#fff!important;color:#111!important;page-break-inside:auto;break-inside:auto}
+  #printLayout .print-page-break{page-break-before:always;break-before:page}
+  #printLayout h1{font-size:19px;margin:0 0 4px;text-align:center}
+  #printLayout h2{font-size:13px;margin:12px 0 5px;padding:5px;background:#e9eef5!important;color:#111!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printLayout table{width:100%;border-collapse:collapse;font-size:9px;margin:0 0 10px}
+  #printLayout th,#printLayout td{border:1px solid #555!important;padding:4px 5px;text-align:left;vertical-align:top;color:#111!important}
+  #printLayout th{background:#e9eef5!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printLayout .print-meta{text-align:center;margin:3px 0 12px;font-size:10px}
+  #printLayout .print-signature{display:flex;justify-content:flex-end;margin-top:24px;text-align:center}
+  #printLayout .print-signature span{display:block;border-top:1px solid #111;padding-top:4px;width:210px}
+}
 /* RESPONSIVE */
 @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
@@ -1433,32 +1440,8 @@ body.aplp-landing-mode #apPublicLanding{display:block}
     </div>
   </div>
 </div>
-<!-- PRINT LAYOUT -->
-<div class="print-only" id="printLayout" style="padding:20px">
-  <div style="text-align:center;margin-bottom:20px">
-    <div style="font-size:24px;font-weight:700">🏢 Al-Rehman Industries Ltd.</div>
-    <div id="printTitle" style="font-size:16px;margin-top:4px"></div>
-    <div id="printMeta" style="font-size:12px;color:#666;margin-top:4px"></div>
-  </div>
-  <table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr style="background:#f1f5f9">
-      <th style="border:1px solid #ddd;padding:6px">AC-No.</th>
-      <th style="border:1px solid #ddd;padding:6px">Name</th>
-      <th style="border:1px solid #ddd;padding:6px">Date</th>
-      <th style="border:1px solid #ddd;padding:6px">Timetable</th>
-      <th style="border:1px solid #ddd;padding:6px">Clock In</th>
-      <th style="border:1px solid #ddd;padding:6px">Clock Out</th>
-      <th style="border:1px solid #ddd;padding:6px">Absent</th>
-      <th style="border:1px solid #ddd;padding:6px">Department</th>
-      <th style="border:1px solid #ddd;padding:6px">Status</th>
-    </tr></thead>
-    <tbody id="printTbody"></tbody>
-  </table>
-  <div style="margin-top:30px;display:flex;justify-content:space-between">
-    <div style="text-align:center"><div style="border-top:1px solid #000;padding-top:4px;width:160px;font-size:11px">Prepared By</div></div>
-    <div style="text-align:center"><div style="border-top:1px solid #000;padding-top:4px;width:160px;font-size:11px">Approved By</div></div>
-  </div>
-</div>
+<!-- Dedicated print surface: populated from the filtered attendance source rows. -->
+<div class="print-only" id="printLayout" aria-hidden="true"><div id="printTemplateRoot"></div></div>
 </div>
 
 <!-- ═══════════════════ DEVICE STATUS ═══════════════════ -->
@@ -1819,7 +1802,7 @@ body.aplp-landing-mode #apPublicLanding{display:block}
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
 <script>
-window.ATTENDPRO_BUILD = "2026-11-24-ptc-lahore-manawan-training-portal-v1";
+window.ATTENDPRO_BUILD = "2026-11-24-ptc-lahore-manawan-print-v2";
 
 const apEnglishText = new Map([
  ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],
@@ -1984,6 +1967,7 @@ let recentPunches = [];
 let currentSettings = {};
 let userSelectedDate = false;
 let currentReportRows = [];
+let currentReportSourceRows = [];
 let currentReportExportMode = 'attendance';
 
 async function apiJSON(path, options={}) {
@@ -2632,7 +2616,7 @@ function showReportPreview(){
       <span>🏖 Leave: <strong>${rows.filter(r=>r.status==='On Leave').length}</strong></span>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button>
+      <button class="btn btn-primary btn-sm" onclick="printMasterAttendanceReport()">🖨 Print Report</button>
       <button class="btn btn-outline btn-sm" onclick="notify('Export to Excel requires backend integration')">📊 Export Excel</button>
       <button class="btn btn-outline btn-sm" onclick="notify('Export to PDF requires backend integration')">📄 Export PDF</button>
     </div>`;
@@ -2720,7 +2704,7 @@ async function showReportPreview(){
   } catch(e) { notify('Could not load report data: '+e.message); return; }
   currentReportRows=rows;
   const shown=rows.slice(0,100);
-  document.getElementById('reportPreview').innerHTML=`<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">AttendPro — Attendance Report</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr></thead><tbody>${shown.map(r=>`<tr><td style="font-size:11px;font-family:monospace">${escapeHtml(r.id)}</td><td>${escapeHtml(r.name)}</td><td style="font-size:11px">${escapeHtml(r.dept)}</td><td>${escapeHtml(r.cin)}</td><td>${escapeHtml(r.cout)}</td><td>${statusBadge(r.status)}</td></tr>`).join('')}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px"><span>Records: <strong>${rows.length}</strong></span><span>Present: <strong>${rows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length}</strong></span><span>Late: <strong>${rows.filter(r=>r.status==='Late').length}</strong></span><span>Absent: <strong>${rows.filter(r=>r.status==='Absent').length}</strong></span></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button></div>`;
+  document.getElementById('reportPreview').innerHTML=`<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">AttendPro — Attendance Report</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr></thead><tbody>${shown.map(r=>`<tr><td style="font-size:11px;font-family:monospace">${escapeHtml(r.id)}</td><td>${escapeHtml(r.name)}</td><td style="font-size:11px">${escapeHtml(r.dept)}</td><td>${escapeHtml(r.cin)}</td><td>${escapeHtml(r.cout)}</td><td>${statusBadge(r.status)}</td></tr>`).join('')}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px"><span>Records: <strong>${rows.length}</strong></span><span>Present: <strong>${rows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length}</strong></span><span>Late: <strong>${rows.filter(r=>r.status==='Late').length}</strong></span><span>Absent: <strong>${rows.filter(r=>r.status==='Absent').length}</strong></span></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="printMasterAttendanceReport()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button></div>`;
   document.getElementById('printTitle').textContent=type;
   document.getElementById('printMeta').textContent=`Period: ${from} to ${to} · Generated: ${new Date().toLocaleString()}`;
   document.getElementById('printTbody').innerHTML=shown.map(r=>`<tr><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.id)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.name)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.dept)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.cin)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.cout)}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.wh||'—')}</td><td style="border:1px solid #ddd;padding:5px">${escapeHtml(r.status)}</td></tr>`).join('');
@@ -3299,6 +3283,7 @@ async function showReportPreview(options = {}) {
   if((Date.parse(to)-Date.parse(from))/86400000>366){notify('Select a date range of 366 days or less.','error');return;}
   document.getElementById('rptFrom').value=from;document.getElementById('rptTo').value=to;
   currentReportRows = [];
+  currentReportSourceRows = [];
   currentReportExportMode = 'attendance';
   preview.innerHTML = '<div style="text-align:center;padding:42px;color:var(--text2)">Loading report data…</div>';
   const q = new URLSearchParams({from,to});
@@ -3340,6 +3325,8 @@ async function showReportPreview(options = {}) {
   if(type === 'Absent Employees')sourceRows=sourceRows.filter(r => r.status==='Absent');
   if(type === 'Late Arrivals')sourceRows=sourceRows.filter(r => r.status==='Late');
 
+  // Keep the full filtered detail set for the supplied two-sheet print/XLSX template.
+  currentReportSourceRows = sourceRows.map(r=>({...r}));
   let rows = sourceRows;
   let fields = [['id','AC-No.'],['name','Name'],['date','Date'],['timetable','Timetable'],['cin','Clock In'],['cout','Clock Out'],['absent','Absent'],['dept','Department'],['status','Status']];
   currentReportExportMode = 'attendance';
@@ -3394,7 +3381,7 @@ async function showReportPreview(options = {}) {
   const help = editable
     ? (cloudMode ? 'Edit Clock In, Clock Out, Timetable or Status, then click Save to Supabase. Original biometric data stays unchanged.' : 'Preview cells can be edited for export only. Local source database will not change.')
     : 'View-only mode: reports can be viewed, exported and printed.';
-  preview.innerHTML = `<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">Police Training Collage — Biometric Attendance</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div><div class="access-help" style="text-align:center">${help}</div></div><div class="tbl-wrap"><table><thead><tr>${fields.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${tableRows || `<tr><td colspan="${fields.length}" style="text-align:center;padding:22px">No records for the selected filters.</td></tr>`}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px">${summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button><button class="btn btn-outline btn-sm" onclick="downloadReportExcel()">📗 Export Editable Excel</button>${editable&&cloudMode?'<button class="btn btn-primary btn-sm" onclick="saveReportToSupabase()">☁ Save Changes to Supabase</button>':''}</div>`;
+  preview.innerHTML = `<div style="border-bottom:1px solid var(--gray200);padding-bottom:12px;margin-bottom:14px"><div style="font-size:16px;font-weight:700;text-align:center">Police Training Collage — Biometric Attendance</div><div style="text-align:center;color:var(--text2);font-size:13px;margin-top:4px">${escapeHtml(type)}</div><div style="text-align:center;font-size:11px;color:var(--text3);margin-top:2px">Period: ${escapeHtml(from)} to ${escapeHtml(to)} · Generated: ${new Date().toLocaleString()}</div><div class="access-help" style="text-align:center">${help}</div></div><div class="tbl-wrap"><table><thead><tr>${fields.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${tableRows || `<tr><td colspan="${fields.length}" style="text-align:center;padding:22px">No records for the selected filters.</td></tr>`}</tbody></table></div><div style="margin-top:12px;padding:10px;background:var(--gray50);border-radius:6px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px">${summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="printMasterAttendanceReport()">🖨 Print Report</button><button class="btn btn-outline btn-sm" onclick="downloadReportCsv()">📊 Export CSV</button><button class="btn btn-outline btn-sm" onclick="downloadReportExcel()">📗 Export Editable Excel</button>${editable&&cloudMode?'<button class="btn btn-primary btn-sm" onclick="saveReportToSupabase()">☁ Save Changes to Supabase</button>':''}</div>`;
 
   document.getElementById('printTitle').textContent = type;
   document.getElementById('printMeta').textContent = `Period: ${from} to ${to} · Generated: ${new Date().toLocaleString()}`;
@@ -3404,7 +3391,8 @@ async function showReportPreview(options = {}) {
 }
 
 function downloadReportCsv() {
-  const rows = currentReportRows || [];
+  const rows = currentReportExportMode==='attendance' && currentReportSourceRows&&currentReportSourceRows.length
+    ? currentReportSourceRows : (currentReportRows || []);
   if (!rows.length) { notify('Generate a report preview first.'); return; }
   const fields = currentReportExportMode === 'department'
     ? ['department','total','present','late','absent','on_leave','attendance_rate']
@@ -3428,9 +3416,10 @@ async function downloadReportExcel() {
   if (['department','monthly'].includes(currentReportExportMode)) { downloadApGridXlsx('AttendPro '+currentReportExportMode+' Summary', getApReportGridColumns(), rows, 'attendpro-'+currentReportExportMode+'-summary.xlsx'); return; }
   const from = document.getElementById('rptFrom').value || currentDataDate || today();
   const to = document.getElementById('rptTo').value || from;
+  const templateRows = currentReportSourceRows&&currentReportSourceRows.length?currentReportSourceRows:rows;
   try {
-    let response = await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});
-    if(response.status===401 && cloudMode){const refresh=await fetch(`${API}/api/auth/refresh`,{method:'POST',credentials:'same-origin'});if(refresh.ok)response=await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows})});}
+    let response = await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows:templateRows})});
+    if(response.status===401 && cloudMode){const refresh=await fetch(`${API}/api/auth/refresh`,{method:'POST',credentials:'same-origin'});if(refresh.ok)response=await fetch(`${API}/api/reports/excel`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({from,to,rows:templateRows})});}
     if (!response.ok) { let msg=`${response.status} ${response.statusText}`; try { const j=await response.json(); msg=j.detail||msg; } catch(_) {} throw new Error(msg); }
     const blob=await response.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.href=url; a.download=`attendpro-report-${from}-to-${to}.xlsx`; document.body.appendChild(a); a.click(); a.remove();
@@ -3872,7 +3861,61 @@ async function ensureApReportExport(format){
  if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}
  if(format==='xlsx')await downloadReportExcel();else downloadReportCsv();
 }
-async function printApReport(){if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}window.print();}
+function printMasterAttendanceReport(){
+  const source=(currentReportSourceRows&&currentReportSourceRows.length)
+    ? currentReportSourceRows
+    : (currentReportRows||[]);
+  if(!source.length){notify('Generate a report preview first.','warning');return;}
+
+  const from=document.getElementById('rptFrom')?.value||currentDataDate||today();
+  const to=document.getElementById('rptTo')?.value||from;
+  const type=document.getElementById('rptType')?.value||'Attendance Report';
+  const generated=new Date().toLocaleString();
+  const target=document.getElementById('printTemplateRoot');
+  if(!target){notify('The master print template is missing.','error');return;}
+
+  const cell=value=>escapeHtml(value===undefined||value===null||value===''?'—':value);
+  const dateText=value=>{
+    const text=String(value||'');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(text))return `${text.slice(5,7)}/${text.slice(8,10)}/${text.slice(0,4)}`;
+    return text||'—';
+  };
+  const statusOf=row=>String(row.status||'').toLowerCase().replaceAll(' ','_');
+  const sectionRows=(items)=>items.length?items.map((r,i)=>`<tr><td>${i+1}</td><td>${cell(r.name||r.id)}</td><td>${cell(dateText(r.date))}</td><td>${cell(r.timetable)}</td><td>${cell(r.cin)}</td><td>${cell(r.cout)}</td><td>${cell(r.dept)}</td><td>${cell(r.status)}</td></tr>`).join(''):'<tr><td>1</td><td>NILL</td><td colspan="6"></td></tr>';
+  const section=(title,items)=>`<section class="print-section"><h2>${title}</h2><table><thead><tr><th>No.</th><th>Name</th><th>Date</th><th>Timetable</th><th>Clock In</th><th>Clock Out</th><th>Department</th><th>Status</th></tr></thead><tbody>${sectionRows(items)}</tbody></table></section>`;
+
+  const absentRows=source.filter(r=>statusOf(r)==='absent'||String(r.absent||'').toLowerCase()==='true');
+  const lateRows=source.filter(r=>statusOf(r)==='late');
+  const earlyRows=source.filter(r=>Number(r.early_minutes||0)>0||statusOf(r)==='early_departure');
+  const noCheckInRows=source.filter(r=>!r.cin&&!!r.cout);
+  const noCheckOutRows=source.filter(r=>!!r.cin&&!r.cout);
+  const registerRows=source.map(r=>`<tr><td>${cell(r.id)}</td><td>${cell(r.name)}</td><td>${cell(dateText(r.date))}</td><td>${cell(r.timetable)}</td><td>${cell(r.cin)}</td><td>${cell(r.cout)}</td><td>${cell(r.absent||(statusOf(r)==='absent'?'True':''))}</td><td>${cell(r.dept)}</td></tr>`).join('');
+
+  target.innerHTML=`
+    <section class="print-sheet">
+      <h1>Police Training Collage</h1>
+      <div class="print-meta">Biometric Attendance · Lahore<br>${cell(type)} · Period: ${cell(dateText(from))} to ${cell(dateText(to))} · Generated: ${cell(generated)}</div>
+      ${section('Biometric Absent Morning',absentRows)}
+      ${section('Biometric Late Arrivals',lateRows)}
+      ${section('Early Departure',earlyRows)}
+      ${section('Biometric Not Check In',noCheckInRows)}
+      ${section('Biometric Not Check Out',noCheckOutRows)}
+      <div class="print-signature"><span>Incharge BioMetric<br>Police Training Collage Lahore</span></div>
+    </section>
+    <section class="print-sheet print-page-break">
+      <h1>Police Training Collage</h1>
+      <div class="print-meta">Biometric Attendance Register · Lahore<br>Period: ${cell(dateText(from))} to ${cell(dateText(to))} · Generated: ${cell(generated)}</div>
+      <h2>Attendance Data</h2>
+      <table><thead><tr><th>AC-No.</th><th>Name</th><th>Date</th><th>Timetable</th><th>Clock In</th><th>Clock Out</th><th>Absent</th><th>Department</th></tr></thead>
+      <tbody>${registerRows||'<tr><td colspan="8" style="text-align:center">NILL</td></tr>'}</tbody></table>
+      <div class="print-signature"><span>Incharge BioMetric<br>Police Training Collage Lahore</span></div>
+    </section>`;
+  const layout=document.getElementById('printLayout');
+  if(layout)layout.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>window.print());
+}
+
+async function printApReport(){if(!currentReportRows.length){await showReportPreview();if(!currentReportRows.length)return;}printMasterAttendanceReport();}
 const apDiscColumns=[['work_date','Date'],['name','Employee'],['badge_number','AC-No.'],['department','Department'],['clock_in','Clock In'],['clock_out','Clock Out'],['issue_label','Issue'],['biometric_enrollment','Biometric Setup'],['status','Attendance'],['review_state','Review State'],['resolution','Resolution'],['review_note','Review Note'],['reviewed_by','Reviewed By'],['reviewed_at','Reviewed At']];
 async function apAllDiscrepancies(){
  const q=new URLSearchParams({state:document.getElementById('discState')?.value||'all',page:'1',per_page:'50'});

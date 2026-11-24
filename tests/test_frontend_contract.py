@@ -95,4 +95,4 @@ def test_redis_monitor_defines_cloud_enabled_before_rendering_details():
     assert 'const cloudIsEnabled=monitorBool(cloud.enabled);' in monitor
     assert 'cloudEnabled?' not in monitor
     assert 'Promise.allSettled' in HTML
-    assert 'window.ATTENDPRO_BUILD = "2026-11-24-ptc-lahore-manawan-training-portal-v1"' in HTML
+    assert 'window.ATTENDPRO_BUILD = "2026-11-24-ptc-lahore-manawan-print-v2"' in HTML
