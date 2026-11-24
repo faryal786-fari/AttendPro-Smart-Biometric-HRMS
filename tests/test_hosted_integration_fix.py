@@ -18,6 +18,9 @@ def test_no_native_browser_dialogs_in_current_frontend():
     assert 'id="loginError"' in html
     assert '/assets/ptc-manawan-entrance.webp' in html
     assert 'ptc-lahore-building-reference.jpg' not in html
+    assert 'ptsKpiTotal' in html
+    assert 'PTC Manawan Portal Login' in html
+    assert '/assets/ptc-college-crest.webp' in html
 
 
 def test_vercel_rewrite_and_supabase_profile_override_migration():

@@ -13,7 +13,7 @@ def test_employee_directory_matches_original_table_and_view_modal():
     headers=[x.get_text(' ',strip=True) for x in screen.select('table thead th')]
     assert len(headers)==8
     assert 'Employee ID' in headers[1] and headers[2].startswith('Name')
-    assert any(x.startswith('Department') for x in headers) and 'Actions' in headers
+    assert any(x.startswith('Branch / Posting Place') for x in headers) and 'Actions' in headers
     assert doc.find(id='empModal') is not None
 
 def test_chart_is_larger():
@@ -95,4 +95,4 @@ def test_redis_monitor_defines_cloud_enabled_before_rendering_details():
     assert 'const cloudIsEnabled=monitorBool(cloud.enabled);' in monitor
     assert 'cloudEnabled?' not in monitor
     assert 'Promise.allSettled' in HTML
-    assert 'window.ATTENDPRO_BUILD = "2026-11-03-hosted-ui-auth-fixes"' in HTML
+    assert 'window.ATTENDPRO_BUILD = "2026-11-24-ptc-lahore-manawan-training-portal-v1"' in HTML
