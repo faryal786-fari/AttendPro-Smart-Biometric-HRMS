@@ -2258,3 +2258,61 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
   #apPublicLanding .aplp-map-tools button,
   #loginOverlay .ptc-login-form-footer>a{transition:none!important}
 }
+
+/* ATTENDPRO_V6_GALLERY_LOGIN_CARD_FIX_START */
+/* Hide only the three tall thumbnail photographs below the main campus carousel. */
+#apPublicLanding .aplp-gallery-manawan-grid .aplp-gallery-thumbnails {
+  display: none !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Keep the main carousel and the white Manawan details card side by side. */
+#apPublicLanding .aplp-gallery-manawan-grid {
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr) !important;
+  align-items: stretch !important;
+}
+#apPublicLanding .aplp-gallery-manawan-grid > * {
+  min-width: 0;
+}
+@media (max-width: 980px) {
+  #apPublicLanding .aplp-gallery-manawan-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Login image card matches the supplied photo's 3:2 ratio.
+   object-fit: contain keeps the complete photograph visible without cropping. */
+#loginOverlay .ptc-login-photo-card {
+  display: block !important;
+  position: relative !important;
+  width: min(100%, 450px) !important;
+  max-width: 450px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 300px !important;
+  aspect-ratio: 3 / 2 !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  background: #071f34 !important;
+}
+#loginOverlay .ptc-login-photo-card img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 300px !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  background: #071f34 !important;
+}
+@media (max-width: 760px) {
+  #loginOverlay .ptc-login-photo-card {
+    width: min(100%, 420px) !important;
+    max-width: 420px !important;
+    aspect-ratio: 3 / 2 !important;
+  }
+}
+/* ATTENDPRO_V6_GALLERY_LOGIN_CARD_FIX_END */
