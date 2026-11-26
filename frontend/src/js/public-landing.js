@@ -273,7 +273,7 @@ function initAplpCampusGallery(){
   const startTimer=()=>{
     stopTimer();
     if(paused||document.hidden||slides.length<2)return;
-    timer=window.setInterval(()=>showSlide(current+1),6500);
+    timer=window.setInterval(()=>showSlide(current+1),2000);
   };
 
   gallery.addEventListener('click',event=>{

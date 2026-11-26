@@ -2316,3 +2316,84 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
   }
 }
 /* ATTENDPRO_V6_GALLERY_LOGIN_CARD_FIX_END */
+
+/* ATTENDPRO_MANAWAN_ICONS_PARADE_FIT_START */
+/* Contact & Location cards: restrained Punjab Police navy/gold icon treatment. */
+#apPublicLanding #contact .aplp-contact-item {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  align-items: center !important;
+  gap: 4px 12px !important;
+  min-height: 88px;
+}
+#apPublicLanding #contact .aplp-contact-icon {
+  grid-column: 1 !important;
+  grid-row: 1 / span 2 !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border: 1px solid #eadcc2 !important;
+  border-radius: 12px !important;
+  background: #f8f3e9 !important;
+  color: #987747 !important;
+  flex: 0 0 40px !important;
+}
+#apPublicLanding #contact .aplp-contact-icon svg {
+  display: block !important;
+  width: 21px !important;
+  height: 21px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.7 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+#apPublicLanding #contact .aplp-contact-item > span:not(.aplp-contact-icon) {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  margin: 0 !important;
+}
+#apPublicLanding #contact .aplp-contact-item > strong {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  margin: 2px 0 0 !important;
+}
+
+/* The uploaded parade photo is 2048x1364 (~3:2): show the complete frame. */
+#loginOverlay .ptc-login-photo-card {
+  display: block !important;
+  width: min(100%, 480px) !important;
+  max-width: 480px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 320px !important;
+  aspect-ratio: 3 / 2 !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  background: #f5f6f7 !important;
+}
+#loginOverlay .ptc-login-photo-card picture {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+#loginOverlay .ptc-login-photo-card img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 320px !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  background: #f5f6f7 !important;
+}
+@media (max-width: 760px) {
+  #loginOverlay .ptc-login-photo-card {
+    width: min(100%, 420px) !important;
+    max-width: 420px !important;
+    aspect-ratio: 3 / 2 !important;
+  }
+}
+/* ATTENDPRO_MANAWAN_ICONS_PARADE_FIT_END */
