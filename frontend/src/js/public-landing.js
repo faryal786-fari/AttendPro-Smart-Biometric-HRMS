@@ -230,9 +230,92 @@ function initPtcLoginIsolation(){
   sync();
 }
 
+
+/* Public campus gallery carousel. This is isolated from AttendPro app/auth logic. */
+function initAplpGalleryCarousel(){
+  const root=document.querySelector('[data-aplp-gallery]');
+  if(!root||root.dataset.carouselReady==='1')return;
+  const slides=Array.from(root.querySelectorAll('[data-gallery-slide]'));
+  const selectors=Array.from(root.querySelectorAll('[data-gallery-to]'));
+  const currentLabel=root.querySelector('[data-gallery-current]');
+  const pauseButton=root.querySelector('[data-gallery-pause]');
+  const previousButton=root.querySelector('[data-gallery-prev]');
+  const nextButton=root.querySelector('[data-gallery-next]');
+  if(slides.length<2)return;
+
+  root.dataset.carouselReady='1';
+  const reducedMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let current=0;
+  let paused=reducedMotion;
+  let timer=null;
+
+  function stop(){
+    if(timer!==null){window.clearInterval(timer);timer=null;}
+  }
+  function updatePauseButton(){
+    if(!pauseButton)return;
+    pauseButton.textContent=paused?'Play':'Pause';
+    pauseButton.setAttribute('aria-pressed',String(paused));
+    pauseButton.setAttribute('aria-label',paused?'Resume slideshow':'Pause slideshow');
+  }
+  function show(index){
+    current=(index+slides.length)%slides.length;
+    slides.forEach((slide,i)=>{
+      const active=i===current;
+      slide.hidden=!active;
+      slide.classList.toggle('is-active',active);
+      slide.setAttribute('aria-hidden',String(!active));
+    });
+    selectors.forEach(button=>{
+      const active=Number(button.dataset.galleryTo)===current;
+      button.classList.toggle('is-active',active);
+      button.setAttribute('aria-pressed',String(active));
+    });
+    if(currentLabel)currentLabel.textContent=String(current+1).padStart(2,'0');
+  }
+  function start(){
+    stop();
+    if(paused||document.hidden)return;
+    timer=window.setInterval(()=>show(current+1),5600);
+  }
+  function moveTo(index){
+    show(index);
+    start();
+  }
+
+  if(previousButton)previousButton.addEventListener('click',()=>moveTo(current-1));
+  if(nextButton)nextButton.addEventListener('click',()=>moveTo(current+1));
+  selectors.forEach(button=>{
+    button.addEventListener('click',()=>moveTo(Number(button.dataset.galleryTo)||0));
+  });
+  if(pauseButton){
+    pauseButton.addEventListener('click',()=>{
+      paused=!paused;
+      updatePauseButton();
+      if(paused)stop();else start();
+    });
+  }
+  root.addEventListener('mouseenter',stop);
+  root.addEventListener('mouseleave',start);
+  root.addEventListener('focusin',stop);
+  root.addEventListener('focusout',()=>{
+    window.setTimeout(()=>{if(!root.contains(document.activeElement))start();},0);
+  });
+  root.addEventListener('keydown',event=>{
+    if(event.key==='ArrowLeft'){event.preventDefault();moveTo(current-1);}
+    if(event.key==='ArrowRight'){event.preventDefault();moveTo(current+1);}
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else start();});
+
+  show(0);
+  updatePauseButton();
+  start();
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   initPtcSidebarNavigation();
   initPtcLoginIsolation();
+  initAplpGalleryCarousel();
   setPtsDashboardMode('trainee');
   const year=document.getElementById('aplpYear');if(year)year.textContent=String(new Date().getFullYear());
   const back=document.getElementById('aplpBackTop');

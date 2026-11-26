@@ -1321,3 +1321,589 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
   #apPublicLanding .aplp-location-building-visual{min-height:420px;height:420px}
   #apPublicLanding .aplp-location-building-visual img{min-height:420px}
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PTC MANAWAN FRONTEND REFRESH v2
+   Public landing-page imagery, compact spacing, accessible campus carousel,
+   and a more compact secure login layout. AttendPro app styles/logic untouched.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Homepage hero: one clean clickable photo card with a bright focus/hover frame. */
+#apPublicLanding .aplp-campus-art-link{
+  display:block;
+  width:100%;
+  padding:5px;
+  border:1px solid rgba(132,207,244,.62);
+  border-radius:22px;
+  background:rgba(117,189,233,.12);
+  box-shadow:0 18px 42px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.08) inset;
+  text-decoration:none!important;
+  transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease,background .2s ease;
+}
+#apPublicLanding .aplp-campus-art-link:hover,
+#apPublicLanding .aplp-campus-art-link:focus-visible{
+  border-color:#a8e2ff;
+  background:rgba(117,189,233,.2);
+  box-shadow:0 22px 50px rgba(0,0,0,.28),0 0 0 4px rgba(117,189,233,.2),0 0 26px rgba(117,189,233,.22);
+  transform:translateY(-2px);
+}
+#apPublicLanding .aplp-campus-art-link:focus-visible{
+  outline:3px solid #b8e8ff;
+  outline-offset:4px;
+}
+#apPublicLanding .aplp-campus-art{
+  aspect-ratio:1.5/1!important;
+  height:auto!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:16px!important;
+  overflow:hidden!important;
+  box-shadow:none!important;
+  background:#0b2538!important;
+}
+#apPublicLanding .aplp-campus-art picture,
+#apPublicLanding .aplp-campus-art img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+}
+#apPublicLanding .aplp-campus-art img{
+  object-fit:cover!important;
+  object-position:center 48%!important;
+  border:0!important;
+  border-radius:15px!important;
+}
+
+/* The mission panel now uses the supplied police statues photograph. */
+#apPublicLanding .aplp-principal{padding:72px 0!important}
+#apPublicLanding .aplp-principal-grid{
+  grid-template-columns:minmax(0,1fr) minmax(0,1.18fr);
+  gap:clamp(28px,4vw,58px);
+}
+#apPublicLanding .aplp-mission-art{
+  height:clamp(270px,27vw,350px);
+  min-width:0;
+  border:1px solid rgba(199,166,106,.42);
+  border-radius:18px;
+  overflow:hidden;
+  background:#0b2538;
+  box-shadow:0 18px 42px rgba(0,0,0,.22);
+}
+#apPublicLanding .aplp-mission-art img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 48%;
+}
+
+/* Campus location: turn the lone address card into a full-width compact row. */
+#apPublicLanding #campuses.aplp-section{
+  padding-top:68px;
+  padding-bottom:66px;
+}
+#apPublicLanding .aplp-campus-locations{
+  display:block;
+  margin-top:24px;
+}
+#apPublicLanding .aplp-campus-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) auto;
+  grid-template-areas:
+    "eyebrow title link"
+    "address address link";
+  align-items:center;
+  gap:8px 24px;
+  min-height:0;
+  padding:22px 26px;
+}
+#apPublicLanding .aplp-campus-card small{grid-area:eyebrow}
+#apPublicLanding .aplp-campus-card h3{
+  grid-area:title;
+  margin:0;
+  font-size:clamp(20px,2vw,25px);
+}
+#apPublicLanding .aplp-campus-card p{
+  grid-area:address;
+  margin:0;
+  font-size:12px;
+}
+#apPublicLanding .aplp-campus-card a{
+  grid-area:link;
+  justify-self:end;
+  align-self:center;
+  margin:0;
+  padding:11px 15px;
+  border:1px solid #cfe0eb;
+  border-radius:9px;
+  background:#eff7fc;
+  color:#155d86;
+  white-space:nowrap;
+}
+#apPublicLanding .aplp-campus-card a:hover{
+  background:#e3f1f9;
+  box-shadow:0 7px 18px rgba(21,93,134,.12);
+}
+
+/* Compact landscape image-and-copy panel; no oversized portrait/video-like block. */
+#apPublicLanding .aplp-location-building{
+  grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  gap:0!important;
+  margin-top:18px!important;
+  border-radius:18px!important;
+}
+#apPublicLanding .aplp-location-building-visual{
+  height:318px!important;
+  min-height:318px!important;
+  margin:0!important;
+  background:#0b2538!important;
+}
+#apPublicLanding .aplp-location-building-visual picture,
+#apPublicLanding .aplp-location-building-visual img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+}
+#apPublicLanding .aplp-location-building-visual img{
+  object-fit:cover!important;
+  object-position:center 52%!important;
+}
+#apPublicLanding .aplp-location-building-copy{
+  padding:clamp(24px,3vw,42px)!important;
+}
+#apPublicLanding .aplp-source-note{margin-top:13px}
+
+/* Campus Gallery: accessible slideshow with thumbnail strip and clean information panel. */
+#apPublicLanding .aplp-gallery-section{
+  padding-top:68px;
+  padding-bottom:76px;
+  background:#f8f7f2;
+}
+#apPublicLanding .aplp-gallery-showcase{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(300px,.82fr);
+  align-items:stretch;
+  gap:20px;
+  margin-top:28px;
+}
+#apPublicLanding .aplp-gallery-carousel{
+  min-width:0;
+  padding:12px;
+  border:1px solid #dce5eb;
+  border-radius:19px;
+  background:#fff;
+  box-shadow:0 14px 36px rgba(12,44,66,.09);
+}
+#apPublicLanding .aplp-gallery-stage{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/9;
+  min-height:260px;
+  max-height:470px;
+  overflow:hidden;
+  border-radius:13px;
+  background:#071d2d;
+  isolation:isolate;
+}
+#apPublicLanding .aplp-gallery-slide{
+  position:absolute;
+  inset:0;
+  display:none;
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+}
+#apPublicLanding .aplp-gallery-slide.is-active{
+  display:block;
+  animation:aplpGalleryFade .35s ease both;
+}
+#apPublicLanding .aplp-gallery-slide img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+}
+#apPublicLanding .aplp-gallery-slide:after{
+  content:"";
+  position:absolute;
+  inset:48% 0 0;
+  background:linear-gradient(transparent,rgba(4,20,31,.86));
+  pointer-events:none;
+}
+#apPublicLanding .aplp-gallery-slide figcaption{
+  position:absolute;
+  z-index:2;
+  left:22px;
+  right:72px;
+  bottom:20px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  color:#fff;
+}
+#apPublicLanding .aplp-gallery-slide figcaption small{
+  color:#c6e9fc;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+#apPublicLanding .aplp-gallery-slide figcaption strong{
+  color:#fff;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:clamp(18px,2vw,25px);
+  font-weight:500;
+  line-height:1.2;
+}
+#apPublicLanding .aplp-gallery-arrow{
+  position:absolute;
+  z-index:3;
+  top:50%;
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border:1px solid rgba(255,255,255,.58);
+  border-radius:50%;
+  background:rgba(7,29,45,.72);
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  cursor:pointer;
+  transform:translateY(-50%);
+  transition:background .18s,border-color .18s,box-shadow .18s;
+}
+#apPublicLanding .aplp-gallery-arrow:hover{
+  border-color:#fff;
+  background:#155d86;
+  box-shadow:0 0 0 4px rgba(117,189,233,.2);
+}
+#apPublicLanding .aplp-gallery-prev{left:15px}
+#apPublicLanding .aplp-gallery-next{right:15px}
+#apPublicLanding .aplp-gallery-count{
+  position:absolute;
+  z-index:3;
+  top:16px;
+  right:16px;
+  padding:7px 10px;
+  border:1px solid rgba(255,255,255,.24);
+  border-radius:999px;
+  background:rgba(7,29,45,.7);
+  color:#fff;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.13em;
+  font-variant-numeric:tabular-nums;
+}
+#apPublicLanding .aplp-gallery-control-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 3px 10px;
+}
+#apPublicLanding .aplp-gallery-dots{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+#apPublicLanding .aplp-gallery-dots button{
+  width:8px;
+  height:8px;
+  padding:0;
+  border:0;
+  border-radius:99px;
+  background:#c6d2da;
+  cursor:pointer;
+  transition:width .18s,background .18s;
+}
+#apPublicLanding .aplp-gallery-dots button.is-active{
+  width:25px;
+  background:#155d86;
+}
+#apPublicLanding .aplp-gallery-pause{
+  padding:6px 11px;
+  border:1px solid #dce5eb;
+  border-radius:999px;
+  background:#f7fafc;
+  color:#456176;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+#apPublicLanding .aplp-gallery-pause:hover{
+  border-color:#9fc9df;
+  background:#edf7fc;
+  color:#155d86;
+}
+#apPublicLanding .aplp-gallery-thumbnails{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+#apPublicLanding .aplp-gallery-thumbnails button{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+  padding:5px;
+  border:1px solid #e0e8ed;
+  border-radius:10px;
+  background:#fff;
+  color:#617585;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .18s,box-shadow .18s,transform .18s;
+}
+#apPublicLanding .aplp-gallery-thumbnails button:hover,
+#apPublicLanding .aplp-gallery-thumbnails button.is-active{
+  border-color:#4b9ac5;
+  box-shadow:0 0 0 2px rgba(75,154,197,.13);
+}
+#apPublicLanding .aplp-gallery-thumbnails button:focus-visible{
+  outline:3px solid rgba(75,154,197,.4);
+  outline-offset:2px;
+}
+#apPublicLanding .aplp-gallery-thumbnails img{
+  display:block;
+  width:100%;
+  aspect-ratio:16/7;
+  object-fit:cover;
+  border-radius:6px;
+}
+#apPublicLanding .aplp-gallery-thumbnails span{
+  display:block;
+  padding:0 4px 2px;
+  overflow:hidden;
+  color:#425b6e;
+  font-size:9px;
+  font-weight:800;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#apPublicLanding .aplp-gallery-info{
+  min-height:0!important;
+  padding:clamp(24px,3vw,36px)!important;
+  border-radius:18px!important;
+}
+#apPublicLanding .aplp-gallery-info h3{font-size:clamp(24px,2.3vw,32px)!important}
+#apPublicLanding .aplp-gallery-location{gap:10px!important;margin-top:18px!important}
+#apPublicLanding .aplp-gallery-location>div{padding:12px 14px!important}
+@keyframes aplpGalleryFade{
+  from{opacity:.35}
+  to{opacity:1}
+}
+
+/* Portal Login: reduce overall footprint and fit the photo and sign-in form cleanly. */
+#loginOverlay.login-overlay{
+  align-items:center!important;
+  justify-content:center!important;
+  padding:14px!important;
+  overflow-y:auto!important;
+}
+#loginOverlay .ptc-login-shell{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(370px,440px)!important;
+  align-items:center!important;
+  gap:clamp(18px,3vw,34px)!important;
+  width:min(1120px,100%)!important;
+  min-height:0!important;
+  max-height:calc(100svh - 28px)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  border:0!important;
+  border-radius:22px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#loginOverlay .ptc-login-brand{
+  min-width:0;
+  gap:12px!important;
+  padding:10px 0!important;
+}
+#loginOverlay .ptc-login-brand-top{gap:13px!important}
+#loginOverlay .ptc-login-crest{
+  flex:0 0 66px!important;
+  width:66px!important;
+  height:66px!important;
+  border-radius:15px!important;
+}
+#loginOverlay .ptc-login-institution small{font-size:9px}
+#loginOverlay .ptc-login-institution strong{font-size:clamp(14px,1.35vw,18px)}
+#loginOverlay .ptc-login-institution span{font-size:10px}
+#loginOverlay .ptc-login-brand-main{
+  margin:0!important;
+  padding:8px 0!important;
+}
+#loginOverlay .ptc-login-eyebrow{font-size:9px}
+#loginOverlay .ptc-login-brand h1{
+  margin:11px 0 5px!important;
+  font-size:clamp(42px,4.7vw,62px)!important;
+}
+#loginOverlay .ptc-login-brand-copy{
+  max-width:440px;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+#loginOverlay .ptc-login-photo-card{
+  width:100%!important;
+  max-width:540px!important;
+  height:clamp(138px,17vh,180px)!important;
+  aspect-ratio:auto!important;
+  margin-top:15px!important;
+  border-radius:14px!important;
+}
+#loginOverlay .ptc-login-photo-card img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center 44%!important;
+  border-radius:13px!important;
+}
+#loginOverlay .ptc-login-photo-caption{left:14px;right:14px;bottom:11px}
+#loginOverlay .ptc-login-photo-caption strong{font-size:15px}
+#loginOverlay .ptc-login-feature-row{gap:7px!important;margin-top:10px!important}
+#loginOverlay .ptc-login-feature{padding:8px 9px!important;border-radius:9px}
+#loginOverlay .ptc-login-feature span{font-size:8px}
+#loginOverlay .ptc-login-feature strong{font-size:9px}
+#loginOverlay .ptc-login-feature small{font-size:8px}
+#loginOverlay .ptc-login-brand-footer{
+  padding-top:11px!important;
+  font-size:7px!important;
+}
+#loginOverlay .ptc-login-form{
+  width:100%!important;
+  max-width:440px!important;
+  min-height:0!important;
+  margin:0 auto!important;
+  padding:clamp(23px,2.8vw,34px)!important;
+  border-radius:20px!important;
+}
+#loginOverlay .ptc-login-form-crest{
+  width:62px!important;
+  height:62px!important;
+  margin-bottom:13px!important;
+  border-radius:14px!important;
+}
+#loginOverlay .ptc-login-form-kicker{font-size:8px}
+#loginOverlay .ptc-login-form h2{
+  margin:7px 0 5px!important;
+  font-size:clamp(26px,2.5vw,33px)!important;
+}
+#loginOverlay .ptc-login-form-intro{
+  margin-bottom:17px!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+#loginOverlay .ptc-login-form .form-label{margin-bottom:6px!important}
+#loginOverlay .ptc-login-form .form-input{
+  height:43px!important;
+  margin-bottom:13px!important;
+  font-size:13px!important;
+}
+#loginOverlay .ptc-login-submit{min-height:46px!important}
+#loginOverlay .ptc-login-authorized{margin-top:15px!important;padding:10px 12px!important}
+#loginOverlay .ptc-login-form-footer{margin-top:17px!important;padding-top:13px!important}
+
+@media(max-height:820px) and (min-width:861px){
+  #loginOverlay .ptc-login-shell{max-height:calc(100svh - 20px)!important;gap:20px!important}
+  #loginOverlay .ptc-login-brand{gap:8px!important}
+  #loginOverlay .ptc-login-brand-main{padding:2px 0!important}
+  #loginOverlay .ptc-login-brand h1{font-size:46px!important;margin:8px 0 4px!important}
+  #loginOverlay .ptc-login-photo-card{height:138px!important;margin-top:10px!important}
+  #loginOverlay .ptc-login-feature{padding:6px 8px!important}
+  #loginOverlay .ptc-login-brand-footer{display:none!important}
+  #loginOverlay .ptc-login-form{padding:22px!important}
+  #loginOverlay .ptc-login-form-crest{width:54px!important;height:54px!important;margin-bottom:9px!important}
+  #loginOverlay .ptc-login-form-intro{margin-bottom:12px!important}
+  #loginOverlay .ptc-login-form .form-input{height:40px!important;margin-bottom:10px!important}
+  #loginOverlay .ptc-login-authorized{margin-top:11px!important}
+  #loginOverlay .ptc-login-form-footer{margin-top:12px!important;padding-top:10px!important}
+}
+
+@media(max-width:860px){
+  #loginOverlay .ptc-login-shell{
+    grid-template-columns:1fr!important;
+    width:min(560px,100%)!important;
+    max-height:calc(100svh - 20px)!important;
+    gap:10px!important;
+    overflow-y:auto!important;
+  }
+  #loginOverlay .ptc-login-brand{padding:6px 4px 0!important;gap:8px!important}
+  #loginOverlay .ptc-login-brand-main{padding:5px 0!important}
+  #loginOverlay .ptc-login-brand h1{font-size:40px!important;margin:8px 0 4px!important}
+  #loginOverlay .ptc-login-photo-card{height:132px!important;margin-top:10px!important}
+  #loginOverlay .ptc-login-feature-row{margin-top:8px!important}
+  #loginOverlay .ptc-login-brand-footer{display:none!important}
+  #loginOverlay .ptc-login-form{padding:22px!important}
+  #apPublicLanding .aplp-gallery-showcase{grid-template-columns:1fr}
+  #apPublicLanding .aplp-gallery-info{min-height:0!important}
+}
+@media(max-width:780px){
+  #apPublicLanding #campuses.aplp-section{padding-top:52px;padding-bottom:52px}
+  #apPublicLanding .aplp-campus-card{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"eyebrow link" "title title" "address address";
+    gap:8px 12px;
+    padding:20px;
+  }
+  #apPublicLanding .aplp-campus-card a{font-size:9px;padding:9px 10px}
+  #apPublicLanding .aplp-location-building{grid-template-columns:1fr!important}
+  #apPublicLanding .aplp-location-building-visual{
+    height:245px!important;
+    min-height:245px!important;
+  }
+  #apPublicLanding .aplp-location-building-visual img{min-height:0!important}
+  #apPublicLanding .aplp-principal{padding:54px 0!important}
+  #apPublicLanding .aplp-principal-grid{grid-template-columns:1fr;gap:25px}
+  #apPublicLanding .aplp-mission-art{height:260px;max-width:620px}
+  #apPublicLanding .aplp-gallery-stage{min-height:210px}
+  #apPublicLanding .aplp-gallery-showcase{gap:14px}
+}
+@media(max-width:520px){
+  #apPublicLanding .aplp-campus-art-link{padding:4px;border-radius:17px}
+  #apPublicLanding .aplp-campus-art{aspect-ratio:1.35/1!important;border-radius:12px!important}
+  #apPublicLanding .aplp-campus-art img{border-radius:11px!important}
+  #apPublicLanding .aplp-campus-card{grid-template-columns:1fr;grid-template-areas:"eyebrow" "title" "address" "link"}
+  #apPublicLanding .aplp-campus-card a{justify-self:start}
+  #apPublicLanding .aplp-location-building-visual{height:220px!important;min-height:220px!important}
+  #apPublicLanding .aplp-mission-art{height:220px}
+  #apPublicLanding .aplp-gallery-carousel{padding:8px;border-radius:14px}
+  #apPublicLanding .aplp-gallery-stage{min-height:190px;border-radius:10px}
+  #apPublicLanding .aplp-gallery-slide figcaption{left:14px;bottom:13px}
+  #apPublicLanding .aplp-gallery-slide figcaption strong{font-size:17px}
+  #apPublicLanding .aplp-gallery-arrow{width:34px;height:34px;font-size:23px}
+  #apPublicLanding .aplp-gallery-thumbnails{gap:6px}
+  #apPublicLanding .aplp-gallery-thumbnails button{padding:4px}
+  #apPublicLanding .aplp-gallery-thumbnails span{font-size:8px}
+  #loginOverlay .ptc-login-form{padding:19px!important}
+  #loginOverlay .ptc-login-brand h1{font-size:36px!important}
+  #loginOverlay .ptc-login-photo-card{height:116px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #apPublicLanding .aplp-campus-art-link,
+  #apPublicLanding .aplp-gallery-slide.is-active,
+  #apPublicLanding .aplp-gallery-arrow,
+  #apPublicLanding .aplp-gallery-thumbnails button{transition:none!important;animation:none!important}
+}
+
+#apPublicLanding .aplp-gallery-stage .aplp-gallery-slide{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+
+
+/* Compatibility fallback image remains in markup while the requested parade photo is rendered. */
+#loginOverlay .ptc-login-photo-card picture{
+  display:block!important;width:100%!important;height:100%!important;
+}
+#loginOverlay .ptc-login-photo-card picture img{
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center 42%!important;
+}
