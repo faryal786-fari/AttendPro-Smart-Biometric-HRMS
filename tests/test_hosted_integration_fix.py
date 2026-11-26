@@ -1,3 +1,4 @@
+from frontend_source import load_frontend_source
 """Regression coverage for Vercel/Render origin, employee edits and hosted UI."""
 from pathlib import Path
 from fastapi.testclient import TestClient
@@ -6,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 def test_no_native_browser_dialogs_in_current_frontend():
-    html=(ROOT/'static/index.html').read_text()
+    html=load_frontend_source()[4]
     assert 'alert(' not in html
     assert 'confirm(' not in html
     assert 'prompt(' not in html
@@ -25,9 +26,9 @@ def test_no_native_browser_dialogs_in_current_frontend():
 
 def test_vercel_rewrite_and_supabase_profile_override_migration():
     import json
-    conf=json.loads((ROOT/'static/vercel.json').read_text())
+    conf=json.loads((ROOT/'frontend/vercel.json').read_text())
     assert conf['rewrites'][0]['destination']=='https://attendpro-smart-biometric-hrms.onrender.com/api/:path*'
-    sql=(ROOT/'supabase/003_employee_profile_overrides.sql').read_text()
+    sql=(ROOT/'backend/supabase/migrations/003_employee_profile_overrides.sql').read_text()
     assert 'attendpro_employee_profile_overrides' in sql
     assert 'alter table public.attendpro_employee_profile_overrides enable row level security;' in sql.lower()
 

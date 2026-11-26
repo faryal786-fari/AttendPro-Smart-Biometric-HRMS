@@ -1,16 +1,17 @@
+from frontend_source import load_frontend_source
 """Regression tests for the PTC Manawan secure login refresh."""
 from pathlib import Path
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = (ROOT / "static" / "index.html").read_text()
+HTML = load_frontend_source()[4]
 
 
 def test_ptc_crest_and_flags_assets_are_present_and_referenced():
-    assert (ROOT / "static" / "assets" / "ptc-college-crest.webp").is_file()
-    assert (ROOT / "static" / "assets" / "ptc-college-crest.png").is_file()
-    assert (ROOT / "static" / "assets" / "ptc-lahore-logo.png").is_file()
-    assert (ROOT / "static" / "assets" / "ptc-manawan-flags-campus.webp").is_file()
+    assert (ROOT / "frontend" / "assets" / "ptc-college-crest.webp").is_file()
+    assert (ROOT / "frontend" / "assets" / "ptc-college-crest.png").is_file()
+    assert (ROOT / "frontend" / "assets" / "ptc-lahore-logo.png").is_file()
+    assert (ROOT / "frontend" / "assets" / "ptc-manawan-flags-campus.webp").is_file()
     assert HTML.count('/assets/ptc-college-crest.webp') >= 5
     assert '/assets/ptc-manawan-flags-campus.webp' in HTML
 

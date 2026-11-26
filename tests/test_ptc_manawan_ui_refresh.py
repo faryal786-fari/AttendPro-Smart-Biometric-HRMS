@@ -1,13 +1,14 @@
+from frontend_source import load_frontend_source
 """Regression checks for the PTC Manawan visual refresh."""
 from pathlib import Path
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+HTML = load_frontend_source()[4]
 
 
 def test_user_supplied_ptc_logo_and_location_building_assets_are_present():
-    assets = ROOT / "static" / "assets"
+    assets = ROOT / "frontend" / "assets"
     for name in (
         "ptc-college-crest.png",
         "ptc-college-crest.webp",
@@ -81,7 +82,7 @@ def test_mobile_sidebar_uses_a_drawer_and_existing_hamburger():
 
 def test_vercel_api_rewrite_is_preserved():
     import json
-    config = json.loads((ROOT / "static" / "vercel.json").read_text())
+    config = json.loads((ROOT / "frontend" / "vercel.json").read_text())
     rewrites = config.get("rewrites", [])
     assert any(
         r.get("source") == "/api/:path*"

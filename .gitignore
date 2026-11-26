@@ -1,12 +1,25 @@
+# Secrets and local environment
 .env
+.env.*
+!.env.example
+
+# Python
 .venv/
 __pycache__/
-.pytest_cache/
 *.py[cod]
 *.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Private client attendance data: keep local for migration/bridge, never push to GitHub.
+# Frontend tooling (the current frontend is static vanilla HTML/CSS/JS)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Private client attendance data: never commit employee records or biometric databases.
 data/
+backend/data/
 *.mdb
 *.accdb
 *.sqlite
@@ -16,3 +29,8 @@ data/
 
 # Local Redis / worker state
 .redis/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/

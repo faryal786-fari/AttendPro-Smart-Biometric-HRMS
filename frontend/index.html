@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="attendpro-build" content="2026-11-26-frontend-backend-architecture-v1">
+<meta name="description" content="Police Training College Lahore, Manawan Campus — institutional information and the secure AttendPro trainee and staff management portal.">
+<meta name="theme-color" content="#102b3b">
+<meta property="og:title" content="Police Training College Lahore · Manawan Campus | AttendPro">
+<meta property="og:description" content="Police Training College Lahore, Manawan Campus. Discipline, training, trainee and staff attendance management.">
+<meta property="og:type" content="website">
+<title>Police Training College Lahore · Manawan Campus | AttendPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/ptc-college-crest.png" type="image/png">
+<link rel="stylesheet" href="/src/styles/main.css?v=2026-11-26-frontend-backend-architecture-v1">
+
+<link rel="preload" as="image" href="/assets/ptc-manawan-flags-campus.webp" type="image/webp">
+</head>
+
+<body class="aplp-landing-mode">
+<!-- PUBLIC LANDING PAGE: institutional website and campus information -->
+<div id="apPublicLanding">
+  <div class="aplp-utility">
+    <div class="aplp-container aplp-utility-inner">
+      <div class="aplp-utility-left"><strong>Punjab Police Training Institution</strong><span>Police Training College Lahore · Manawan Campus</span></div>
+      <div class="aplp-utility-right"><span>DISCIPLINE&nbsp; • &nbsp;TRAINING&nbsp; • &nbsp;SERVICE</span><span>AttendPro Digital Attendance &amp; Administration</span></div>
+    </div>
+  </div>
+  <header class="aplp-header">
+    <div class="aplp-container aplp-header-inner">
+      <a class="aplp-brand" href="#home" aria-label="Police Training College Lahore home">
+        <span class="aplp-brand-mark"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="44" height="44" decoding="async"></span>
+        <span class="aplp-brand-copy"><strong>Police Training College</strong><span>Lahore · Manawan Campus</span></span>
+      </a>
+      <nav class="aplp-nav" id="aplpNav" aria-label="Main navigation">
+        <a href="#home">Home</a><a href="#about">About</a><a href="#training">Courses</a><a href="#campuses">Campus</a><a href="#gallery">Training</a><a href="#contact">Contact</a>
+      </nav>
+      <div class="aplp-header-actions">
+        <button class="aplp-login-btn" type="button" onclick="openAttendProPortal('dashboard')">Portal Login <span aria-hidden="true">↗</span></button>
+        <button class="aplp-menu-toggle" id="aplpMenuToggle" type="button" aria-label="Open navigation" aria-expanded="false" onclick="toggleAplpMenu()">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="aplp-hero" id="home">
+      <div class="aplp-container aplp-hero-inner">
+        <div>
+          <div class="aplp-eyebrow">Punjab Police · Police Training College Lahore</div>
+          <h1>Police Training College <em>Lahore · Manawan</em></h1>
+          <div class="aplp-campus-chip"><span class="aplp-campus-chip-dot"></span> Manawan Campus · Lahore</div>
+          <p class="aplp-hero-copy">A Punjab Police training institution dedicated to discipline, professional knowledge and public service. Explore the Manawan campus, institutional training information and the secure AttendPro portal for trainee and staff administration.</p>
+          <div class="aplp-hero-actions">
+            <a class="aplp-btn-primary" href="#about">Explore the Institution <span aria-hidden="true">→</span></a>
+            <button class="aplp-btn-outline" type="button" onclick="openAttendProPortal('dashboard')">Open Digital Portal <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="aplp-hero-note">Discipline · Knowledge · Service</div>
+        </div>
+        <div class="aplp-hero-visual">
+          <div class="aplp-campus-art">
+            <picture>
+              <source srcset="/assets/ptc-manawan-flags-card.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-flags-card.webp"
+                alt="Police Training College Lahore campus entrance with Pakistan and institutional flags."
+                width="511" height="330" fetchpriority="high" decoding="async">
+            </picture>
+          </div>
+          <div class="aplp-photo-label"><small>Campus II · Manawan Lahore</small><strong>Discipline · Training · Service</strong></div>
+        </div>
+      </div>
+    </section>
+
+
+    <div class="aplp-container">
+      <div class="aplp-stats" aria-label="Institution facts">
+        <div class="aplp-stat"><div class="aplp-stat-num">II</div><div class="aplp-stat-label">Manawan<br>Campus</div></div>
+        <div class="aplp-stat"><div class="aplp-stat-num">2004</div><div class="aplp-stat-label">Campus II<br>Originally Established</div></div>
+        <div class="aplp-stat"><div class="aplp-stat-num">2006</div><div class="aplp-stat-label">Relocated to<br>Manawan</div></div>
+        <div class="aplp-stat"><div class="aplp-stat-num">2012</div><div class="aplp-stat-label">College Status<br>Designation</div></div>
+      </div>
+    </div>
+
+    <section class="aplp-news-band" aria-label="Institutional information">
+      <div class="aplp-container aplp-news-inner"><span class="aplp-news-label">Campus Information</span><p>Campus II is located at KC Factory, G.T. Road, Manawan, near New Khan Metro Bus Depot, Lahore.</p><span class="aplp-news-status">Punjab Police</span></div>
+    </section>
+
+    <section class="aplp-section" id="about">
+      <div class="aplp-container aplp-about-grid">
+        <div class="aplp-about-visual">
+          <div class="aplp-about-art" role="img" aria-label="Illustrative map-style graphic showing the campus history from Thokar Niaz Baig to Manawan">
+            <svg viewBox="0 0 560 430" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect width="560" height="430" fill="#e7e9dc"/><path d="M-20 100 Q100 40 200 115 T420 100 T600 120" fill="none" stroke="#c2cdbd" stroke-width="22"/><path d="M-30 300 Q90 240 180 290 T390 290 T600 260" fill="none" stroke="#c2cdbd" stroke-width="18"/>
+              <path d="M55 0 L135 430 M420 -20 L340 450 M0 210 L560 210" stroke="#fff" stroke-width="13" opacity=".8"/>
+              <path d="M110 105 C180 150 215 230 330 290" fill="none" stroke="#b58f52" stroke-width="5" stroke-dasharray="9 8"/>
+              <circle cx="110" cy="105" r="16" fill="#214b3d" stroke="#fff" stroke-width="6"/><circle cx="330" cy="290" r="18" fill="#b58f52" stroke="#fff" stroke-width="6"/>
+              <rect x="42" y="40" width="150" height="42" rx="5" fill="#fff"/><text x="117" y="66" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#214b3d">THOKAR NIAZ BAIG</text>
+              <rect x="280" y="330" width="185" height="45" rx="5" fill="#fff"/><text x="372" y="357" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#214b3d">MANAWAN · CAMPUS II</text>
+              <text x="280" y="35" text-anchor="middle" font-family="Arial" font-size="11" letter-spacing="3" fill="#778579">CAMPUS HISTORY · LAHORE</text>
+              <path d="M328 271l2 19 18-7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="aplp-about-stamp"><strong>Campus II</strong><span>Manawan · Lahore</span></div>
+        </div>
+        <div>
+          <div class="aplp-section-kicker">About the Institution</div>
+          <h2 class="aplp-section-title">A tradition of training, discipline and public service.</h2>
+          <p class="aplp-section-lead">Police Training College Lahore is a Punjab Police training institution. This page highlights its Campus II at Manawan. Punjab Police records state that Campus II was first established near Thokar Niaz Baig in June 2004 to meet training needs of the Punjab Highway Patrol, and was shifted to the KC Factory site on G.T. Road, Manawan, in June 2006.</p>
+          <div class="aplp-timeline">
+            <div class="aplp-timeline-item"><strong>2004</strong><span>Campus II established near Thokar Niaz Baig</span></div>
+            <div class="aplp-timeline-item"><strong>2006</strong><span>Campus II shifted to Manawan</span></div>
+            <div class="aplp-timeline-item"><strong>2012</strong><span>Police Training School Lahore designated as Police College Lahore</span></div>
+          </div>
+          <p class="aplp-info-note">Location clarification: Thokar Niaz Baig is part of the Campus II history. The current Campus II location described by Punjab Police is G.T. Road, Manawan, Lahore.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-values">
+      <div class="aplp-container">
+        <div class="aplp-section-kicker">Our Core Values</div>
+        <h2 class="aplp-section-title">The principles behind professional policing.</h2>
+        <div class="aplp-values-grid">
+          <article class="aplp-value-card"><div class="aplp-value-no">01</div><h3>Discipline</h3><p>Professional habits, responsibility and consistency in every duty.</p></article>
+          <article class="aplp-value-card"><div class="aplp-value-no">02</div><h3>Integrity</h3><p>Ethical conduct, accountability and respect for the law.</p></article>
+          <article class="aplp-value-card"><div class="aplp-value-no">03</div><h3>Professionalism</h3><p>Knowledge, confidence and practical competence for modern policing.</p></article>
+          <article class="aplp-value-card"><div class="aplp-value-no">04</div><h3>Public Service</h3><p>Commitment to lawful, respectful and community-focused service.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-section aplp-principal">
+      <div class="aplp-container aplp-principal-grid">
+        <div class="aplp-mission-art" aria-hidden="true">
+          <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><path d="M150 20L245 58V137C245 205 202 251 150 278C98 251 55 205 55 137V58Z" fill="none" stroke="#c7a66a" stroke-width="4"/><path d="M150 42L225 72V137C225 190 192 226 150 250C108 226 75 190 75 137V72Z" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/><path d="M105 150l30 30 62-70" fill="none" stroke="#e2c58d" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><text x="150" y="105" text-anchor="middle" fill="#e2c58d" font-family="Georgia" font-size="18" font-weight="bold">PTC</text><text x="150" y="218" text-anchor="middle" fill="#fff" font-family="Arial" font-size="10" letter-spacing="2">DISCIPLINE</text></svg>
+        </div>
+        <div>
+          <div class="aplp-section-kicker">Mission of Punjab Police Training Branch</div>
+          <h2 class="aplp-section-title">Building capacity for the policing challenges of the 21st century.</h2>
+          <p class="aplp-principal-quote">“To build the capacity in the human resource of the Punjab Police to tackle the policing challenges of 21st century.”</p>
+          <div class="aplp-principal-byline">Punjab Police · Training Branch Mission</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-section" id="training">
+      <div class="aplp-container">
+        <div class="aplp-training-head">
+          <div><div class="aplp-section-kicker">Training &amp; Development</div><h2 class="aplp-section-title">Professional learning for every stage of service.</h2><p class="aplp-section-lead">The Punjab Police Training Branch publishes basic, promotional and specialist training courses for police personnel. The courses below are examples from its published course information.</p></div>
+        </div>
+        <div class="aplp-training-grid">
+          <article class="aplp-training-card"><span class="aplp-number">01</span><div class="aplp-training-icon">✦</div><h3>Advanced Class Course</h3><p>For Inspectors · Published duration: 16 weeks.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">02</span><div class="aplp-training-icon">▤</div><h3>Upper Class Course</h3><p>For ASI / Sub-Inspectors · Published duration: 16 weeks.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">03</span><div class="aplp-training-icon">♙</div><h3>Intermediate Class Course</h3><p>For Head Constables / ASIs · Published duration: 16 weeks.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">04</span><div class="aplp-training-icon">➤</div><h3>Lower Class Course</h3><p>For B-I qualified Constables · Published duration: 4 months.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">05</span><div class="aplp-training-icon">⌘</div><h3>Specialist Learning</h3><p>Published specialist areas include investigation, intelligence, operations and traffic management.</p></article>
+          <article class="aplp-training-card"><span class="aplp-number">06</span><div class="aplp-training-icon">✓</div><h3>Instructor Development</h3><p>Instructor, drill and weapon training courses are included in Punjab Police training programmes.</p></article>
+        </div>
+        <p class="aplp-source-note">Course names and durations are reproduced from Punjab Police Training Branch public information. Actual course availability and campus-wise allocation can change; confirm the current schedule with the College administration.</p>
+      </div>
+    </section>
+
+    <section class="aplp-section aplp-facilities" id="campuses">
+      <div class="aplp-container">
+        <div class="aplp-section-kicker">Campus Locations</div>
+        <h2 class="aplp-section-title">Police Training College Lahore · Manawan Campus.</h2>
+        <p class="aplp-section-lead">This portal and campus information page are focused on Police Training College Lahore, Campus II at Manawan.</p>
+        <div class="aplp-campus-locations">
+          <article class="aplp-campus-card"><small>Police Training College Lahore · Campus II</small><h3>Manawan, Lahore</h3><p>KC Factory site, G.T. Road, Manawan, near New Khan Metro Bus Depot, Lahore.</p><a href="https://www.google.com/maps/search/?api=1&query=Police+Training+School+Manawan+Lahore" target="_blank" rel="noopener">View Manawan campus map ↗</a></article>
+        </div>
+        <div class="aplp-location-building" aria-label="Manawan campus building reference image">
+          <figure class="aplp-location-building-visual">
+            <picture>
+              <source srcset="/assets/ptc-manawan-commandant-office.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-commandant-office.jpg" alt="Police Training College Manawan Commandant Office entrance with flags" loading="lazy" decoding="async" width="415" height="520">
+            </picture>
+            <figcaption>Commandant Office · Manawan Campus</figcaption>
+          </figure>
+          <div class="aplp-location-building-copy">
+            <span class="aplp-location-building-kicker">Campus Location · Manawan</span>
+            <h3>Police Training College Lahore</h3>
+            <p>Campus II is located at KC Factory site, G.T. Road, Manawan, Lahore, near New Khan Metro Bus Depot.</p>
+            <a href="https://www.google.com/maps/search/?api=1&query=Police+Training+School+Manawan+Lahore" target="_blank" rel="noopener noreferrer">Open campus location <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <p class="aplp-source-note">Punjab Police's published history records that Campus II was moved from the site near Thokar Niaz Baig to Manawan in June 2006.</p>
+      </div>
+    </section>
+
+    <section class="aplp-section" id="gallery">
+      <div class="aplp-container">
+        <div class="aplp-section-kicker">Manawan Campus Gallery</div>
+        <h2 class="aplp-section-title">Police Training College Lahore · Manawan.</h2>
+        <p class="aplp-section-lead">Campus photographs supplied for the Police Training College Lahore · Manawan institutional portal.</p>
+        <div class="aplp-gallery-grid aplp-gallery-manawan-grid">
+          <figure class="aplp-gallery-item">
+            <div class="aplp-gallery-art"><img src="/assets/ptc-manawan-flags-campus.webp" alt="Police Training College Lahore campus building with Pakistan and institutional flags" loading="lazy" decoding="async" width="511" height="391"></div>
+            <figcaption class="aplp-gallery-caption"><small>01 · Campus Identity</small>Police Training College Lahore</figcaption>
+          </figure>
+          <figure class="aplp-gallery-item">
+            <div class="aplp-gallery-art"><picture><source srcset="/assets/ptc-manawan-entrance.webp" type="image/webp"><img src="/assets/ptc-manawan-entrance.jpg" alt="Police Training College Lahore Manawan campus entrance and institutional sign" loading="lazy" decoding="async" width="1366" height="512"></picture></div>
+            <figcaption class="aplp-gallery-caption"><small>02 · Main Entrance</small>Manawan Campus · Lahore</figcaption>
+          </figure>
+          <article class="aplp-gallery-info">
+            <div class="aplp-gallery-info-kicker">Campus II · Lahore</div>
+            <h3>Manawan Training Campus</h3>
+            <div class="aplp-gallery-location"><div><span>Location</span><strong>KC Factory site, G.T. Road, Manawan, Lahore</strong></div><div><span>Nearby Landmark</span><strong>New Khan Metro Bus Depot</strong></div></div>
+            <p>The AttendPro portal is configured for Police Training College Lahore — Manawan. Trainee and staff records are maintained separately from any other training institution.</p>
+            <a href="#contact">View contact information <span aria-hidden="true">→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="aplp-portal-cta">
+      <div class="aplp-container aplp-portal-cta-inner">
+        <div><div class="aplp-section-kicker">AttendPro Digital Portal</div><h2 class="aplp-section-title">Institutional attendance and administration, connected.</h2><p>Authorized staff can access attendance monitoring, employee records, discrepancy review, reports, biometric device status and system administration through the secure AttendPro portal.</p></div>
+        <button class="aplp-btn-primary" type="button" onclick="openAttendProPortal('dashboard')">Enter AttendPro Portal <span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+
+    <section class="aplp-section" id="contact">
+      <div class="aplp-container aplp-contact-grid">
+        <div><div class="aplp-section-kicker">Contact &amp; Location</div><h2 class="aplp-section-title">Police Training College Lahore.</h2><p class="aplp-section-lead">For official information, course schedules and campus-specific enquiries, contact the College administration through its published channels.</p>
+          <div class="aplp-contact-card">
+
+            <div class="aplp-contact-item"><span>Campus</span><strong>KC Factory site, G.T. Road, Manawan, Lahore</strong></div>
+            <div class="aplp-contact-item"><span>Nearby Landmark</span><strong>New Khan Metro Bus Depot</strong></div>
+            <div class="aplp-contact-item"><span>Main College Contact</span><strong>042-37499256-8</strong></div>
+            <div class="aplp-contact-item"><span>College Administration Email</span><strong>policecollegelahore@gmail.com</strong></div>
+          </div>
+          <p class="aplp-source-note">The listed phone and email are the College administration contact details; confirm campus-specific arrangements with the administration.</p>
+        </div>
+        <div class="aplp-contact-panel"><h3>Official Information</h3><p>Read the Punjab Police Training Branch's published institutional history, training information and course details. Course schedules and campus arrangements should be confirmed with the College administration.</p><a class="aplp-btn-primary" href="https://www.punjabpolice.gov.pk/training-branch" target="_blank" rel="noopener">Punjab Police Training Branch <span aria-hidden="true">↗</span></a><button class="aplp-login-back" type="button" onclick="openAttendProPortal('dashboard')">Login to AttendPro</button></div>
+      </div>
+    </section>
+  </main>
+  <footer class="aplp-footer"><div class="aplp-container aplp-footer-inner"><div class="aplp-footer-brand"><span class="aplp-footer-crest"><img src="/assets/ptc-college-crest.webp" alt="" width="42" height="42" loading="lazy" decoding="async"></span><span>Police Training College Lahore · Manawan Campus</span></div><small>DISCIPLINE · TRAINING · SERVICE<br>AttendPro Digital Attendance &amp; Administration Portal</small><small>© <span id="aplpYear"></span> Police Training College Lahore. Institutional information subject to official confirmation.</small></div></footer>
+  <button class="aplp-backtop" id="aplpBackTop" type="button" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+</div>
+<!-- AUTHENTICATED HRMS DASHBOARD: existing app shell and all modules -->
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<div class="sb-brand">
+  <div class="logo">
+    <div class="sb-logo-icon"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="38" height="38"></div>
+    <div>
+      <div class="sb-brand-name">AttendPro</div>
+      <div class="sb-brand-sub">Manawan Campus · Lahore</div>
+    </div>
+  </div>
+</div>
+<div class="sb-datetime">
+  <div class="sb-time" id="sbTime">--:--:--</div>
+  <div class="sb-date" id="sbDate">Loading…</div>
+</div>
+<nav class="sb-nav" aria-label="AttendPro navigation">
+  <div class="sb-section">Main</div>
+  <div class="nav-item active" onclick="showScreen('dashboard',this)" data-screen="dashboard"><span class="nav-label">Dashboard</span></div>
+  <div class="nav-item" onclick="showScreen('live',this)" data-screen="live"><span class="nav-label">Live Attendance</span></div>
+
+  <div class="sb-section">Trainee Management</div>
+  <div class="nav-item" onclick="showScreen('trainees',this)" data-screen="trainees"><span class="nav-label">All Trainees</span></div>
+  <div class="nav-item" onclick="showScreen('pts-trainee-attendance',this)" data-screen="pts-trainee-attendance"><span class="nav-label">Trainee Attendance</span></div>
+
+  <div class="sb-section">Staff Management</div>
+  <div class="nav-item" onclick="showScreen('employees',this)" data-screen="employees"><span class="nav-label">All PTS Staff</span></div>
+
+  <div class="sb-section">Leave &amp; Permissions</div>
+  <div class="nav-item" onclick="showScreen('pts-trainee-leave',this)" data-screen="pts-trainee-leave"><span class="nav-label">Trainee Leave</span></div>
+  <div class="nav-item" onclick="showScreen('pts-trainee-osd',this)" data-screen="pts-trainee-osd"><span class="nav-label">Trainee OSD / Permission</span></div>
+  <div class="nav-item" onclick="showScreen('pts-staff-leave',this)" data-screen="pts-staff-leave"><span class="nav-label">Staff Leave</span></div>
+  <div class="nav-item" onclick="showScreen('pts-staff-osd',this)" data-screen="pts-staff-osd"><span class="nav-label">Staff OSD / Permission</span></div>
+  <div class="nav-item" onclick="showScreen('pts-duty-rest',this)" data-screen="pts-duty-rest"><span class="nav-label">Duty Rest</span></div>
+  <div class="nav-item" onclick="showScreen('leave',this)" data-screen="leave"><span class="nav-label">Leave &amp; Holidays</span></div>
+
+  <div class="sb-section">Attendance &amp; Records</div>
+  <div class="nav-item" onclick="showScreen('records',this)" data-screen="records"><span class="nav-label">Attendance Records</span></div>
+  <div class="nav-item" onclick="showScreen('discrepancies',this)" data-screen="discrepancies"><span class="nav-label">Discrepancies</span></div>
+
+  <div class="sb-section">Reports</div>
+  <div class="nav-item" onclick="showScreen('reports',this)" data-screen="reports"><span class="nav-label">Reports &amp; Exports</span></div>
+
+  <div class="sb-section">System</div>
+  <div class="nav-item" onclick="showScreen('device',this)" data-screen="device"><span class="nav-label">Device Status</span></div>
+  <div class="device-nav-list" id="deviceNavList"></div>
+  <div class="nav-item" onclick="showScreen('redis',this)" data-screen="redis" title="Redis cache and scheduler monitor"><span class="nav-label">Redis &amp; Scheduler</span></div>
+  <div class="nav-item" onclick="showScreen('settings',this)" data-screen="settings" data-permission="super_admin"><span class="nav-label">Settings</span></div>
+  <div class="nav-item" onclick="showScreen('users',this)" data-screen="users" data-permission="super_admin"><span class="nav-label">System Users</span></div>
+</nav>
+<div class="sb-bottom">
+  <div class="sb-user">
+    <div class="avatar">AR</div>
+    <div class="sb-user-info">
+      <div class="sb-user-name" id="sidebarUserName">Admin Rehman</div>
+      <div class="sb-user-role" id="sidebarUserRole">Super Admin</div>
+    </div>
+  </div>
+</div>
+</aside>
+<div class="sidebar-resizer" id="sidebarResizer" role="separator" aria-orientation="vertical" aria-label="Drag to resize sidebar" title="Drag to resize • double-click to reset width"></div>
+<!-- MAIN -->
+<div class="main">
+<div class="topbar">
+  <button class="icon-btn sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse / expand left menu" aria-label="Collapse / expand left menu">☰</button>
+  <button class="icon-btn workspace-toggle" id="workspaceToggle" onclick="toggleWorkspace()" title="Expand white workspace / restore blue menu" aria-label="Expand white workspace / restore blue menu">⛶</button>
+  <div class="tb-brand" aria-label="Police Training College Lahore AttendPro Portal">
+    <img src="/assets/ptc-college-crest.webp" alt="" width="32" height="32" decoding="async">
+    <span><strong>Police Training College Lahore</strong><small>Manawan Campus · AttendPro Portal</small></span>
+  </div>
+  <span class="demo-badge">⏳ Connecting to attendance database…</span>
+  <div class="tb-search">
+    <svg class="si" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" id="globalEmployeeSearch" autocomplete="off" placeholder="Search staff A–Z…" oninput="globalSearch(this.value)">
+  </div>
+  <div class="tb-actions">
+  <button class="aplp-app-home" type="button" onclick="returnToPublicLanding()" title="Return to the institution website">Website</button>
+    <button class="icon-btn theme-btn" id="themeToggle" title="Switch dark/light mode" aria-label="Switch dark/light mode" onclick="toggleTheme()">🌙</button>
+    <div class="icon-btn" id="apNotificationBell" role="button" tabindex="0" title="Open notifications" aria-label="Open notifications" onclick="toggleApNotifications()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleApNotifications()}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="tb-avatar" id="userAvatar" onclick="logoutUser()" title="Click to log out">AR</div>
+  </div>
+</div>
+<div class="content">
+<!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+<div id="screen-dashboard" class="screen active">
+<div class="page-hdr">
+  <div class="page-title">Dashboard</div>
+  <div class="page-sub">Police Training College Lahore · Manawan — <span id="dashDate"></span></div>
+</div>
+<div class="pts-dashboard-switch" role="tablist" aria-label="Dashboard category">
+  <button type="button" id="ptsModeTrainee" class="active" role="tab" aria-selected="true" onclick="setPtsDashboardMode('trainee')">♙ Trainee</button>
+  <button type="button" id="ptsModeStaff" role="tab" aria-selected="false" onclick="setPtsDashboardMode('staff')">♙ Staff</button>
+</div>
+<div id="ptsTraineeDashboard">
+  <div class="pts-dashboard-toolbar">
+    <label>Attendance date <input type="date" id="ptsDashboardDate" onchange="loadPtsDashboard()"></label>
+    <label>Shift <select id="ptsShiftSelect" onchange="loadPtsDashboard()"><option>Morning</option><option>Evening</option></select></label>
+    <button class="btn btn-outline btn-sm" type="button" onclick="loadPtsDashboard()">↻ Refresh</button>
+  </div>
+  <div class="pts-kpi-grid">
+    <button class="pts-kpi-card pts-kpi-purple" type="button" onclick="showScreen('trainees',document.querySelector('[data-screen=trainees]'))"><span class="pts-kpi-label">Total Enrolled</span><span class="pts-kpi-value" id="ptsKpiTotal">0</span><span class="pts-kpi-foot">All recorded trainees</span><span class="pts-kpi-icon">♙</span></button>
+    <button class="pts-kpi-card pts-kpi-green" type="button"><span class="pts-kpi-label">Present</span><span class="pts-kpi-value" id="ptsKpiPresent">0</span><span class="pts-kpi-foot">Present for selected shift</span><span class="pts-kpi-icon">✓</span></button>
+    <button class="pts-kpi-card pts-kpi-red" type="button"><span class="pts-kpi-label">Absent</span><span class="pts-kpi-value" id="ptsKpiAbsent">0</span><span class="pts-kpi-foot">Marked absent</span><span class="pts-kpi-icon">!</span></button>
+    <button class="pts-kpi-card pts-kpi-cyan" type="button" onclick="showScreen('pts-trainee-leave',document.querySelector('[data-screen=pts-trainee-leave]'))"><span class="pts-kpi-label">Leave</span><span class="pts-kpi-value" id="ptsKpiLeave">0</span><span class="pts-kpi-foot">Approved current leave</span><span class="pts-kpi-icon">▣</span></button>
+    <button class="pts-kpi-card pts-kpi-slate" type="button"><span class="pts-kpi-label">Long Weekend</span><span class="pts-kpi-value" id="ptsKpiLongWeekend">0</span><span class="pts-kpi-foot">Current approved long weekend</span><span class="pts-kpi-icon">▦</span></button>
+    <button class="pts-kpi-card pts-kpi-violet" type="button" onclick="showScreen('pts-trainee-osd',document.querySelector('[data-screen=pts-trainee-osd]'))"><span class="pts-kpi-label">OSD</span><span class="pts-kpi-value" id="ptsKpiOsd">0</span><span class="pts-kpi-foot">Official duty / permission</span><span class="pts-kpi-icon">♙</span></button>
+    <button class="pts-kpi-card pts-kpi-amber" type="button"><span class="pts-kpi-label">Medical Rest</span><span class="pts-kpi-value" id="ptsKpiMedicalRest">0</span><span class="pts-kpi-foot">Current medical rest</span><span class="pts-kpi-icon">＋</span></button>
+    <button class="pts-kpi-card pts-kpi-pink" type="button"><span class="pts-kpi-label">Repatriate</span><span class="pts-kpi-value" id="ptsKpiRepatriate">0</span><span class="pts-kpi-foot">Trainees recorded as repatriated</span><span class="pts-kpi-icon">↗</span></button>
+  </div>
+  <div class="card pts-course-card">
+    <div class="card-hdr"><span class="card-title">Overall Trainee Attendance Analysis · <span id="ptsShiftHeading">Morning</span></span><span class="access-help" id="ptsTraineeDataStatus">Loading Manawan trainee data…</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Course</th><th>Total Enrolled</th><th>Present</th><th>Absent</th></tr></thead><tbody id="ptsCourseWiseTbody"><tr><td colspan="4">Loading course-wise attendance…</td></tr></tbody></table></div>
+  </div>
+</div>
+<div id="ptsStaffDashboard" style="display:none">
+<div class="kpi-grid">
+  <div class="kpi-card kpi-blue" onclick="showScreen('employees',document.querySelector('[data-screen=employees]'))">
+    <div class="kpi-top"><span class="kpi-label">Total PTS Staff</span><div class="kpi-icon">👥</div></div>
+    <div class="kpi-value" id="kpiTotal">0</div><div class="kpi-sub">Loading staff records…</div>
+  </div>
+  <div class="kpi-card kpi-green" onclick="showScreen('live',document.querySelector('[data-screen=live]'));setLiveFilter('Present')">
+    <div class="kpi-top"><span class="kpi-label">Present Today</span><div class="kpi-icon">✅</div></div>
+    <div class="kpi-value" id="kpiPresent">0</div><div class="kpi-sub">Loading attendance…</div>
+  </div>
+  <div class="kpi-card kpi-red" onclick="showScreen('live',document.querySelector('[data-screen=live]'));setLiveFilter('Absent')">
+    <div class="kpi-top"><span class="kpi-label">Absent Today</span><div class="kpi-icon">❌</div></div>
+    <div class="kpi-value" id="kpiAbsent">0</div><div class="kpi-sub">Loading attendance…</div>
+  </div>
+  <div class="kpi-card kpi-amber" onclick="showScreen('live',document.querySelector('[data-screen=live]'));setLiveFilter('Late')">
+    <div class="kpi-top"><span class="kpi-label">Late Arrivals</span><div class="kpi-icon">⏰</div></div>
+    <div class="kpi-value" id="kpiLate">0</div><div class="kpi-sub">Loading attendance…</div>
+  </div>
+  <div class="kpi-card kpi-blue">
+    <div class="kpi-top"><span class="kpi-label">Early Arrivals</span><div class="kpi-icon">🏃</div></div>
+    <div class="kpi-value" id="kpiEarly">0</div><div class="kpi-sub">Loading attendance…</div>
+  </div>
+  <div class="kpi-card kpi-purple" onclick="showScreen('leave',document.querySelector('[data-screen=leave]'))">
+    <div class="kpi-top"><span class="kpi-label">On Leave</span><div class="kpi-icon">🏖</div></div>
+    <div class="kpi-value" id="kpiLeave">0</div><div class="kpi-sub">Approved staff leave</div>
+  </div>
+  <div class="kpi-card kpi-amber">
+    <div class="kpi-top"><span class="kpi-label">Missing Check-in</span><div class="kpi-icon">⚠</div></div>
+    <div class="kpi-value" id="kpiMissingIn">0</div><div class="kpi-sub">Missing check-in</div>
+  </div>
+  <div class="kpi-card kpi-red">
+    <div class="kpi-top"><span class="kpi-label">Missing Check-out</span><div class="kpi-icon">🚪</div></div>
+    <div class="kpi-value" id="kpiMissingOut">0</div><div class="kpi-sub">Missing check-out</div>
+  </div>
+</div>
+<div class="page-hdr" style="margin-top:4px;margin-bottom:10px"><div class="page-title" style="font-size:15px">Connected Biometric Devices</div><div class="page-sub">View the live and configured status of each device.</div></div>
+<div id="dashboardDevices"><div class="device-mini-card"><div class="device-mini-icon">👁</div><div class="device-mini-info"><div class="device-mini-name">ZKTeco uFace 800</div><div class="device-mini-model">Status loading…</div></div></div></div>
+<div class="grid3">
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Today's Attendance Distribution</span></div>
+    <div class="donut-wrap">
+      <svg width="230" height="230" viewBox="0 0 110 110" role="img" aria-label="Attendance distribution by status">
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#e2e8f0" stroke-width="16"/>
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#10b981" stroke-width="16" stroke-dasharray="0 251" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#ef4444" stroke-width="16" stroke-dasharray="0 251" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#f59e0b" stroke-width="16" stroke-dasharray="0 251" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-dasharray="0 251" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+        <circle cx="55" cy="55" r="40" fill="none" stroke="#94a3b8" stroke-width="16" stroke-dasharray="0 251" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+        <text id="donutCenter" x="55" y="59" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">0%</text>
+      </svg>
+      <div class="donut-legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Present<span class="legend-pct" id="legendPresent" style="color:#10b981">0</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Absent<span class="legend-pct" id="legendAbsent" style="color:#ef4444">0</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Late<span class="legend-pct" id="legendLate" style="color:#f59e0b">0</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>On Leave<span class="legend-pct" id="legendLeave" style="color:#8b5cf6">0</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#94a3b8"></span>Not Checked In<span class="legend-pct" id="legendUnknown" style="color:#94a3b8">0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Dept. Summary</span></div>
+    <div class="tbl-wrap" id="deptSummaryScroll">
+      <table>
+        <thead><tr><th>Department</th><th>Total</th><th>Present</th><th>Absent</th><th>On Leave</th></tr></thead>
+        <tbody id="deptSummaryBody"><tr><td colspan="5">Loading PTC staff data…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="grid2">
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Recent Attendance Activity</span><span class="card-action" onclick="showScreen('live',document.querySelector('[data-screen=live]'))">View All →</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Event</th><th>Time</th><th>Dept</th><th>Status</th></tr></thead>
+        <tbody id="recentActivity"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Attendance Exceptions</span></div>
+    <div id="exceptions"></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div id="screen-trainees" class="screen">
+  <div class="page-hdr"><div><div class="page-title">All Trainees</div><div class="page-sub">Police Training College Lahore · Manawan trainee roster</div></div><div class="access-actions"><button class="btn btn-outline" type="button" onclick="downloadPtsTraineeTemplate()">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" type="button" onclick="document.getElementById('ptsTraineeImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" type="button" onclick="openPtsTraineeModal()">＋ Add Trainee</button><input id="ptsTraineeImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsTrainees(this)"></div></div>
+  <div class="filters"><input class="f-input" id="ptsTraineeSearch" type="search" placeholder="Search ID, name or father name…" oninput="renderPtsTrainees()"><select class="f-input" id="ptsTraineeStatus" onchange="renderPtsTrainees()"><option value="">All Statuses</option><option value="active">Active</option><option value="repatriated">Repatriated</option><option value="completed">Completed</option></select><button class="btn btn-outline btn-sm" type="button" onclick="loadPtsTrainees()">↻ Refresh</button></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Sr.</th><th>Employee ID / Cap No.</th><th>Name</th><th>Father Name</th><th>Course</th><th>Platoon</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsTraineeTbody"><tr><td colspan="8">Loading trainees…</td></tr></tbody></table></div></div>
+</div>
+<div id="screen-pts-trainee-attendance" class="screen">
+  <div class="page-hdr"><div><div class="page-title">Trainee Attendance</div><div class="page-sub">Record Manawan trainee attendance by course, platoon and shift.</div></div><div class="access-actions"><button class="btn btn-outline" type="button" onclick="loadPtsAttendance()">↻ Refresh</button><button class="btn btn-outline" data-permission="attendance_edit" type="button" onclick="saveAllPtsAttendance(false)">Save Marked Rows</button><button class="btn btn-primary" data-permission="attendance_edit" type="button" onclick="saveAllPtsAttendance(true)">✓ Mark All Present</button></div></div>
+  <div class="pts-dashboard-toolbar"><label>Attendance date <input type="date" id="ptsAttendanceDate" onchange="loadPtsAttendance()"></label><label>Shift <select id="ptsAttendanceShift" onchange="loadPtsAttendance()"><option>Morning</option><option>Evening</option></select></label></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID / Cap No.</th><th>Trainee Name</th><th>Course</th><th>Platoon</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Action</th></tr></thead><tbody id="ptsAttendanceTbody"><tr><td colspan="8">Load trainees to mark attendance.</td></tr></tbody></table></div></div>
+</div>
+<div id="screen-pts-trainee-leave" class="screen pts-record-screen" data-record-type="leave" data-person-type="trainee">
+  <div class="page-hdr"><div><div class="page-title">Trainee Leave Management</div><div class="page-sub">Manage approved and pending trainee leave periods.</div></div><div class="access-actions"><button class="btn btn-outline" onclick="downloadPtsRecordTemplate('leave')">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" onclick="document.getElementById('ptsTraineeLeaveImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('leave','trainee')">＋ Add Leave</button><input id="ptsTraineeLeaveImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsRecords(this,'leave','trainee')"></div></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Course / Platoon</th><th>Leave Type</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsTraineeLeaveTbody"><tr><td colspan="8">Loading records…</td></tr></tbody></table></div></div>
+</div>
+<div id="screen-pts-trainee-osd" class="screen pts-record-screen" data-record-type="osd" data-person-type="trainee">
+  <div class="page-hdr"><div><div class="page-title">Trainee OSD / Permission</div><div class="page-sub">Manage official duty and short-period permissions for trainees.</div></div><div class="access-actions"><button class="btn btn-outline" onclick="downloadPtsRecordTemplate('osd')">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" onclick="document.getElementById('ptsTraineeOsdImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('osd','trainee')">＋ Add OSD / Permission</button><input id="ptsTraineeOsdImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsRecords(this,'osd','trainee')"></div></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Course / Platoon</th><th>Reason</th><th>Duty Place</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsTraineeOsdTbody"><tr><td colspan="9">Loading records…</td></tr></tbody></table></div></div>
+</div>
+<div id="screen-pts-staff-leave" class="screen pts-record-screen" data-record-type="leave" data-person-type="staff">
+  <div class="page-hdr"><div><div class="page-title">PTS Staff Leave</div><div class="page-sub">Manage leave records for Police Training College Lahore staff.</div></div><div class="access-actions"><button class="btn btn-outline" onclick="downloadPtsRecordTemplate('leave')">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" onclick="document.getElementById('ptsStaffLeaveImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('leave','staff')">＋ Add Staff Leave</button><input id="ptsStaffLeaveImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsRecords(this,'leave','staff')"></div></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Category / Branch</th><th>Leave Type</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsStaffLeaveTbody"><tr><td colspan="8">Loading records…</td></tr></tbody></table></div></div>
+</div>
+<div id="screen-pts-staff-osd" class="screen pts-record-screen" data-record-type="osd" data-person-type="staff">
+  <div class="page-hdr"><div><div class="page-title">PTS Staff OSD / Permission</div><div class="page-sub">Manage official duty and short-period permissions for staff.</div></div><div class="access-actions"><button class="btn btn-outline" onclick="downloadPtsRecordTemplate('osd')">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" onclick="document.getElementById('ptsStaffOsdImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('osd','staff')">＋ Add Staff OSD / Permission</button><input id="ptsStaffOsdImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsRecords(this,'osd','staff')"></div></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Category / Branch</th><th>Reason</th><th>Duty Place</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsStaffOsdTbody"><tr><td colspan="9">Loading records…</td></tr></tbody></table></div></div>
+</div>
+<div id="screen-pts-duty-rest" class="screen pts-record-screen" data-record-type="duty_rest" data-person-type="staff">
+  <div class="page-hdr"><div><div class="page-title">PTS Staff Duty Rest</div><div class="page-sub">Manage staff duty-rest periods and authorization status.</div></div><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('duty_rest','staff')">＋ Add Duty Rest</button></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Category / Branch</th><th>Start</th><th>End</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsDutyRestTbody"><tr><td colspan="8">Loading records…</td></tr></tbody></table></div></div>
+</div>
+
+<!-- ═══════════════════ LIVE ATTENDANCE ═══════════════════ -->
+<div id="screen-live" class="screen">
+<div class="page-hdr">
+  <div class="page-title">Live Attendance</div>
+  <div class="page-sub">Real-time attendance tracking — updates will appear here after device integration</div>
+</div>
+<div class="filters">
+  <input class="f-input" type="text" id="liveSearch" placeholder="🔍 Search name or ID…" oninput="renderLive()">
+  <input class="f-input" type="date" id="liveDate" onchange="loadSelectedDate()">
+  <button class="btn btn-outline btn-sm" onclick="document.getElementById('liveDate').value=today();loadSelectedDate()">Today</button>
+  <select class="f-input" id="liveDept" onchange="renderLive()">
+    <option value="">All Departments</option>
+    <option>Engineering</option><option>Finance</option><option>HR</option>
+    <option>Operations</option><option>Sales</option><option>IT Support</option>
+  </select>
+  <select class="f-input" id="liveShift" onchange="renderLive()">
+    <option value="">All Shifts</option>
+    <option>Morning (08:00)</option><option>General (09:00)</option><option>Evening (14:00)</option>
+  </select>
+  <select class="f-input" id="liveStatus" onchange="renderLive()">
+    <option value="">All Status</option>
+    <option>Present</option><option>Late</option><option>Absent</option>
+    <option>On Leave</option><option>Early Arrival</option><option>Not Checked In</option>
+  </select>
+  <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApLiveRecords('csv')">Export CSV</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApLiveRecords('xlsx')">Export Editable Excel</button>
+  <button class="btn btn-primary btn-sm" onclick="reportFromApLive()">Generate Report</button>
+</div>
+<div class="card">
+<div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th onclick="sortLive('id')">AC No ↕</th>
+      <th onclick="sortLive('name')">Name ↕</th>
+      <th onclick="sortLive('dept')">Department ↕</th>
+      <th>Shift</th>
+      <th>Sched. In</th>
+      <th onclick="sortLive('cin')">Actual In ↕</th>
+      <th>Early/Late</th>
+      <th>Sched. Out</th>
+      <th>Actual Out</th>
+      <th>Status</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="liveTbody"></tbody>
+</table>
+</div>
+<div class="pagination" id="livePag"></div>
+</div>
+</div>
+
+<!-- ═══════════════════ EMPLOYEES ═══════════════════ -->
+<div id="screen-employees" class="screen">
+<div class="page-hdr" style="display:flex;justify-content:space-between;align-items:flex-start">
+ <div><div class="page-title">PTS Staff Directory</div><div class="page-sub">Police Training College Lahore staff profiles · names sorted A–Z · select View for details</div></div>
+ <button class="btn btn-primary" onclick="openAddEmployeeForm()" data-permission="super_admin">+ Add Employee</button>
+</div>
+<div class="filters">
+ <input class="f-input" type="search" id="empSearch" autocomplete="off" placeholder="🔍 Search employee by name…" oninput="onEmployeeSearch()">
+ <select class="f-input" id="empDept" onchange="empPage=1;renderEmployees()"><option value="">All Departments</option></select>
+ <select class="f-input" id="empStatus" onchange="empPage=1;renderEmployees()"><option value="">All Status</option><option>Active</option><option>Inactive</option></select>
+ <button class="btn btn-outline btn-sm" onclick="clearEmployeeFilters()">✕ Clear Filters</button>
+</div>
+<div class="card"><div class="tbl-wrap"><table class="employee-directory-table">
+ <thead><tr><th></th><th class="emp-sort-col" onclick="sortEmployees('id')">Employee ID ↕</th><th class="emp-sort-col" onclick="sortEmployees('name')" id="empNameSortHeader" aria-sort="ascending">Name ↑</th><th class="emp-sort-col" onclick="sortEmployees('dept')">Branch / Posting Place ↕</th><th class="emp-sort-col" onclick="sortEmployees('designation')">Rank ↕</th><th class="emp-sort-col" onclick="sortEmployees('shift')">Shift ↕</th><th class="emp-sort-col" onclick="sortEmployees('status')">Status ↕</th><th>Actions</th></tr></thead>
+ <tbody id="empTbody"></tbody>
+</table></div><div class="pagination" id="empPag"></div></div>
+</div>
+
+<!-- ═══════════════════ RECORDS ═══════════════════ -->
+<div id="screen-records" class="screen">
+<div class="page-hdr"><div class="page-title">Attendance Records</div><div class="page-sub">Historical attendance data with full detail</div></div>
+<div class="filters">
+  <input class="f-input" type="date" id="recFrom" title="From date">
+  <span style="color:var(--text2);font-size:13px">to</span>
+  <input class="f-input" type="date" id="recTo" title="To date">
+  <input class="f-input" type="text" id="recSearch" placeholder="🔍 Search AC-No. or employee name" oninput="renderRecords()">
+  <select class="f-input" id="recDept" onchange="renderRecords()"><option value="">All Departments</option></select>
+  <select class="f-input" id="recStatus" onchange="renderRecords()"><option value="">All Status</option><option value="Present">Present</option><option value="Late">Late</option><option value="Absent">Absent</option><option value="On Leave">On Leave</option><option value="Early Arrival">Early Arrival</option><option value="Not Checked In">Not Checked In</option><option value="Missing Check-in">Missing Check-in</option></select>
+  <button class="btn btn-primary btn-sm" onclick="renderRecords()">Apply Filter</button>
+  <button class="btn btn-outline btn-sm" onclick="clearRecordFilters()">✕ Clear</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApAttendanceRecords('csv')">Export CSV</button>
+  <button class="btn btn-outline btn-sm" onclick="exportApAttendanceRecords('xlsx')">Export Editable Excel</button>
+  <button class="btn btn-primary btn-sm" onclick="reportFromApRecords()">Generate Report</button>
+</div>
+<div class="card">
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>AC-No.</th><th>Name</th><th>Date</th><th>Timetable</th><th>Clock In</th><th>Clock Out</th><th>Department</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody id="recTbody"></tbody>
+</table>
+</div>
+<div class="pagination" id="recPag"></div>
+</div>
+</div>
+
+<!-- ═══════════════════ DISCREPANCIES ═══════════════════ -->
+<div id="screen-discrepancies" class="screen">
+  <div class="page-hdr"><div class="page-title">Discrepancies</div>
+   <div class="page-sub">Review incomplete punches and manually confirmed biometric setup issues. No automatic leave changes.</div></div>
+  <div class="kpi-grid discrepancy-kpis">
+    <div class="kpi-card kpi-blue"><div class="kpi-label">Total Issues</div><div class="kpi-value" id="discTotal">—</div></div>
+    <div class="kpi-card kpi-amber"><div class="kpi-label">Needs Review</div><div class="kpi-value" id="discOpen">—</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-label">Reviewed</div><div class="kpi-value" id="discReviewed">—</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-label">Missing Check-out</div><div class="kpi-value" id="discMissingOut">—</div></div>
+  </div>
+  <div class="filters">
+    <input class="f-input" type="date" id="discFrom" title="From date" onchange="loadDiscrepancies()">
+    <span style="color:var(--text2)">to</span>
+    <input class="f-input" type="date" id="discTo" title="To date" onchange="loadDiscrepancies()">
+    <input class="f-input" id="discSearch" type="search" placeholder="🔍 Search name or AC-No." oninput="debounceDiscrepancies()">
+    <select class="f-input" id="discIssue" onchange="loadDiscrepancies()"><option value="">All Issues</option>
+      <option value="missing_check_out">Missing Check-out</option><option value="missing_check_in">Missing Check-in</option>
+      <option value="biometric_not_configured">Biometric Not Configured</option><option value="leave_with_punch">Leave With Attendance Punch</option></select>
+    <select class="f-input" id="discState" onchange="loadDiscrepancies()"><option value="open">Needs Review</option><option value="resolved">Reviewed</option><option value="all">All</option></select>
+    <button class="btn btn-outline btn-sm" onclick="resetDiscrepancies()">Clear</button>
+    <button class="btn btn-outline btn-sm" onclick="loadDiscrepancies()">↻ Refresh</button>
+    <button class="btn btn-outline btn-sm" onclick="exportApDiscrepancies('csv')">Export CSV</button>
+    <button class="btn btn-outline btn-sm" onclick="exportApDiscrepancies('xlsx')">Export Editable Excel</button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+   <div class="card-hdr"><span class="card-title">Attendance Issues</span><span class="access-help">Supervisor/Admin can review; view-only can inspect.</span></div>
+   <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Employee</th><th>AC-No.</th><th>Clock In</th><th>Clock Out</th><th>Issue</th><th>Biometric Setup</th><th>Attendance</th><th>Review</th></tr></thead>
+    <tbody id="discTbody"><tr><td colspan="9">Loading attendance issues…</td></tr></tbody></table></div>
+   <div class="pagination" id="discPag"></div>
+  </div>
+  <details class="card disc-enrollment" id="discEnrollmentPanel" data-permission="attendance_edit">
+    <summary style="font-weight:600;cursor:pointer">Biometric configuration (manual confirmation)</summary>
+    <p class="access-help" style="margin:10px 0">The Access database does not identify whether face or fingerprint enrollment is configured. Confirm the employee status before selecting Not Configured. When Not Configured is explicitly confirmed and an MDB check-in exists, AttendPro automatically marks the effective attendance as On Leave. The original biometric record is never changed.</p>
+    <div class="filters">
+     <select class="f-input" id="discEmployeeSelect" style="min-width:260px;max-width:420px"><option value="">Select employee</option></select>
+     <select class="f-input" id="discEnrollment"><option value="unknown">Unknown / Not Verified</option><option value="configured">Configured (confirmed)</option><option value="not_configured">Not Configured (confirmed)</option></select>
+     <input class="f-input" id="discEnrollmentNote" placeholder="Optional verification note" style="min-width:200px">
+     <button class="btn btn-primary btn-sm" onclick="saveBiometricStatus()">Save Status</button>
+    </div>
+  </details>
+</div>
+
+<!-- ═══════════════════ LEAVE ═══════════════════ -->
+<div id="screen-leave" class="screen">
+<div class="page-hdr" style="display:flex;justify-content:space-between;align-items:flex-start">
+  <div><div class="page-title">Leave & Holidays</div><div class="page-sub">Leave requests and public holidays — preview only; leave records were not supplied</div></div>
+  <button class="btn btn-primary" onclick="notify('Leave request form would open here')">+ New Leave Request</button>
+</div>
+<div class="leave-tabs">
+  <div class="l-tab active" onclick="switchLeaveTab(this,'leave-pending')">Pending Requests</div>
+  <div class="l-tab" onclick="switchLeaveTab(this,'leave-approved')">Approved Leaves</div>
+  <div class="l-tab" onclick="switchLeaveTab(this,'leave-holidays')">Public Holidays</div>
+</div>
+<div id="leave-pending">
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Dept</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#6366f1">SA</div>Sana Aslam</div></td><td>HR</td><td>Annual Leave</td><td>Oct 30</td><td>Nov 1</td><td>3</td><td>Family event</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#f59e0b">TK</div>Tahir Khan</div></td><td>Engineering</td><td>Sick Leave</td><td>Oct 29</td><td>Oct 29</td><td>1</td><td>Medical</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#10b981">RM</div>Raza Malik</div></td><td>Sales</td><td>Casual Leave</td><td>Nov 4</td><td>Nov 5</td><td>2</td><td>Personal work</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="leave-approved" style="display:none">
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Dept</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Approved By</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Ayesha Noor</td><td>Finance</td><td>Annual Leave</td><td>Oct 25</td><td>Oct 28</td><td>4</td><td>Admin Rehman</td><td><span class="badge b-purple">Approved</span></td></tr>
+          <tr><td>Bilal Hussain</td><td>IT Support</td><td>Sick Leave</td><td>Oct 27</td><td>Oct 27</td><td>1</td><td>Admin Rehman</td><td><span class="badge b-purple">Approved</span></td></tr>
+          <tr><td>Fatima Zahra</td><td>Operations</td><td>Maternity</td><td>Oct 1</td><td>Nov 30</td><td>60</td><td>Admin Rehman</td><td><span class="badge b-purple">Approved</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="leave-holidays" style="display:none">
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Holiday</th><th>Date</th><th>Day</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td>Iqbal Day</td><td>Nov 9, 2026</td><td>Monday</td><td><span class="badge b-blue">National</span></td></tr>
+          <tr><td>Christmas</td><td>Dec 25, 2026</td><td>Friday</td><td><span class="badge b-blue">National</span></td></tr>
+          <tr><td>Quaid-e-Azam Day</td><td>Dec 25, 2026</td><td>Friday</td><td><span class="badge b-blue">National</span></td></tr>
+          <tr><td>New Year's Day</td><td>Jan 1, 2027</td><td>Friday</td><td><span class="badge b-blue">National</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ REPORTS ═══════════════════ -->
+<div id="screen-reports" class="screen">
+<div class="page-hdr"><div class="page-title">Reports & Exports</div><div class="page-sub">Generate, preview, and print attendance reports</div></div>
+<div class="grid2" style="align-items:start">
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:14px">Report Configuration</div>
+      <div class="form-group"><label class="form-label">Report Type</label>
+        <select class="form-input" id="rptType">
+          <option>Daily Attendance Register</option><option>Monthly Attendance Summary</option>
+          <option>Employee Attendance History</option><option>Absent Employees</option>
+          <option>Late Arrivals</option><option>Missing Check-ins</option><option>Missing Check-outs</option>
+          <option>Department-wise Attendance</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">From Date</label><input type="date" class="form-input" id="rptFrom"></div>
+      <div class="form-group"><label class="form-label">To Date</label><input type="date" class="form-input" id="rptTo"></div>
+      <div class="form-group"><label class="form-label">Department</label>
+        <select class="form-input" id="rptDept"><option value="">All Departments</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Employee (Optional)</label><input type="text" class="form-input" id="rptEmployee" placeholder="Name or AC-No."></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1" onclick="showReportPreview()">Preview Report</button>
+        <button class="btn btn-outline" onclick="printApReport()">🖨 Print</button>
+      </div>
+      <div class="access-help" style="margin-top:10px">Generate a report using the selected dates. Edit permitted attendance cells in the preview, then choose Save Changes to Supabase. Original biometric data is never changed.</div>
+      <div class="access-actions" style="margin-top:10px">
+        <button type="button" class="btn btn-outline btn-sm" onclick="ensureApReportExport('csv')">Export CSV</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="ensureApReportExport('xlsx')">Export Editable Excel</button>
+        <button type="button" class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="document.getElementById('apEditedCsvInput').click()">Import Edited Excel / CSV</button>
+        <input type="file" id="apEditedCsvInput" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="importApEditedReport(event)">
+      </div>
+      <div class="access-help" style="margin-top:6px">Excel files can be edited offline. To apply edits to Supabase without changing the backend, import the edited XLSX or CSV here, then choose Save Changes to Supabase in the preview.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Quick Reports</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-outline" style="justify-content:flex-start" onclick="runQuickReport('today')">📋 Today's Attendance Register</button>
+        <button class="btn btn-outline" style="justify-content:flex-start" onclick="runQuickReport('week')">📅 This Week Summary</button>
+        <button class="btn btn-outline" style="justify-content:flex-start" onclick="runQuickReport('late')">🚨 Late Arrivals — Current Data Month</button>
+        <button class="btn btn-outline" style="justify-content:flex-start" onclick="runQuickReport('missing_checkout')">⚠ Missing Check-outs</button>
+        <button class="btn btn-outline" style="justify-content:flex-start" onclick="runQuickReport('department')">🏢 Department Summary</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="reportPreview">
+    <div style="text-align:center;color:var(--text3);padding:60px 0">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <div style="font-size:14px;font-weight:500">Configure and preview a report</div>
+      <div style="font-size:12px;margin-top:4px">Select report type and date range, then click Preview</div>
+    </div>
+  </div>
+</div>
+<!-- Dedicated print surface: populated from the filtered attendance source rows. -->
+<div class="print-only" id="printLayout" aria-hidden="true"><div id="printTemplateRoot"></div></div>
+</div>
+
+<!-- ═══════════════════ DEVICE STATUS ═══════════════════ -->
+<div id="screen-device" class="screen">
+<div class="page-hdr"><div class="page-title">Device Status</div><div class="page-sub">Biometric device management and synchronization</div></div>
+<div class="device-card">
+  <div class="device-icon">👁</div>
+  <div class="device-info">
+    <div style="display:flex;align-items:center;gap:8px"><div class="device-name" id="activeDeviceName">ZKTeco uFace 800</div><button class="device-info-btn" onclick="showDeviceInfo(currentSettings.active_device_id)" title="Device information">i</button></div>
+    <div class="device-model" id="activeDeviceModel">Multi-biometric Face + Fingerprint Terminal — S/N: Not configured</div>
+    <div style="margin-top:10px"><span class="status-dot status-pending">⏳ MDB Bridge Pending — Configure Source</span></div>
+  </div>
+  <div id="deviceTopActions" style="display:flex;flex-direction:column;gap:8px" data-permission="super_admin">
+    <button class="btn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)" onclick="testAccessDB()">🔌 Test MDB</button>
+    <button class="btn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)" onclick="syncAccessDB()">🔄 Sync Now</button>
+    <button class="btn" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)" onclick="showSyncLogs()">📋 View Logs</button>
+  </div>
+</div>
+<div class="card" id="deviceManagerCard" style="margin-bottom:20px" data-permission="super_admin">
+  <div class="card-hdr"><span class="card-title">All Devices</span><button class="btn btn-primary btn-sm" onclick="toggleAddDeviceForm()">+ Add Device</button></div>
+  <div id="deviceCards" class="device-list-grid"></div>
+  <div id="addDeviceForm" style="display:none;border-top:1px solid var(--gray200);margin-top:14px;padding-top:14px">
+    <div class="user-form-grid">
+      <div class="form-group"><label class="form-label">Device Name</label><input class="form-input" id="newDeviceName" placeholder="Main Gate Device"></div>
+      <div class="form-group"><label class="form-label">Model</label><input class="form-input" id="newDeviceModel" value="ZKTeco uFace 800"></div>
+      <div class="form-group"><label class="form-label">Serial Number</label><input class="form-input" id="newDeviceSerial" placeholder="Serial number"></div>
+      <div class="form-group"><label class="form-label">Sync Interval (seconds)</label><input class="form-input" id="newDeviceInterval" type="number" min="30" value="90"></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Full path to this device's att2000.mdb</label><input class="form-input" id="newDevicePath" placeholder="/mnt/zkteco/device2/att2000.mdb"></div>
+    </div>
+    <div class="access-actions"><button class="btn btn-primary" onclick="createDevice()">Save Device</button><button class="btn btn-outline" onclick="toggleAddDeviceForm(false)">Cancel</button></div>
+  </div>
+</div>
+<div class="card" id="deviceConnectionForm" style="margin-bottom:20px" data-permission="super_admin">
+  <div class="card-hdr"><span class="card-title">Existing Access Database Connection</span><span id="accessStatus" class="access-status">Not configured</span></div>
+  <div class="form-group">
+    <label class="form-label" for="accessPath">Full path to the LIVE att2000.mdb file</label>
+    <input class="form-input" id="accessPath" placeholder="/mnt/zkteco/att2000.mdb" autocomplete="off">
+  </div>
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="accessAuto"> Automatic database sync</label>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px">Sync interval (seconds) <input class="form-input" id="accessInterval" type="number" min="30" max="86400" value="90" style="width:110px"></label>
+  </div>
+  <div class="access-actions">
+    <button class="btn btn-primary" onclick="saveAccessSettings()">💾 Save Database Settings</button>
+    <button class="btn btn-outline" onclick="testAccessDB()">🔍 Test MDB</button>
+    <button class="btn btn-outline" onclick="syncAccessDB()">🔄 Sync Now</button>
+  </div>
+  <div class="access-help">AttendPro reads the MDB database in read-only mode. Enter the path to the file actively updated by the ZKTeco software. A copied MDB only shows older data. Install <code>mdbtools</code> on Ubuntu to read Microsoft Access databases.</div>
+</div>
+<div class="metric-row">
+  <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Connection Method</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">MDB file bridge (read-only)</div></div>
+  <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Last Sync</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">Pending integration</div></div>
+  <div class="metric-box"><div class="metric-val" style="color:var(--text3)">—</div><div class="metric-lbl">Total Events</div><div style="font-size:11px;margin-top:4px;color:var(--text3)">No data yet</div></div>
+</div>
+<div class="grid2">
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Device Specifications</span></div>
+    <div class="detail-row"><span class="detail-label">Model</span><span class="detail-val">ZKTeco uFace 800</span></div>
+    <div class="detail-row"><span class="detail-label">Biometric Type</span><span class="detail-val">Face + Fingerprint + Card + PIN</span></div>
+    <div class="detail-row"><span class="detail-label">User Capacity</span><span class="detail-val">1,500 Faces / 3,000 Fingerprints</span></div>
+    <div class="detail-row"><span class="detail-label">Log Capacity</span><span class="detail-val">100,000 Records</span></div>
+    <div class="detail-row"><span class="detail-label">Interface</span><span class="detail-val">TCP/IP, USB, RS232/485</span></div>
+    <div class="detail-row"><span class="detail-label">Existing System</span><span class="detail-val">att2000.mdb (Access DB)</span></div>
+    <div class="detail-row"><span class="detail-label">Integration Status</span><span class="detail-val"><span class="badge b-amber">⏳ To Be Verified</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Sync History</span></div>
+    <div id="syncHistoryBox" style="padding:8px 0;color:var(--text3);font-size:12px">Loading sync history…</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ REDIS & SCHEDULER MONITOR ═══════════════════ -->
+<div id="screen-redis" class="screen">
+  <div class="page-hdr" style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+    <div><div class="page-title">Redis Cache &amp; Scheduler Monitor</div><div class="page-sub">Check cached attendance data, hourly synchronization, Supabase status and recent activity.</div></div>
+    <div class="access-actions" style="margin-top:0">
+      <button class="btn btn-outline" onclick="loadRedisMonitor(true)">↻ Refresh Status</button>
+      <button class="btn btn-outline" data-permission="super_admin" onclick="refreshRedisCache()">Refresh Redis Cache</button>
+      <button class="btn btn-primary" data-permission="super_admin" onclick="runSchedulerNow()">▶ Run Scheduler Now</button>
+    </div>
+  </div>
+  <div id="redisMonitorNotice" class="access-help" style="display:none;margin:-8px 0 14px;padding:10px 12px;border:1px solid var(--gray200);border-radius:8px"></div>
+  <div class="kpi-grid" id="redisMonitorKpis">
+    <div class="kpi-card"><div class="kpi-label">Redis Connection</div><div class="kpi-value" style="font-size:20px">Loading…</div></div>
+    <div class="kpi-card"><div class="kpi-label">Scheduler</div><div class="kpi-value" style="font-size:20px">Loading…</div></div>
+    <div class="kpi-card"><div class="kpi-label">Cached Dataset Rows</div><div class="kpi-value">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Last Cache Update</div><div class="kpi-value" style="font-size:16px">—</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Redis Cache Details</span><span id="redisConnectionBadge" class="badge b-gray">Checking</span></div>
+      <div class="redis-detail-grid" id="redisDetails">
+        <div><span>Redis URL / Prefix</span><strong>Loading…</strong></div><div><span>Redis Keys</span><strong>—</strong></div>
+        <div><span>API Cache TTL</span><strong>—</strong></div><div><span>Snapshot Generated</span><strong>—</strong></div>
+        <div><span>Permanent Database</span><strong>—</strong></div><div><span>Original MDB</span><strong>Read-only</strong></div>
+      </div>
+      <div class="access-help" id="redisCacheNote" style="margin-top:12px">Redis is a rebuildable cache. Supabase remains the permanent cloud database.</div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Hourly Scheduler</span><span id="schedulerStatusBadge" class="badge b-gray">Checking</span></div>
+      <div class="redis-detail-grid" id="schedulerDetails">
+        <div><span>Scheduler</span><strong>Loading…</strong></div><div><span>Update Interval</span><strong>1 Hour</strong></div>
+        <div><span>Last Started</span><strong>—</strong></div><div><span>Last Completed</span><strong>—</strong></div>
+        <div><span>Next Scheduled Run</span><strong>—</strong></div><div><span>Last Result</span><strong>—</strong></div>
+      </div>
+      <div id="schedulerError" class="redis-error" style="display:none"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hdr"><span class="card-title">Cached Data</span><span class="page-sub" id="redisDatasetSummary">Dataset record counts from Redis snapshots</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Dataset</th><th>What It Contains</th><th>Records</th><th>Chunks</th><th>Action</th></tr></thead><tbody id="redisDatasetsBody"><tr><td colspan="5">Loading cache datasets…</td></tr></tbody></table></div>
+    <div class="access-help">Source Daily contains original imported biometric attendance. Effective Daily contains the approved/current attendance view. Both remain separate.</div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Supabase Sync</span><span id="supabaseStatusBadge" class="badge b-gray">Checking</span></div>
+      <div class="redis-detail-grid" id="supabaseDetails"><div><span>Cloud Database</span><strong>Loading…</strong></div><div><span>Pending Source Upload</span><strong>—</strong></div><div><span>Last Source Upload</span><strong>—</strong></div><div><span>Cloud Pull</span><strong>—</strong></div></div>
+      <div id="supabaseError" class="redis-error" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Connected MDB Devices</span><span class="page-sub">Read-only source</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Device</th><th>MDB Configured</th><th>Auto Sync</th><th>Last Sync</th><th>Status / Error</th></tr></thead><tbody id="redisDevicesBody"><tr><td colspan="5">Loading devices…</td></tr></tbody></table></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hdr"><span class="card-title">Recent Activity Logs</span><span class="page-sub" id="redisLogCount">Latest 30 events</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Date &amp; Time</th><th>Activity</th><th>Records</th><th>Status</th><th>Details</th></tr></thead><tbody id="redisLogsBody"><tr><td colspan="5">Loading activity…</td></tr></tbody></table></div>
+  </div>
+  <div class="card" id="redisPreviewCard" style="display:none">
+    <div class="card-hdr"><span class="card-title" id="redisPreviewTitle">Cached Data Preview</span><button class="btn btn-outline btn-sm" onclick="closeRedisPreview()">Close</button></div>
+    <div class="access-help" id="redisPreviewMeta"></div>
+    <div class="tbl-wrap" id="redisPreviewBody" style="margin-top:10px"></div>
+  </div>
+  <div class="access-help" style="margin-top:8px">The monitor reads status through AttendPro APIs. It does not edit the original ZKTeco MDB file. Manual attendance corrections remain in the application/cloud data layer, not in the device MDB.</div>
+</div>
+
+<!-- ═══════════════════ SETTINGS ═══════════════════ -->
+<div id="screen-settings" class="screen">
+<div class="page-hdr"><div class="page-title">Settings</div><div class="page-sub">System configuration and preferences — some organization settings are prototype placeholders</div></div>
+<div class="settings-grid">
+  <div class="settings-nav">
+    <div class="s-nav-item active" onclick="switchSettingsTab(this,'sOrg')">🏢 Organization</div>
+    <div class="s-nav-item" onclick="switchSettingsTab(this,'sShifts')">⏰ Shifts</div>
+    <div class="s-nav-item" onclick="switchSettingsTab(this,'sDepts')">🏢 Departments</div>
+    <div class="s-nav-item" onclick="switchSettingsTab(this,'sAttendance')">📋 Attendance Rules</div>
+    <div class="s-nav-item" onclick="switchSettingsTab(this,'sNotif')">🔔 Notifications</div>
+    <div class="s-nav-item" onclick="switchSettingsTab(this,'sDevices')" data-permission="super_admin">🖥 Devices</div>
+  </div>
+  <div>
+    <div id="sOrg" class="card">
+      <div class="card-title" style="margin-bottom:16px">Organization Information</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-group"><label class="form-label">Organization Name</label><input class="form-input" id="apOrgName" value="Al-Rehman Industries Ltd."></div>
+        <div class="form-group"><label class="form-label">Short Name</label><input class="form-input" id="apOrgShortName" value="ARI"></div>
+        <div class="form-group"><label class="form-label">HR Contact</label><input class="form-input" id="apHrContact" value="hr@alrehman.com"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="apOrgPhone" value="+92-42-111-000-000"></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label">Address</label><input class="form-input" id="apOrgAddress" value="123 Industrial Area, Lahore, Punjab, Pakistan"></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="saveApGeneralSettings('organization')">Save Changes</button>
+    </div>
+    <div id="sShifts" class="card" style="display:none">
+      <div class="card-title" style="margin-bottom:16px">Shift Configuration</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Shift Name</th><th>Start</th><th>End</th><th>Late After</th><th>Grace Period</th><th>Actions</th></tr></thead>
+        <tbody id="apShiftSettingsBody"></tbody>
+      </table></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="openApShiftEditor()" data-permission="super_admin">+ Add Shift</button>
+      <p class="access-help" style="margin-top:10px">Shift definitions are saved centrally in the AttendPro database and shared with authorized users.</p>
+    </div>
+    <div id="sDepts" class="card" style="display:none">
+      <div class="card-title" style="margin-bottom:16px">Departments</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Department</th><th>Head</th><th>Employees</th><th>Actions</th></tr></thead>
+        <tbody id="apDepartmentSettingsBody"></tbody>
+      </table></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="openApDepartmentEditor(-1)" data-permission="super_admin">+ Add Department</button>
+      <p class="access-help" style="margin-top:10px">Department names and heads are saved centrally. Renaming a label here does not automatically reassign employee department records.</p>
+    </div>
+    <div id="sAttendance" class="card" style="display:none">
+      <div class="card-title" style="margin-bottom:16px">Attendance Rules</div>
+      <div class="form-group"><label class="form-label">Minimum Working Hours (per day)</label><input class="form-input" id="apMinWorkingHours" type="number" min="0.5" max="24" step="0.5" value="8" style="max-width:120px"></div>
+      <div class="form-group"><label class="form-label">Late Arrival Threshold (minutes)</label><input class="form-input" id="apLateThreshold" type="number" min="0" max="120" value="10" style="max-width:120px"></div>
+      <div class="form-group"><label class="form-label">Early Departure Threshold (minutes)</label><input class="form-input" id="apEarlyThreshold" type="number" min="0" max="120" value="15" style="max-width:120px"></div>
+      <div class="form-group"><label class="form-label">Overtime Starts After (minutes beyond shift)</label><input class="form-input" id="apOvertimeAfter" type="number" min="0" max="480" value="30" style="max-width:120px"></div>
+      <button class="btn btn-primary" onclick="saveApGeneralSettings('attendance_rules')">Save Rules</button><p class="access-help" style="margin-top:8px">These policy values are centrally stored. Payroll, overtime payout and automatic disciplinary actions are not calculated by this settings panel.</p>
+    </div>
+    <div id="sNotif" class="card" style="display:none">
+      <div class="card-title" style="margin-bottom:16px">Notification Settings</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifLate" checked> Alert on late arrivals (after threshold)</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifMissingIn" checked> Alert on missing check-ins</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifMissingOut"> Alert on missing check-outs</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifDaily" checked> Daily attendance summary email</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="apNotifDevice"> Device sync failure alerts</label>
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="saveApGeneralSettings('notifications')">Save Settings</button><p class="access-help" style="margin-top:8px">These are notification preferences only. Email/SMS delivery needs a configured provider and background delivery worker.</p>
+    </div>
+    <div id="sDevices" class="card" style="display:none">
+      <div class="card-title" style="margin-bottom:8px">Multiple Device Settings</div>
+      <div class="page-sub" style="margin-bottom:14px">Select a device to manage its path, model and sync options. Only Super Admin can make changes.</div>
+      <div id="settingsDeviceCards" class="device-list-grid"></div>
+      <div class="access-actions" data-permission="super_admin"><button class="btn btn-primary" onclick="toggleAddDeviceForm(true);showScreen('device',document.querySelector('[data-screen=device]'))">+ Add / Manage Device</button></div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="screen-users" class="screen">
+  <div class="page-hdr"><div class="page-title">System Users</div><div class="page-sub">Simple roles: View Only, Supervisor, and Super Admin.</div></div>
+  <div class="role-card-grid">
+    <div class="role-card"><h3>👁 View Only User</h3><p>Can view the dashboard and attendance, and export or print reports. Cannot edit attendance, change device settings, or manage users.</p></div>
+    <div class="role-card"><h3>🧑‍💼 Supervisor</h3><p>Includes all View Only permissions, plus attendance check-in/check-out and the ability to review and update attendance records.</p></div>
+    <div class="role-card"><h3>🛡 Super Admin</h3><p>Full access: add, switch, configure, and sync devices; create, update, and delete users; edit attendance; and manage reports.</p></div>
+  </div>
+  <div class="card" data-permission="super_admin" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:14px">Add New User</div>
+    <div class="user-form-grid">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newUserDisplay" placeholder="User full name"></div>
+      <div class="form-group"><label class="form-label" id="newUserNameLabel">Username</label><input class="form-input" id="newUserName" placeholder="Username / Supabase email"></div>
+      <div class="form-group"><label class="form-label">Role</label><select class="form-input" id="newUserRole"><option value="view_only">View Only User</option><option value="supervisor">Supervisor</option><option value="super_admin">Super Admin</option></select></div>
+      <div class="form-group"><label class="form-label">Password (8+ characters)</label><input class="form-input" id="newUserPassword" type="password" placeholder="Set password"></div>
+    </div>
+    <button class="btn btn-primary" onclick="createUser()">+ Create User</button>
+  </div>
+  <div class="card"><div class="card-hdr"><span class="card-title">User Accounts</span><button class="btn btn-outline btn-sm" onclick="loadUsers()">↻ Refresh</button></div><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usersTbody"></tbody></table></div></div>
+  <div class="card" style="margin-top:14px" id="passwordCard">
+    <div class="card-title" style="margin-bottom:12px">Change My Password</div>
+    <div class="user-form-grid"><div class="form-group"><label class="form-label">Current Password</label><input class="form-input" id="currentPassword" type="password"></div><div class="form-group"><label class="form-label">New Password (8+ characters)</label><input class="form-input" id="newPassword" type="password"></div><div class="form-group"><button class="btn btn-outline" onclick="changeMyPassword()">Update Password</button></div></div>
+  </div>
+</div>
+</div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+
+<!-- Super Admin: add an employee to AttendPro's local database (never writes to att2000.mdb). -->
+<div class="modal-overlay" id="addEmployeeModal" onclick="if(event.target===this)closeAddEmployeeForm()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Add employee">
+    <div class="modal-hdr"><div class="modal-title">Add Employee Profile</div><button class="close-btn" onclick="closeAddEmployeeForm()" aria-label="Close">×</button></div>
+    <form id="addEmployeeForm" class="modal-body" onsubmit="saveNewEmployee(event)">
+      <div class="access-help" style="margin-bottom:12px">This adds an employee to the AttendPro database. It does not register anyone on the biometric machine or change the original Access database.</div>
+      <div class="form-group"><label class="form-label" for="newEmpName">Employee Full Name *</label><input id="newEmpName" name="name" class="form-input" required maxlength="120" autocomplete="off"></div>
+      <div class="form-group"><label class="form-label" for="newEmpBadge">AC-No. (optional)</label><input id="newEmpBadge" name="badge_number" class="form-input" maxlength="80"></div>
+      <div class="form-group"><label class="form-label" for="newEmpDept">Department</label><input id="newEmpDept" name="department" class="form-input" maxlength="100" value="Unassigned"></div>
+      <div class="form-group"><label class="form-label" for="newEmpDesignation">Designation</label><input id="newEmpDesignation" name="designation" class="form-input" maxlength="100" value="Staff"></div>
+      <div class="form-group"><label class="form-label" for="newEmpShift">Shift</label><input id="newEmpShift" name="shift" class="form-input" maxlength="100" value="General"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn btn-outline" onclick="closeAddEmployeeForm()">Cancel</button><button type="submit" class="btn btn-primary">Save Employee</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="empModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalTitle">Employee Details</div>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="attendanceEditModal" onclick="if(event.target===this)closeAttendanceEditor()">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title" id="attendanceEditTitle">Review / Update Attendance</div><button class="close-btn" onclick="closeAttendanceEditor()">×</button></div>
+    <div class="modal-body">
+      <div class="detail-row"><span class="detail-label">Employee</span><span class="detail-val" id="editEmployeeName">—</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-val" id="editWorkDateLabel">—</span></div>
+      <div class="form-group" style="margin-top:14px"><label class="form-label">Timetable / Shift start</label><input class="form-input" type="time" id="editShift"></div>
+      <div class="user-form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="form-group"><label class="form-label">Clock In</label><input class="form-input" type="time" id="editClockIn"></div>
+        <div class="form-group"><label class="form-label">Clock Out</label><input class="form-input" type="time" id="editClockOut"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label><select class="form-input" id="editStatus"><option value="present">Present</option><option value="late">Late</option><option value="absent">Absent</option><option value="on_leave">On Leave</option><option value="early_arrival">Early Arrival</option><option value="not_checked_in">Not Checked In</option></select></div>
+      <div class="access-help" id="editSaveHelp">Original att2000.mdb will never be changed.</div>
+      <div class="access-actions"><button class="btn btn-primary" onclick="saveAttendanceEdit()">💾 Save Update</button><button class="btn btn-outline" onclick="quickAttendanceAction('check_in')">🟢 Check In Now</button><button class="btn btn-outline" onclick="quickAttendanceAction('check_out')">🔴 Check Out Now</button><button class="btn btn-outline" onclick="viewOriginalAudit()">🧾 Original / Audit</button></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="discrepancyModal" onclick="if(event.target===this)closeDiscrepancyModal()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title">Review Discrepancy</div><button class="close-btn" onclick="closeDiscrepancyModal()">×</button></div>
+  <div class="modal-body"><div id="discModalDetail"></div>
+  <div class="form-group" style="margin-top:14px"><label class="form-label">Resolution</label>
+   <select id="discResolution" class="form-input"><option value="reviewed">Reviewed — no attendance change</option><option value="present">Mark Present (effective attendance)</option><option value="on_leave">Mark On Leave (effective attendance)</option></select></div>
+  <div class="form-group"><label class="form-label">Review note / reason</label><textarea id="discReviewNote" class="form-input" rows="3" placeholder="Reason for review or attendance correction" style="resize:vertical"></textarea></div>
+  <div class="access-help" id="discrepancySaveHelp">Raw punches and the original att2000.mdb are never overwritten.</div>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn btn-primary" onclick="saveDiscrepancyReview()">Save Review</button><button class="btn btn-outline" onclick="closeDiscrepancyModal()">Cancel</button></div>
+  </div></div>
+</div>
+<div class="modal-overlay" id="ptsTraineeModal" onclick="if(event.target===this)closePtsTraineeModal()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title">Add Manawan Trainee</div><button class="close-btn" type="button" onclick="closePtsTraineeModal()">×</button></div>
+  <form class="modal-body" id="ptsTraineeForm" onsubmit="savePtsTrainee(event)">
+   <div class="form-group"><label class="form-label">Employee ID / Cap No. *</label><input class="form-input" id="ptsTraineeEmployeeNo" required maxlength="80"></div>
+   <div class="form-group"><label class="form-label">Trainee Name *</label><input class="form-input" id="ptsTraineeName" required maxlength="160"></div>
+   <div class="form-group"><label class="form-label">Father Name</label><input class="form-input" id="ptsTraineeFatherName" maxlength="160"></div>
+   <div class="form-group"><label class="form-label">Course</label><input class="form-input" id="ptsTraineeCourse" maxlength="160" placeholder="e.g. Recruit Course 66th"></div>
+   <div class="form-group"><label class="form-label">Platoon</label><input class="form-input" id="ptsTraineePlatoon" maxlength="60"></div>
+   <div class="form-group"><label class="form-label">Course Start Date</label><input class="form-input" id="ptsTraineeStart" type="date"></div>
+   <div class="form-group"><label class="form-label">Course End Date</label><input class="form-input" id="ptsTraineeEnd" type="date"></div>
+   <div class="form-group"><label class="form-label">Status</label><select class="form-input" id="ptsTraineeStatusForm"><option value="active">Active</option><option value="repatriated">Repatriated</option><option value="completed">Completed</option></select></div>
+   <div class="access-actions"><button class="btn btn-primary" type="submit">Save Trainee</button><button class="btn btn-outline" type="button" onclick="closePtsTraineeModal()">Cancel</button></div>
+  </form>
+ </div>
+</div>
+<div class="modal-overlay" id="ptsRecordModal" onclick="if(event.target===this)closePtsRecordModal()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title" id="ptsRecordModalTitle">Add Record</div><button class="close-btn" type="button" onclick="closePtsRecordModal()">×</button></div>
+  <form class="modal-body" id="ptsRecordForm" onsubmit="savePtsRecord(event)">
+   <div class="form-group"><label class="form-label">Employee ID / Cap No. *</label><input class="form-input" id="ptsRecordPersonId" required maxlength="80"></div>
+   <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="ptsRecordPersonName" required maxlength="160"></div>
+   <div class="form-group" id="ptsRecordCourseWrap"><label class="form-label">Course</label><input class="form-input" id="ptsRecordCourse" maxlength="160"></div>
+   <div class="form-group" id="ptsRecordPlatoonWrap"><label class="form-label">Platoon</label><input class="form-input" id="ptsRecordPlatoon" maxlength="60"></div>
+   <div class="form-group" id="ptsRecordCategoryWrap"><label class="form-label">Staff Category</label><input class="form-input" id="ptsRecordCategory" maxlength="120"></div>
+   <div class="form-group" id="ptsRecordBranchWrap"><label class="form-label">Staff Branch / Posting Place</label><input class="form-input" id="ptsRecordBranch" maxlength="160"></div>
+   <div class="form-group" id="ptsRecordLeaveTypeWrap"><label class="form-label">Leave Type</label><input class="form-input" id="ptsRecordLeaveType" maxlength="100" placeholder="Casual Leave / Medical Rest / Long Weekend"></div>
+   <div class="form-group"><label class="form-label">Start Date &amp; Time *</label><input class="form-input" id="ptsRecordStart" type="datetime-local" required></div>
+   <div class="form-group"><label class="form-label">End Date &amp; Time *</label><input class="form-input" id="ptsRecordEnd" type="datetime-local" required></div>
+   <div class="form-group"><label class="form-label">Reason *</label><input class="form-input" id="ptsRecordReason" required maxlength="500"></div>
+   <div class="form-group" id="ptsRecordDutyPlaceWrap"><label class="form-label">Duty / Permission Place</label><input class="form-input" id="ptsRecordDutyPlace" maxlength="180"></div>
+   <div class="form-group"><label class="form-label">Order / Reference No.</label><input class="form-input" id="ptsRecordReference" maxlength="120"></div>
+   <div class="form-group"><label class="form-label">Remarks</label><textarea class="form-input" id="ptsRecordRemarks" rows="2"></textarea></div>
+   <div class="form-group"><label class="form-label">Status</label><select class="form-input" id="ptsRecordStatus"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="exempt">Exempt</option></select></div>
+   <div class="access-actions"><button class="btn btn-primary" type="submit">Save Record</button><button class="btn btn-outline" type="button" onclick="closePtsRecordModal()">Cancel</button></div>
+  </form>
+ </div>
+</div>
+
+<div class="login-overlay" id="loginOverlay" aria-label="PTC Manawan secure portal sign in">
+  <div class="ptc-login-shell">
+    <section class="ptc-login-brand" aria-label="Police Training College Lahore identity">
+      <div class="ptc-login-brand-top">
+        <span class="ptc-login-crest"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="78" height="78"></span>
+        <span class="ptc-login-institution">
+          <small>Punjab Police</small>
+          <strong>Police Training College Lahore</strong>
+          <span>Manawan Campus · Lahore</span>
+        </span>
+      </div>
+      <div class="ptc-login-brand-main">
+        <div class="ptc-login-eyebrow"><span></span> Authorized Digital Access</div>
+        <h1>PTC <em>Manawan</em></h1>
+        <p class="ptc-login-brand-copy">Biometric Attendance &amp; Trainee Management System</p>
+        <div class="ptc-login-photo-card">
+          <img src="/assets/ptc-manawan-flags-card.webp" alt="Police Training College Lahore campus entrance with Pakistan and institutional flags" width="511" height="330">
+          <div class="ptc-login-photo-caption">
+            <span>Campus II · Manawan, Lahore</span>
+            <strong>Discipline · Training · Service</strong>
+          </div>
+        </div>
+        <div class="ptc-login-feature-row">
+          <div class="ptc-login-feature"><span>01</span><strong>Secure Access</strong><small>Authorized accounts</small></div>
+          <div class="ptc-login-feature"><span>02</span><strong>Role Based</strong><small>Controlled permissions</small></div>
+          <div class="ptc-login-feature"><span>03</span><strong>Digital Records</strong><small>Attendance &amp; training</small></div>
+        </div>
+      </div>
+      <div class="ptc-login-brand-footer">
+        <span>POLICE TRAINING COLLEGE LAHORE</span>
+        <span>DISCIPLINE&nbsp; • &nbsp;TRAINING&nbsp; • &nbsp;SERVICE</span>
+      </div>
+    </section>
+
+    <form class="login-card ptc-login-form" onsubmit="loginUser(event)">
+      <div class="ptc-login-form-crest"><img src="/assets/ptc-college-crest.webp" alt="Police Training College Lahore crest" width="62" height="62"></div>
+      <div class="ptc-login-form-kicker">ATTENDPRO · SECURE PORTAL</div>
+      <h2>Welcome back</h2>
+      <p class="ptc-login-form-intro">Sign in with your assigned Police Training College account to continue.</p>
+      <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+      <label class="form-label" for="loginUsername" id="loginUsernameLabel">Email address</label>
+      <input class="form-input" id="loginUsername" type="text" autocomplete="username" placeholder="you@ptclahore.co" required>
+      <label class="form-label" for="loginPassword">Password</label>
+      <input class="form-input" id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+      <button class="btn btn-primary ptc-login-submit" type="submit">Sign In <span aria-hidden="true">→</span></button>
+      <div class="ptc-login-authorized"><span class="ptc-login-shield">✓</span><span><strong>Authorized users only</strong><small>Access is monitored and role-controlled.</small></span></div>
+      <div class="ptc-login-form-footer">
+        <button class="aplp-login-back" type="button" onclick="returnToPublicLanding()">← Back to institution website</button>
+        <a href="/" aria-label="Return to the institution website">Institution Website ↗</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="apEmployeeEditOverlay" onclick="if(event.target===this)closeEmployeeEditor()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title">Edit Employee Profile</div><button class="close-btn" type="button" onclick="closeEmployeeEditor()">×</button></div>
+ <form class="modal-body" id="apEmployeeEditForm" onsubmit="saveEmployeeProfile(event)">
+  <div class="access-help" style="margin-bottom:12px">Saved to Supabase only. The original biometric database is never modified.</div>
+  <div id="apEmployeeEditFields"></div>
+  <div class="access-actions" style="margin-top:16px"><button class="btn btn-primary" type="submit" id="apProfileSaveButton">Save Profile</button><button class="btn btn-outline" type="button" onclick="reviewFromApEmployeeEditor()">Review / Update Attendance</button><button class="btn btn-outline" type="button" onclick="reportFromApEmployeeEditor()">Generate Report</button><button class="btn btn-outline" type="button" onclick="exportFromApEmployeeEditor()">Export Editable Excel</button><button class="btn btn-outline" type="button" onclick="closeEmployeeEditor()">Cancel</button></div>
+ </form></div>
+</div>
+<div class="modal-overlay" id="apConfigEditorModal" onclick="if(event.target===this)closeApConfigEditor()">
+ <div class="modal" role="dialog" aria-modal="true" aria-label="Edit display configuration">
+   <div class="modal-hdr"><div class="modal-title" id="apConfigEditorTitle">Edit Settings</div><button class="close-btn" type="button" onclick="closeApConfigEditor()">×</button></div>
+   <form class="modal-body" id="apConfigEditorForm" onsubmit="saveApConfigEditor(event)">
+     <div id="apConfigEditorFields"></div>
+     <div class="access-help" style="margin:10px 0">Changes are validated by the backend and saved to the shared AttendPro settings database.</div>
+     <div class="access-actions"><button class="btn btn-primary" type="submit">Save</button><button class="btn btn-outline" type="button" onclick="closeApConfigEditor()">Cancel</button></div>
+   </form>
+ </div>
+</div>
+<div id="apToastStack" aria-live="polite" aria-atomic="false"></div>
+<section id="apNotifPanel" aria-label="Notifications" role="region"><div class="ap-notif-head"><strong>Notifications</strong><button type="button" class="btn btn-outline btn-sm" onclick="toggleApNotifications(false)">Close</button></div><div id="apNotifItems"></div></section>
+<div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
+
+<script src="/src/js/attendpro-app.js?v=2026-11-26-frontend-backend-architecture-v1"></script>
+
+<script src="/src/js/public-landing.js?v=2026-11-26-frontend-backend-architecture-v1"></script>
+
+</body>
+</html>

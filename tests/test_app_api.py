@@ -55,12 +55,13 @@ class TestApi:
 
  def test_exact_prototype_and_backend_hooks(self):
   page=self.client.get('/').text
+  app_js=self.client.get('/src/js/attendpro-app.js').text
   assert 'AttendPro' in page
   assert 'id="themeToggle"' in page
   assert 'Redis Cache &amp; Scheduler Monitor' in page
-  assert "/api/cache/status" in page and "/api/monitor/logs?limit=30" in page
+  assert "/api/cache/status" in app_js and "/api/monitor/logs?limit=30" in app_js
   assert 'id="accessPath"' in page
-  assert '/api/attendance/history' in page
+  assert '/api/attendance/history' in app_js
  def test_homepage_disables_stale_browser_cache(self):
   response=self.client.get('/')
   assert response.status_code==200

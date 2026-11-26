@@ -1,5 +1,6 @@
 from pathlib import Path
-H=(Path(__file__).resolve().parents[1]/'static'/'index.html').read_text()
+from frontend_source import load_frontend_source
+H=load_frontend_source()[4]
 def test_expandable_controls():
     for t in ['id="sidebarResizer"','id="sidebarToggle"','id="workspaceToggle"','function toggleSidebar()', 'function toggleWorkspace()', 'function initSidebarResizer()', 'body.sidebar-hidden .main']:
         assert t in H

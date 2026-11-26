@@ -1,7 +1,8 @@
 from pathlib import Path
 
+from frontend_source import load_frontend_source
 ROOT = Path(__file__).resolve().parents[1]
-HTML = (ROOT / "static" / "index.html").read_text()
+HTML = load_frontend_source()[4]
 
 
 def test_print_uses_only_master_template_area():
@@ -35,4 +36,4 @@ def test_filtered_source_rows_are_used_for_print_and_template_export():
 
 
 def test_build_version_bumped_for_deployment_cache():
-    assert 'window.ATTENDPRO_BUILD = "2026-11-24-ptc-manawan-ui-refresh-v4";' in HTML
+    assert 'window.ATTENDPRO_BUILD = "2026-11-26-frontend-backend-architecture-v1";' in HTML

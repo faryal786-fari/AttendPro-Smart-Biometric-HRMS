@@ -2,8 +2,8 @@
 from pathlib import Path
 from bs4 import BeautifulSoup
 ROOT=Path(__file__).resolve().parents[1]
-HTML=(ROOT/'static'/'index.html').read_text()
-JS=(ROOT/'frontend.js').read_text()
+HTML=(ROOT/'frontend'/'index.html').read_text()
+JS=(ROOT/'frontend'/'src'/'js'/'attendpro-app.js').read_text()
 
 def test_employee_directory_matches_original_table_and_view_modal():
     doc=BeautifulSoup(HTML,'html.parser')
@@ -89,10 +89,10 @@ def test_discrepancy_sidebar_and_review_page():
 
 
 def test_redis_monitor_defines_cloud_enabled_before_rendering_details():
-    start=HTML.index('function renderRedisMonitor(cache,scheduler,cloud,logs,apiErrors={}){')
-    end=HTML.index('\nasync function refreshRedisCache()', start)
-    monitor=HTML[start:end]
+    start=JS.index('function renderRedisMonitor(cache,scheduler,cloud,logs,apiErrors={}){')
+    end=JS.index('\nasync function refreshRedisCache()', start)
+    monitor=JS[start:end]
     assert 'const cloudIsEnabled=monitorBool(cloud.enabled);' in monitor
     assert 'cloudEnabled?' not in monitor
-    assert 'Promise.allSettled' in HTML
-    assert 'window.ATTENDPRO_BUILD = "2026-11-24-ptc-manawan-ui-refresh-v4"' in HTML
+    assert 'Promise.allSettled' in JS
+    assert 'window.ATTENDPRO_BUILD = "2026-11-26-frontend-backend-architecture-v1"' in JS

@@ -96,7 +96,7 @@ def test_pts_roster_excel_import_updates_existing_trainees(pts_client):
 
 
 def test_pts_training_migration_is_server_only():
-    sql = (ROOT / 'supabase' / '005_pts_training_management.sql').read_text().lower()
+    sql = (ROOT / 'backend' / 'supabase' / 'migrations' / '005_pts_training_management.sql').read_text().lower()
     assert 'create table if not exists public.pts_trainees' in sql
     assert 'create table if not exists public.pts_trainee_attendance' in sql
     assert 'alter table public.%i enable row level security' in sql
@@ -126,7 +126,7 @@ def test_supplied_leave_template_import_resolves_course_and_normal_leave_is_appr
         'course_start_date': '2026-09-01', 'course_end_date': '2026-09-30', 'status': 'active',
     })
     assert created.status_code == 200
-    template = (ROOT / 'templates' / 'PTS_Leave_Import_Template.xlsx').read_bytes()
+    template = (ROOT / 'backend' / 'templates' / 'PTS_Leave_Import_Template.xlsx').read_bytes()
     response = pts_client.post('/api/pts/records/import?record_type=leave&person_type=trainee', files={
         'file': ('PTS_Leave_Import_Template.xlsx', template,
                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -145,7 +145,7 @@ def test_supplied_osd_template_import_is_approved_and_rejects_overlap(pts_client
         'course_start_date': '2026-10-01', 'course_end_date': '2026-10-30', 'status': 'active',
     })
     assert created.status_code == 200
-    template = (ROOT / 'templates' / 'PTS_OSD_Import_Template.xlsx').read_bytes()
+    template = (ROOT / 'backend' / 'templates' / 'PTS_OSD_Import_Template.xlsx').read_bytes()
     files = {'file': ('PTS_OSD_Import_Template.xlsx', template,
                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
     first = pts_client.post('/api/pts/records/import?record_type=osd&person_type=trainee', files=files)
@@ -204,7 +204,7 @@ def test_supplied_leave_template_can_resolve_active_staff_record(pts_client):
         db.execute('''INSERT INTO employees(id,device_user_id,badge_number,name,department,active)
                       VALUES(?,?,?,?,?,1)''',
                    (12345, '12345', '12345', 'Template Staff', 'Headquarters'))
-    template = (ROOT / 'templates' / 'PTS_Leave_Import_Template.xlsx').read_bytes()
+    template = (ROOT / 'backend' / 'templates' / 'PTS_Leave_Import_Template.xlsx').read_bytes()
     response = pts_client.post('/api/pts/records/import?record_type=leave&person_type=staff', files={
         'file': ('PTS_Leave_Import_Template.xlsx', template,
                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

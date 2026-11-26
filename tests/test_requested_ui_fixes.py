@@ -1,7 +1,8 @@
 from pathlib import Path
 from bs4 import BeautifulSoup
+from frontend_source import load_frontend_source
 ROOT=Path(__file__).resolve().parents[1]
-HTML=(ROOT/'static'/'index.html').read_text()
+HTML=load_frontend_source()[4]
 
 def test_quick_reports_have_distinct_actions_and_preview_handler():
     doc=BeautifulSoup(HTML,'html.parser')
@@ -37,7 +38,7 @@ def test_automatic_biometric_rule_is_described_in_english():
 
 
 def test_supabase_phase_3_migration_keeps_source_tables_immutable():
-    sql=(ROOT/'supabase'/'002_hourly_cache_and_biometric_discrepancy.sql').read_text()
+    sql=(ROOT/'backend'/'supabase'/'migrations'/'002_hourly_cache_and_biometric_discrepancy.sql').read_text()
     assert 'attendpro_apply_biometric_exception' in sql
     assert "actor_label='AttendPro Scheduler'" in sql
     assert 'attendpro_source_daily' in sql and 'attendpro_raw_punches' in sql

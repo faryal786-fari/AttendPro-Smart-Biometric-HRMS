@@ -22,7 +22,7 @@ def test_auth_key_header_is_apikey_not_bearer():
 
 
 def test_sql_has_backend_only_rls_and_atomic_correction():
- sql=(ROOT/'supabase'/'001_attendpro_schema.sql').read_text()
+ sql=(ROOT/'backend'/'supabase'/'migrations'/'001_attendpro_schema.sql').read_text()
  assert 'ENABLE ROW LEVEL SECURITY' in sql
  assert 'REVOKE ALL ON TABLE' in sql
  assert 'REVOKE ALL ON FUNCTION public.attendpro_save_correction' in sql
@@ -157,7 +157,7 @@ def test_cloud_projection_digest_detects_change_once(monkeypatch, tmp_path):
 
 
 def test_settings_migration_is_backend_only():
- sql=(ROOT/'supabase'/'004_persistent_app_settings.sql').read_text()
+ sql=(ROOT/'backend'/'supabase'/'migrations'/'004_persistent_app_settings.sql').read_text()
  assert 'CREATE TABLE IF NOT EXISTS public.attendpro_app_settings' in sql
  assert 'ENABLE ROW LEVEL SECURITY' in sql
  assert 'REVOKE ALL ON TABLE public.attendpro_app_settings FROM PUBLIC, anon, authenticated' in sql
