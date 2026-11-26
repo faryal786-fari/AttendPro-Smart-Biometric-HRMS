@@ -231,34 +231,28 @@ function initPtcLoginIsolation(){
 }
 
 
-/* Public campus gallery carousel. This is isolated from AttendPro app/auth logic. */
-function initAplpGalleryCarousel(){
-  const root=document.querySelector('[data-aplp-gallery]');
-  if(!root||root.dataset.carouselReady==='1')return;
-  const slides=Array.from(root.querySelectorAll('[data-gallery-slide]'));
-  const selectors=Array.from(root.querySelectorAll('[data-gallery-to]'));
-  const currentLabel=root.querySelector('[data-gallery-current]');
-  const pauseButton=root.querySelector('[data-gallery-pause]');
-  const previousButton=root.querySelector('[data-gallery-prev]');
-  const nextButton=root.querySelector('[data-gallery-next]');
+/* v6: working accessible campus photo carousel and interactive location map. */
+function initAplpCampusGallery(){
+  const gallery=document.querySelector('[data-aplp-gallery]');
+  if(!gallery||gallery.dataset.galleryReady==='1')return;
+  const slides=Array.from(gallery.querySelectorAll('[data-gallery-slide]'));
+  const dots=Array.from(gallery.querySelectorAll('.aplp-gallery-dots [data-gallery-to]'));
+  const thumbs=Array.from(gallery.querySelectorAll('.aplp-gallery-thumbnails [data-gallery-to]'));
+  const currentLabel=gallery.querySelector('[data-gallery-current]');
+  const pauseButton=gallery.querySelector('[data-gallery-pause]');
   if(slides.length<2)return;
-
-  root.dataset.carouselReady='1';
-  const reducedMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  let current=0;
-  let paused=reducedMotion;
+  gallery.dataset.galleryReady='1';
+  let current=Math.max(0,slides.findIndex(slide=>slide.classList.contains('is-active')));
+  let paused=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   let timer=null;
 
-  function stop(){
-    if(timer!==null){window.clearInterval(timer);timer=null;}
-  }
-  function updatePauseButton(){
+  const updatePauseButton=()=>{
     if(!pauseButton)return;
-    pauseButton.textContent=paused?'Play':'Pause';
+    pauseButton.textContent=paused?'Resume':'Pause';
     pauseButton.setAttribute('aria-pressed',String(paused));
     pauseButton.setAttribute('aria-label',paused?'Resume slideshow':'Pause slideshow');
-  }
-  function show(index){
+  };
+  const showSlide=index=>{
     current=(index+slides.length)%slides.length;
     slides.forEach((slide,i)=>{
       const active=i===current;
@@ -266,56 +260,140 @@ function initAplpGalleryCarousel(){
       slide.classList.toggle('is-active',active);
       slide.setAttribute('aria-hidden',String(!active));
     });
-    selectors.forEach(button=>{
+    [...dots,...thumbs].forEach(button=>{
       const active=Number(button.dataset.galleryTo)===current;
       button.classList.toggle('is-active',active);
       button.setAttribute('aria-pressed',String(active));
     });
     if(currentLabel)currentLabel.textContent=String(current+1).padStart(2,'0');
-  }
-  function start(){
-    stop();
-    if(paused||document.hidden)return;
-    timer=window.setInterval(()=>show(current+1),5600);
-  }
-  function moveTo(index){
-    show(index);
-    start();
-  }
+  };
+  const stopTimer=()=>{
+    if(timer!==null){window.clearInterval(timer);timer=null;}
+  };
+  const startTimer=()=>{
+    stopTimer();
+    if(paused||document.hidden||slides.length<2)return;
+    timer=window.setInterval(()=>showSlide(current+1),6500);
+  };
 
-  if(previousButton)previousButton.addEventListener('click',()=>moveTo(current-1));
-  if(nextButton)nextButton.addEventListener('click',()=>moveTo(current+1));
-  selectors.forEach(button=>{
-    button.addEventListener('click',()=>moveTo(Number(button.dataset.galleryTo)||0));
+  gallery.addEventListener('click',event=>{
+    const choice=event.target.closest('[data-gallery-to]');
+    if(choice&&gallery.contains(choice)){
+      showSlide(Number(choice.dataset.galleryTo)||0);
+      startTimer();
+    }
+    if(event.target.closest('[data-gallery-prev]')){
+      showSlide(current-1);startTimer();
+    }
+    if(event.target.closest('[data-gallery-next]')){
+      showSlide(current+1);startTimer();
+    }
   });
   if(pauseButton){
     pauseButton.addEventListener('click',()=>{
-      paused=!paused;
-      updatePauseButton();
-      if(paused)stop();else start();
+      paused=!paused;updatePauseButton();
+      if(paused)stopTimer();else startTimer();
     });
   }
-  root.addEventListener('mouseenter',stop);
-  root.addEventListener('mouseleave',start);
-  root.addEventListener('focusin',stop);
-  root.addEventListener('focusout',()=>{
-    window.setTimeout(()=>{if(!root.contains(document.activeElement))start();},0);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)stopTimer();else startTimer();
   });
-  root.addEventListener('keydown',event=>{
-    if(event.key==='ArrowLeft'){event.preventDefault();moveTo(current-1);}
-    if(event.key==='ArrowRight'){event.preventDefault();moveTo(current+1);}
+  gallery.addEventListener('focusin',stopTimer);
+  gallery.addEventListener('focusout',event=>{
+    if(!gallery.contains(event.relatedTarget))startTimer();
   });
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else start();});
-
-  show(0);
+  showSlide(current);
   updatePauseButton();
-  start();
+  startTimer();
+}
+
+function initAplpCampusMap(){
+  const mapElement=document.getElementById('aplpCampusMap');
+  if(!mapElement||mapElement.dataset.mapReady==='1')return;
+  const fallback=mapElement.querySelector('.aplp-map-fallback');
+  if(!window.L||typeof window.L.map!=='function'){
+    mapElement.classList.add('is-fallback');
+    return;
+  }
+
+  // Current Manawan Campus II map pin and the approximate historical Thokar locality pin.
+  const currentCampus=[31.591925,74.4460444];
+  const historicalArea=[31.47102,74.24113];
+  const currentGoogleMaps='https://www.google.com/maps/search/?api=1&query=31.591925,74.4460444';
+  const historicGoogleMaps='https://www.google.com/maps/search/?api=1&query=31.47102,74.24113';
+  const routeBounds=window.L.latLngBounds([currentCampus,historicalArea]);
+
+  try{
+    mapElement.dataset.mapReady='1';
+    if(fallback)fallback.remove();
+    const map=window.L.map(mapElement,{
+      zoomControl:true,
+      scrollWheelZoom:false,
+      doubleClickZoom:true,
+      touchZoom:true,
+      dragging:true,
+      tap:true
+    });
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+    }).addTo(map);
+    window.L.control.scale({imperial:false,metric:true,position:'bottomleft'}).addTo(map);
+
+    const makeIcon=current=>window.L.divIcon({
+      className:'aplp-leaflet-marker-wrap',
+      html:`<span class="aplp-leaflet-dot ${current?'is-current':''}" aria-hidden="true"></span>`,
+      iconSize:[22,22],
+      iconAnchor:[11,11]
+    });
+
+    const historicMarker=window.L.marker(historicalArea,{icon:makeIcon(false),title:'Historical Campus II area · Thokar Niaz Baig'}).addTo(map);
+    historicMarker.bindPopup(
+      '<div class="aplp-map-popup"><strong>Thokar Niaz Baig · Historical Area</strong>'+
+      '<p>Campus II was first established near this locality in June 2004. This is an approximate area pin, not a verified former building footprint.</p>'+
+      `<a href="${historicGoogleMaps}" target="_blank" rel="noopener noreferrer">Open this area in Google Maps ↗</a></div>`
+    );
+
+    const currentMarker=window.L.marker(currentCampus,{icon:makeIcon(true),title:'Current Police Training College Lahore · Manawan Campus II'}).addTo(map);
+    currentMarker.bindPopup(
+      '<div class="aplp-map-popup"><strong>Current Manawan Campus II</strong>'+
+      '<p>KC Factory site, G.T. Road, Manawan, Lahore, near New Khan Metro Bus Depot. Campus II moved here in June 2006.</p>'+
+      `<a href="${currentGoogleMaps}" target="_blank" rel="noopener noreferrer">Open live campus location ↗</a></div>`
+    );
+
+    window.L.polyline([historicalArea,currentCampus],{
+      color:'#b58f52',weight:4,opacity:.82,dashArray:'8 9',lineCap:'round'
+    }).addTo(map);
+
+    map.fitBounds(routeBounds,{padding:[34,34],maxZoom:11});
+    const focusButton=document.querySelector('[data-map-focus="campus"]');
+    const fitButton=document.querySelector('[data-map-fit]');
+    if(focusButton)focusButton.addEventListener('click',()=>{
+      map.flyTo(currentCampus,15,{duration:.8});
+      window.setTimeout(()=>currentMarker.openPopup(),450);
+    });
+    if(fitButton)fitButton.addEventListener('click',()=>{
+      map.fitBounds(routeBounds,{padding:[34,34],maxZoom:11});
+    });
+    window.setTimeout(()=>map.invalidateSize(),180);
+    if(window.ResizeObserver){
+      const observer=new ResizeObserver(()=>map.invalidateSize());
+      observer.observe(mapElement);
+    }
+    window.addEventListener('resize',()=>map.invalidateSize(),{passive:true});
+  }catch(error){
+    mapElement.dataset.mapReady='';
+    mapElement.classList.add('is-fallback');
+    if(fallback&&!fallback.isConnected)mapElement.appendChild(fallback);
+    console.warn('Campus map could not be initialized; Google Maps fallback remains available.',error);
+  }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  initAplpCampusGallery();
+  initAplpCampusMap();
   initPtcSidebarNavigation();
   initPtcLoginIsolation();
-  initAplpGalleryCarousel();
   setPtsDashboardMode('trainee');
   const year=document.getElementById('aplpYear');if(year)year.textContent=String(new Date().getFullYear());
   const back=document.getElementById('aplpBackTop');

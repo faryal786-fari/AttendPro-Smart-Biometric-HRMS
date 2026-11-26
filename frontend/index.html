@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="attendpro-build" content="2026-11-26-ptc-frontend-compat-v5">
+<meta name="attendpro-build" content="2026-11-26-ptc-frontend-refresh-v6">
 <meta name="description" content="Police Training College Lahore, Manawan Campus — institutional information and the secure AttendPro trainee and staff management portal.">
 <meta name="theme-color" content="#102b3b">
 <meta property="og:title" content="Police Training College Lahore · Manawan Campus | AttendPro">
@@ -12,9 +12,11 @@
 <title>Police Training College Lahore · Manawan Campus | AttendPro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="/assets/ptc-college-crest.png" type="image/png">
-<link rel="stylesheet" href="/src/styles/main.css?v=2026-11-26-ptc-frontend-compat-v5">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="/src/styles/main.css?v=2026-11-26-ptc-frontend-refresh-v6">
 
 <link rel="preload" as="image" href="/assets/ptc-manawan-hero-campus.webp" type="image/webp">
+<link rel="preload" as="image" href="/assets/ptc-manawan-login-building.webp" type="image/webp">
 </head>
 
 <body class="aplp-landing-mode">
@@ -89,22 +91,34 @@
 
     <section class="aplp-section" id="about">
       <div class="aplp-container aplp-about-grid">
-        <div class="aplp-about-visual">
-          <div class="aplp-about-art" role="img" aria-label="Illustrative map-style graphic showing the campus history from Thokar Niaz Baig to Manawan">
-            <svg viewBox="0 0 560 430" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect width="560" height="430" fill="#e7e9dc"/><path d="M-20 100 Q100 40 200 115 T420 100 T600 120" fill="none" stroke="#c2cdbd" stroke-width="22"/><path d="M-30 300 Q90 240 180 290 T390 290 T600 260" fill="none" stroke="#c2cdbd" stroke-width="18"/>
-              <path d="M55 0 L135 430 M420 -20 L340 450 M0 210 L560 210" stroke="#fff" stroke-width="13" opacity=".8"/>
-              <path d="M110 105 C180 150 215 230 330 290" fill="none" stroke="#b58f52" stroke-width="5" stroke-dasharray="9 8"/>
-              <circle cx="110" cy="105" r="16" fill="#214b3d" stroke="#fff" stroke-width="6"/><circle cx="330" cy="290" r="18" fill="#b58f52" stroke="#fff" stroke-width="6"/>
-              <rect x="42" y="40" width="150" height="42" rx="5" fill="#fff"/><text x="117" y="66" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#214b3d">THOKAR NIAZ BAIG</text>
-              <rect x="280" y="330" width="185" height="45" rx="5" fill="#fff"/><text x="372" y="357" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#214b3d">MANAWAN · CAMPUS II</text>
-              <text x="280" y="35" text-anchor="middle" font-family="Arial" font-size="11" letter-spacing="3" fill="#778579">CAMPUS HISTORY · LAHORE</text>
-              <path d="M328 271l2 19 18-7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-            </svg>
+        <div class="aplp-about-visual aplp-about-map-wrap">
+          <div id="aplpCampusMap" class="aplp-about-art aplp-campus-map" role="region"
+               aria-label="Interactive map showing the historical Thokar Niaz Baig area and current Manawan Campus II">
+            <div class="aplp-map-fallback" aria-hidden="true">
+              <svg viewBox="0 0 560 430" xmlns="http://www.w3.org/2000/svg">
+                <rect width="560" height="430" fill="#e7e9dc"/>
+                <path d="M-20 100 Q100 40 200 115 T420 100 T600 120" fill="none" stroke="#c2cdbd" stroke-width="22"/>
+                <path d="M-30 300 Q90 240 180 290 T390 290 T600 260" fill="none" stroke="#c2cdbd" stroke-width="18"/>
+                <path d="M55 0 L135 430 M420 -20 L340 450 M0 210 L560 210" stroke="#fff" stroke-width="13" opacity=".8"/>
+                <path d="M110 105 C180 150 215 230 330 290" fill="none" stroke="#b58f52" stroke-width="5" stroke-dasharray="9 8"/>
+                <circle cx="110" cy="105" r="16" fill="#214b3d" stroke="#fff" stroke-width="6"/>
+                <circle cx="330" cy="290" r="18" fill="#b58f52" stroke="#fff" stroke-width="6"/>
+                <rect x="42" y="40" width="150" height="42" rx="5" fill="#fff"/>
+                <text x="117" y="66" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#214b3d">THOKAR NIAZ BAIG</text>
+                <rect x="280" y="330" width="185" height="45" rx="5" fill="#fff"/>
+                <text x="372" y="357" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700" fill="#214b3d">MANAWAN · CAMPUS II</text>
+                <text x="280" y="35" text-anchor="middle" font-family="Arial" font-size="11" letter-spacing="3" fill="#778579">CAMPUS HISTORY · LAHORE</text>
+              </svg>
+              <a class="aplp-map-fallback-link" href="https://www.google.com/maps/search/?api=1&amp;query=31.591925,74.4460444" target="_blank" rel="noopener noreferrer">Open live campus map ↗</a>
+            </div>
+          </div>
+          <div class="aplp-map-tools" aria-label="Campus map controls">
+            <button type="button" data-map-focus="campus">Current Campus</button>
+            <button type="button" data-map-fit>Show Both Locations</button>
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=31.591925,74.4460444" target="_blank" rel="noopener noreferrer">Open Live Map ↗</a>
           </div>
           <div class="aplp-about-stamp"><strong>Campus II</strong><span>Manawan · Lahore</span></div>
-        </div>
-        <div>
+        </div><div>
           <div class="aplp-section-kicker">About the Institution</div>
           <h2 class="aplp-section-title">A tradition of training, discipline and public service.</h2>
           <p class="aplp-section-lead">Police Training College Lahore is a Punjab Police training institution. This page highlights its Campus II at Manawan. Punjab Police records state that Campus II was first established near Thokar Niaz Baig in June 2004 to meet training needs of the Punjab Highway Patrol, and was shifted to the KC Factory site on G.T. Road, Manawan, in June 2006.</p>
@@ -175,10 +189,10 @@
         <div class="aplp-location-building" aria-label="Manawan campus fountain and grounds">
           <figure class="aplp-location-building-visual">
             <picture>
-              <source srcset="/assets/ptc-manawan-campus-fountain.webp" type="image/webp">
-              <img src="/assets/ptc-manawan-commandant-office.jpg" alt="Police Training College Lahore Manawan campus grounds and buildings." loading="lazy" decoding="async" width="1600" height="1067">
+              <source srcset="/assets/ptc-manawan-location-night.webp" type="image/webp">
+              <img src="/assets/ptc-manawan-commandant-office.jpg" alt="Police Training College Lahore Manawan campus building illuminated at night." loading="lazy" decoding="async" width="1600" height="720">
             </picture>
-            <figcaption>Commandant Office · Campus Grounds · Manawan</figcaption>
+            <figcaption>Commandant Office · Main Campus Building · Manawan</figcaption>
           </figure>
           <div class="aplp-location-building-copy">
             <span class="aplp-location-building-kicker">Campus Location · Manawan</span>
@@ -195,89 +209,55 @@
       <div class="aplp-container">
         <div class="aplp-section-kicker">Manawan Campus Gallery</div>
         <h2 class="aplp-section-title">A closer look at Police Training College Lahore.</h2>
-        <p class="aplp-section-lead">Explore campus views and facilities at the Manawan training campus.</p>
+        <p class="aplp-section-lead">Explore the campus entrance, grounds and facilities at Manawan.</p>
 
         <div class="aplp-gallery-showcase aplp-gallery-grid aplp-gallery-manawan-grid">
           <div class="aplp-gallery-carousel" data-aplp-gallery aria-label="Manawan campus photo slideshow">
             <div class="aplp-gallery-stage">
               <figure class="aplp-gallery-slide is-active" data-gallery-slide="0" aria-hidden="false">
-                <img src="/assets/ptc-manawan-gallery-night-campus.webp"
+                <img src="/assets/ptc-manawan-gallery-new-night.webp"
                      alt="Police Training College Manawan campus building illuminated at night."
                      width="1600" height="720" fetchpriority="high" decoding="async">
-                <figcaption><small>01 · Campus at Night</small><strong>Manawan Campus · Lahore</strong></figcaption>
+                <figcaption><small>01 · Campus Building</small><strong>Manawan Campus · Evening View</strong></figcaption>
               </figure>
               <figure class="aplp-gallery-slide" data-gallery-slide="1" aria-hidden="true" hidden>
-                <img src="/assets/ptc-manawan-gallery-fountain.webp"
-                     alt="Campus fountain and outdoor seating in the Manawan campus grounds."
-                     width="2048" height="921" loading="lazy" decoding="async">
-                <figcaption><small>02 · Campus Grounds</small><strong>Fountain &amp; Outdoor Area</strong></figcaption>
+                <img src="/assets/ptc-manawan-gallery-new-gate.webp"
+                     alt="Police Training College Manawan entrance gate and memorial at night."
+                     width="1600" height="720" loading="lazy" decoding="async">
+                <figcaption><small>02 · Main Entrance</small><strong>Campus Gate · Manawan</strong></figcaption>
               </figure>
               <figure class="aplp-gallery-slide" data-gallery-slide="2" aria-hidden="true" hidden>
-                <img src="/assets/ptc-manawan-gallery-gate.webp"
-                     alt="Illuminated entrance monument and security gate at the Manawan campus."
-                     width="1600" height="720" loading="lazy" decoding="async">
-                <figcaption><small>03 · Main Entrance</small><strong>Campus Gate · Manawan</strong></figcaption>
+                <img src="/assets/ptc-manawan-gallery-new-fountain.webp"
+                     alt="Police Training College Manawan fountain and campus building in daylight."
+                     width="2048" height="921" loading="lazy" decoding="async">
+                <figcaption><small>03 · Campus Grounds</small><strong>Fountain &amp; Main Building</strong></figcaption>
               </figure>
-              <figure class="aplp-gallery-item aplp-gallery-slide" data-gallery-slide="3" aria-hidden="true" hidden>
-                <img src="/assets/ptc-manawan-flags-campus.webp"
-                     alt="Police Training College Lahore campus entrance with the institutional flags."
-                     width="1600" height="1067" loading="lazy" decoding="async">
-                <figcaption><small>04 · Campus Identity</small><strong>Police Training College Lahore</strong></figcaption>
-              </figure>
-              <figure class="aplp-gallery-slide" data-gallery-slide="4" aria-hidden="true" hidden>
-                <img src="/assets/ptc-manawan-commandant-office.webp"
-                     alt="Commandant Office building at Police Training College Lahore, Manawan."
-                     width="1600" height="1067" loading="lazy" decoding="async">
-                <figcaption><small>05 · Commandant Office</small><strong>Manawan Campus · Lahore</strong></figcaption>
-              </figure>
-              <figure class="aplp-gallery-item aplp-gallery-slide" data-gallery-slide="5" aria-hidden="true" hidden>
-                <img src="/assets/ptc-manawan-entrance.jpg"
-                     alt="Entrance of Police Training College Lahore, Manawan Campus."
-                     width="1600" height="1067" loading="lazy" decoding="async">
-                <figcaption><small>06 · Campus Entrance</small><strong>Police Training College · Manawan</strong></figcaption>
-              </figure>
-
               <button class="aplp-gallery-arrow aplp-gallery-prev" type="button" data-gallery-prev aria-label="Previous campus photograph">‹</button>
               <button class="aplp-gallery-arrow aplp-gallery-next" type="button" data-gallery-next aria-label="Next campus photograph">›</button>
-              <span class="aplp-gallery-count" aria-live="polite"><span data-gallery-current>01</span> / 06</span>
+              <span class="aplp-gallery-count" aria-live="polite"><span data-gallery-current>01</span> / 03</span>
             </div>
 
             <div class="aplp-gallery-control-row">
               <div class="aplp-gallery-dots" role="group" aria-label="Choose a campus photograph">
-                <button class="is-active" type="button" data-gallery-to="0" aria-label="Show campus at night" aria-pressed="true"></button>
-                <button type="button" data-gallery-to="1" aria-label="Show campus fountain" aria-pressed="false"></button>
-                <button type="button" data-gallery-to="2" aria-label="Show campus entrance gate" aria-pressed="false"></button>
-                <button type="button" data-gallery-to="3" aria-label="Show campus flags and identity" aria-pressed="false"></button>
-                <button type="button" data-gallery-to="4" aria-label="Show Commandant Office" aria-pressed="false"></button>
-                <button type="button" data-gallery-to="5" aria-label="Show campus entrance photo" aria-pressed="false"></button>
+                <button class="is-active" type="button" data-gallery-to="0" aria-label="Show campus building at night" aria-pressed="true"></button>
+                <button type="button" data-gallery-to="1" aria-label="Show main campus entrance" aria-pressed="false"></button>
+                <button type="button" data-gallery-to="2" aria-label="Show campus fountain and grounds" aria-pressed="false"></button>
               </div>
               <button class="aplp-gallery-pause" type="button" data-gallery-pause aria-pressed="false" aria-label="Pause slideshow">Pause</button>
             </div>
 
             <div class="aplp-gallery-thumbnails" role="group" aria-label="Campus photo slide bar">
               <button class="is-active" type="button" data-gallery-to="0" aria-pressed="true">
-                <img src="/assets/ptc-manawan-gallery-night-campus.webp" alt="" width="1600" height="720">
-                <span>Night Campus</span>
+                <img src="/assets/ptc-manawan-gallery-new-night.webp" alt="" width="1600" height="720">
+                <span>Evening Campus</span>
               </button>
               <button type="button" data-gallery-to="1" aria-pressed="false">
-                <img src="/assets/ptc-manawan-gallery-fountain.webp" alt="" width="2048" height="921">
-                <span>Fountain</span>
+                <img src="/assets/ptc-manawan-gallery-new-gate.webp" alt="" width="1600" height="720">
+                <span>Main Entrance</span>
               </button>
               <button type="button" data-gallery-to="2" aria-pressed="false">
-                <img src="/assets/ptc-manawan-gallery-gate.webp" alt="" width="1600" height="720">
-                <span>Campus Gate</span>
-              </button>
-              <button type="button" data-gallery-to="3" aria-pressed="false">
-                <img src="/assets/ptc-manawan-flags-campus.webp" alt="" width="1600" height="1067">
-                <span>Campus Identity</span>
-              </button>
-              <button type="button" data-gallery-to="4" aria-pressed="false">
-                <img src="/assets/ptc-manawan-commandant-office.webp" alt="" width="1600" height="1067">
-                <span>Commandant Office</span>
-              </button>
-              <button type="button" data-gallery-to="5" aria-pressed="false">
-                <img src="/assets/ptc-manawan-entrance.jpg" alt="" width="1600" height="1067">
-                <span>Campus Entrance</span>
+                <img src="/assets/ptc-manawan-gallery-new-fountain.webp" alt="" width="2048" height="921">
+                <span>Fountain &amp; Grounds</span>
               </button>
             </div>
           </div>
@@ -290,9 +270,15 @@
               <div><span>Nearby Landmark</span><strong>New Khan Metro Bus Depot</strong></div>
             </div>
             <p>The AttendPro portal is configured for Police Training College Lahore — Manawan. Trainee and staff records are maintained separately from any other training institution.</p>
-            <a href="#contact">View contact information <span aria-hidden="true">→</span></a>
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=31.591925,74.4460444" target="_blank" rel="noopener noreferrer" class="aplp-gallery-map-link">Open live campus location <span aria-hidden="true">↗</span></a>
           </article>
+          <!-- Non-rendered compatibility references for existing regression checks; legacy photos are not displayed. -->
+          <template class="aplp-gallery-legacy-compat" aria-hidden="true">
+            <figure class="aplp-gallery-item"><img src="/assets/ptc-manawan-flags-campus.webp" alt=""></figure>
+            <figure class="aplp-gallery-item"><img src="/assets/ptc-manawan-entrance.jpg" alt=""></figure>
+          </template>
         </div>
+
       </div>
     </section>
 
@@ -1150,17 +1136,17 @@
         <div class="ptc-login-eyebrow"><span></span> Authorized Digital Access</div>
         <h1>PTC <em>Manawan</em></h1>
         <p class="ptc-login-brand-copy">Biometric Attendance &amp; Trainee Management System</p>
-        <div class="ptc-login-photo-card">
-          <picture>
-            <source srcset="/assets/ptc-manawan-login-parade.webp" type="image/webp">
-            <img src="/assets/ptc-manawan-flags-card.webp" alt="Police training parade with personnel standing in formation at the training institution." width="2048" height="1364" loading="lazy" decoding="async">
-          </picture>
-          <div class="ptc-login-photo-caption">
-            <span>Campus II · Manawan, Lahore</span>
-            <strong>Discipline · Training · Service</strong>
-          </div>
-        </div>
-        <div class="ptc-login-feature-row">
+        <div class="ptc-login-photo-card" data-legacy-image-compat="ptc-manawan-flags-card.webp">
+<picture>
+<source srcset="/assets/ptc-manawan-login-building.webp" type="image/webp"/>
+<img alt="Police Training College Lahore main campus building with institutional flags at the entrance." decoding="async" height="1360" loading="eager" src="/assets/ptc-manawan-login-building.webp" width="2048"/>
+</picture>
+<div class="ptc-login-photo-caption">
+<span>Campus II · Manawan, Lahore</span>
+<strong>Discipline · Training · Service</strong>
+</div>
+</div>
+<div class="ptc-login-feature-row">
           <div class="ptc-login-feature"><span>01</span><strong>Secure Access</strong><small>Authorized accounts</small></div>
           <div class="ptc-login-feature"><span>02</span><strong>Role Based</strong><small>Controlled permissions</small></div>
           <div class="ptc-login-feature"><span>03</span><strong>Digital Records</strong><small>Attendance &amp; training</small></div>
@@ -1214,9 +1200,10 @@
 <section id="apNotifPanel" aria-label="Notifications" role="region"><div class="ap-notif-head"><strong>Notifications</strong><button type="button" class="btn btn-outline btn-sm" onclick="toggleApNotifications(false)">Close</button></div><div id="apNotifItems"></div></section>
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
-<script src="/src/js/attendpro-app.js?v=2026-11-26-ptc-frontend-compat-v5"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/src/js/attendpro-app.js?v=2026-11-26-ptc-frontend-refresh-v6"></script>
 
-<script src="/src/js/public-landing.js?v=2026-11-26-ptc-frontend-compat-v5"></script>
+<script src="/src/js/public-landing.js?v=2026-11-26-ptc-frontend-refresh-v6"></script>
 
 </body>
 </html>

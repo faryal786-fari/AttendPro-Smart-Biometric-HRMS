@@ -1907,3 +1907,354 @@ button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible,
   display:block!important;width:100%!important;height:100%!important;
   object-fit:cover!important;object-position:center 42%!important;
 }
+
+
+
+/* ==========================================================================
+   PTC MANAWAN FRONTEND REFRESH v6
+   Gallery overflow, contact/location stacking, clearer links, course cards,
+   and interactive campus map.
+   ========================================================================== */
+
+/* The old fixed 340px gallery row made the carousel and its thumbnails spill
+   into the next section. Let the complete card determine its natural height. */
+#apPublicLanding .aplp-gallery-showcase.aplp-gallery-manawan-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.5fr) minmax(280px,.82fr)!important;
+  grid-template-rows:auto!important;
+  grid-auto-rows:auto!important;
+  align-items:stretch!important;
+  gap:22px!important;
+  min-width:0;
+  overflow:visible!important;
+}
+#apPublicLanding .aplp-gallery-carousel{
+  display:flex!important;flex-direction:column!important;
+  align-self:stretch!important;min-width:0!important;
+  height:auto!important;overflow:hidden!important;
+}
+#apPublicLanding .aplp-gallery-stage{
+  position:relative!important;display:block!important;
+  width:100%!important;height:auto!important;
+  min-height:260px!important;max-height:470px!important;
+  aspect-ratio:16/9!important;overflow:hidden!important;
+  border-radius:13px!important;isolation:isolate;
+}
+#apPublicLanding .aplp-gallery-stage .aplp-gallery-slide{
+  position:absolute!important;inset:0!important;display:none!important;
+  width:100%!important;height:100%!important;margin:0!important;overflow:hidden!important;
+}
+#apPublicLanding .aplp-gallery-stage .aplp-gallery-slide.is-active{display:block!important}
+#apPublicLanding .aplp-gallery-stage .aplp-gallery-slide[hidden]{display:none!important}
+#apPublicLanding .aplp-gallery-stage .aplp-gallery-slide img{
+  display:block!important;width:100%!important;height:100%!important;min-height:0!important;
+  object-fit:cover!important;object-position:center!important;
+}
+#apPublicLanding .aplp-gallery-control-row{flex:0 0 auto;min-height:42px}
+#apPublicLanding .aplp-gallery-thumbnails{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;flex:0 0 auto;
+}
+#apPublicLanding .aplp-gallery-thumbnails button{
+  min-width:0!important;overflow:hidden!important;border-radius:11px!important;background:#fff!important;
+}
+#apPublicLanding .aplp-gallery-thumbnails img{
+  width:100%!important;aspect-ratio:16/8!important;object-fit:cover!important;
+}
+#apPublicLanding .aplp-gallery-info{
+  align-self:stretch!important;min-width:0!important;min-height:0!important;height:auto!important;
+  border:1px solid #dce5eb!important;border-radius:18px!important;
+  background:linear-gradient(150deg,#fff 0%,#fbfdff 100%)!important;
+  box-shadow:0 14px 34px rgba(12,44,66,.075)!important;
+}
+#apPublicLanding .aplp-gallery-map-link{
+  display:inline-flex;align-items:center;gap:9px;margin-top:20px;padding:12px 16px;
+  border:1px solid #b9d6e7;border-radius:10px;
+  background:linear-gradient(135deg,#155d86,#1b79a8);color:#fff!important;
+  font-size:10px;font-weight:850;letter-spacing:.06em;text-decoration:none!important;
+  box-shadow:0 9px 20px rgba(21,93,134,.18);
+  transition:transform .18s,box-shadow .18s,background .18s;
+}
+#apPublicLanding .aplp-gallery-map-link:hover{
+  transform:translateY(-2px);background:linear-gradient(135deg,#0d4569,#176c9b);
+  box-shadow:0 13px 25px rgba(21,93,134,.24);
+}
+
+/* Location card uses the newly supplied wide campus photograph. */
+#apPublicLanding .aplp-location-building{
+  display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  align-items:stretch!important;gap:0!important;min-width:0;margin-top:20px!important;
+  overflow:hidden!important;border:1px solid #dce5eb!important;border-radius:18px!important;
+  background:linear-gradient(145deg,#fff,#f7fafc)!important;
+  box-shadow:0 14px 34px rgba(12,44,66,.085)!important;
+}
+#apPublicLanding .aplp-location-building-visual{
+  position:relative!important;height:clamp(280px,25vw,370px)!important;
+  min-height:280px!important;margin:0!important;overflow:hidden!important;background:#0b2538!important;
+}
+#apPublicLanding .aplp-location-building-visual picture,
+#apPublicLanding .aplp-location-building-visual img{
+  display:block!important;width:100%!important;height:100%!important;min-height:0!important;
+}
+#apPublicLanding .aplp-location-building-visual img{
+  object-fit:cover!important;object-position:center 48%!important;
+}
+#apPublicLanding .aplp-location-building-visual figcaption{
+  position:absolute!important;left:16px!important;bottom:16px!important;padding:10px 14px!important;
+  border:1px solid rgba(255,255,255,.3)!important;border-radius:10px!important;
+  background:rgba(7,29,45,.86)!important;color:#fff!important;font-size:10px!important;
+  font-weight:850!important;letter-spacing:.08em!important;box-shadow:0 7px 20px rgba(0,0,0,.2);
+}
+#apPublicLanding .aplp-location-building-copy{
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  align-items:flex-start!important;min-width:0!important;padding:clamp(24px,3vw,40px)!important;
+}
+
+/* Keep Contact & Location in its own flow and give the cards breathing room. */
+#apPublicLanding #contact{position:relative;isolation:isolate;clear:both;overflow:visible;background:#f7f8f6}
+#apPublicLanding .aplp-contact-grid{
+  display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr)!important;
+  align-items:stretch!important;gap:clamp(24px,4vw,54px)!important;min-width:0;
+}
+#apPublicLanding .aplp-contact-grid>div,
+#apPublicLanding .aplp-contact-panel{min-width:0!important}
+#apPublicLanding .aplp-contact-card{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:13px!important;margin-top:24px!important;
+}
+#apPublicLanding .aplp-contact-item{
+  min-width:0!important;min-height:94px;padding:17px 18px!important;
+  border:1px solid #dce5eb!important;border-radius:12px!important;
+  background:linear-gradient(150deg,#fff,#f9fcfe)!important;
+  box-shadow:0 8px 22px rgba(12,44,66,.055);
+}
+#apPublicLanding .aplp-contact-item span{color:#9a8053!important}
+#apPublicLanding .aplp-contact-item strong{color:#123a55!important;line-height:1.55}
+#apPublicLanding .aplp-contact-panel{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:center!important;min-height:100%!important;
+  padding:clamp(24px,3vw,36px)!important;border:1px solid #dce5eb!important;
+  border-radius:18px!important;background:linear-gradient(150deg,#fff 0%,#f9fcfe 100%)!important;
+  box-shadow:0 14px 34px rgba(12,44,66,.075)!important;
+}
+#apPublicLanding .aplp-contact-panel h3{font-size:clamp(22px,2.2vw,27px)!important}
+#apPublicLanding .aplp-contact-panel p{margin-bottom:5px;line-height:1.85!important}
+#apPublicLanding .aplp-contact-panel .aplp-login-back{
+  align-self:flex-start;margin:15px 0 0!important;padding:10px 0!important;
+  color:#155d86!important;font-weight:800;
+}
+
+/* External website, directions and institution links now look like clear actions. */
+#apPublicLanding .aplp-campus-card a,
+#apPublicLanding .aplp-location-building-copy>a,
+#apPublicLanding .aplp-contact-panel>a,
+#apPublicLanding .aplp-gallery-map-link{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;min-height:42px;padding:11px 15px!important;
+  border:1px solid #b9d6e7!important;border-radius:10px!important;
+  background:linear-gradient(135deg,#155d86,#1b79a8)!important;color:#fff!important;
+  font-size:10px!important;font-weight:850!important;letter-spacing:.045em!important;
+  line-height:1.35;text-decoration:none!important;
+  box-shadow:0 8px 19px rgba(21,93,134,.16);
+  transition:transform .18s,box-shadow .18s,background .18s;
+}
+#apPublicLanding .aplp-campus-card a:hover,
+#apPublicLanding .aplp-location-building-copy>a:hover,
+#apPublicLanding .aplp-contact-panel>a:hover{
+  transform:translateY(-2px);background:linear-gradient(135deg,#0d4569,#176c9b)!important;
+  box-shadow:0 12px 24px rgba(21,93,134,.23);
+}
+
+/* Slightly stronger blue/gold treatment for the six existing course cards. */
+#apPublicLanding .aplp-training-card{
+  position:relative!important;isolation:isolate;min-height:214px!important;
+  padding:28px 26px 27px!important;border:1px solid #d8e5ed!important;
+  border-radius:17px!important;background:linear-gradient(150deg,#fff 0%,#f8fbfd 100%)!important;
+  box-shadow:0 12px 30px rgba(12,44,66,.075)!important;
+  transition:transform .2s,box-shadow .2s,border-color .2s!important;
+}
+#apPublicLanding .aplp-training-card:before{
+  content:"";position:absolute;z-index:0;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,#176c9b 0%,#75c5ee 58%,#c8a66a 100%);
+}
+#apPublicLanding .aplp-training-card:after{z-index:0;pointer-events:none;opacity:.72}
+#apPublicLanding .aplp-training-card>*{position:relative;z-index:1}
+#apPublicLanding .aplp-training-card:hover{
+  transform:translateY(-5px)!important;border-color:#a9cddd!important;
+  box-shadow:0 20px 38px rgba(12,44,66,.13)!important;
+}
+#apPublicLanding .aplp-training-icon{
+  width:46px!important;height:46px!important;border:1px solid #d9e9f2;
+  background:linear-gradient(145deg,#eef7fb,#e8f0ec)!important;color:#155d86!important;
+  box-shadow:0 5px 13px rgba(12,44,66,.06);
+}
+#apPublicLanding .aplp-training-card .aplp-number{
+  top:23px!important;right:20px!important;padding:4px 10px;
+  border:1px solid #eee4d0;border-radius:999px;background:#fbf7ed;
+  color:#a88448!important;font-size:16px!important;
+}
+#apPublicLanding .aplp-training-card h3{
+  margin-top:20px!important;color:#123a55!important;font-size:21px!important;
+}
+#apPublicLanding .aplp-training-card p{
+  color:#637789!important;font-size:12px!important;line-height:1.75!important;
+}
+
+/* Login card uses uploaded photo #9 and matches the main landing-page image card. */
+#loginOverlay .ptc-login-photo-card{
+  position:relative!important;overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.26)!important;border-radius:15px!important;
+  background:#0b2538!important;box-shadow:0 16px 34px rgba(0,0,0,.22)!important;
+}
+#loginOverlay .ptc-login-photo-card picture,
+#loginOverlay .ptc-login-photo-card picture img{
+  display:block!important;width:100%!important;height:100%!important;
+}
+#loginOverlay .ptc-login-photo-card picture img{
+  object-fit:cover!important;object-position:center 55%!important;
+}
+#loginOverlay .ptc-login-photo-card:after{
+  content:"";position:absolute;inset:42% 0 0;z-index:1;pointer-events:none;
+  background:linear-gradient(transparent,rgba(4,20,31,.88));
+}
+#loginOverlay .ptc-login-photo-caption{
+  z-index:2!important;left:16px!important;right:16px!important;bottom:13px!important;
+  display:flex!important;flex-direction:column;gap:4px!important;
+}
+#loginOverlay .ptc-login-photo-caption span{
+  color:#d5efff!important;font-size:9px!important;font-weight:850!important;
+  letter-spacing:.14em!important;text-transform:uppercase;
+}
+#loginOverlay .ptc-login-photo-caption strong{
+  color:#fff!important;font-size:15px!important;text-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+#loginOverlay .ptc-login-form-footer{align-items:center!important;gap:10px!important}
+#loginOverlay .ptc-login-form-footer .aplp-login-back{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:38px;margin:0!important;padding:9px 12px!important;
+  border:1px solid #dce7ef!important;border-radius:9px!important;
+  background:#f7fafc!important;color:#526b7e!important;font-size:10px!important;
+  font-weight:750!important;text-decoration:none!important;
+}
+#loginOverlay .ptc-login-form-footer .aplp-login-back:hover{
+  background:#edf5fa!important;color:#155d86!important;
+}
+#loginOverlay .ptc-login-form-footer>a{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:38px;padding:9px 13px!important;border:1px solid #b9d6e7!important;
+  border-radius:9px!important;background:linear-gradient(135deg,#155d86,#1b79a8)!important;
+  color:#fff!important;font-size:10px!important;font-weight:850!important;
+  letter-spacing:.05em!important;text-decoration:none!important;
+  box-shadow:0 7px 17px rgba(21,93,134,.18);
+}
+#loginOverlay .ptc-login-form-footer>a:hover{
+  background:linear-gradient(135deg,#0d4569,#176c9b)!important;
+  text-decoration:none!important;transform:translateY(-1px);
+}
+
+/* Interactive OpenStreetMap surface with zoomable tiles and selectable location dots. */
+#apPublicLanding .aplp-about-map-wrap{
+  position:relative!important;min-width:0;padding:0 28px 28px 0!important;
+}
+#apPublicLanding .aplp-about-map-wrap:before{z-index:0;pointer-events:none}
+#apPublicLanding #aplpCampusMap{
+  position:relative!important;z-index:1!important;display:block!important;
+  width:100%!important;height:430px!important;min-height:430px!important;
+  overflow:hidden!important;border:1px solid #d7e3e6;border-radius:14px;
+  background:#e7e9dc!important;box-shadow:0 18px 38px rgba(16,43,59,.14);
+}
+#apPublicLanding #aplpCampusMap .leaflet-container{
+  width:100%!important;height:100%!important;font-family:Inter,Arial,sans-serif;
+  background:#e7e9dc;
+}
+#apPublicLanding #aplpCampusMap .leaflet-control-zoom a{color:#155d86}
+#apPublicLanding #aplpCampusMap .leaflet-control-attribution{font-size:9px}
+#apPublicLanding .aplp-map-fallback{
+  position:absolute;inset:0;display:grid;place-items:center;background:#e7e9dc;
+}
+#apPublicLanding .aplp-map-fallback svg{display:block;width:100%;height:100%}
+#apPublicLanding .aplp-map-fallback-link{
+  position:absolute;right:14px;bottom:14px;z-index:2;display:inline-flex;
+  padding:10px 13px;border-radius:9px;background:#155d86;color:#fff;
+  font-size:10px;font-weight:850;text-decoration:none;box-shadow:0 7px 18px rgba(12,44,66,.2);
+}
+#apPublicLanding .aplp-map-tools{
+  position:absolute;z-index:1200;top:12px;right:40px;
+  display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;
+  max-width:calc(100% - 70px);
+}
+#apPublicLanding .aplp-map-tools button,
+#apPublicLanding .aplp-map-tools a{
+  display:inline-flex;align-items:center;justify-content:center;min-height:32px;
+  padding:7px 10px;border:1px solid rgba(255,255,255,.72);border-radius:8px;
+  background:rgba(7,29,45,.88);color:#fff;font-family:Inter,Arial,sans-serif;
+  font-size:9px;font-weight:850;letter-spacing:.025em;text-decoration:none;
+  cursor:pointer;box-shadow:0 5px 13px rgba(0,0,0,.18);backdrop-filter:blur(8px);
+}
+#apPublicLanding .aplp-map-tools button:hover,
+#apPublicLanding .aplp-map-tools a:hover{background:#155d86;transform:translateY(-1px)}
+#apPublicLanding .aplp-leaflet-marker-wrap{background:transparent;border:0}
+#apPublicLanding .aplp-leaflet-dot{
+  display:block;width:20px;height:20px;border:4px solid #fff;border-radius:50%;
+  background:#b58f52;box-shadow:0 0 0 5px rgba(181,143,82,.25),0 4px 12px rgba(0,0,0,.25);
+}
+#apPublicLanding .aplp-leaflet-dot.is-current{
+  background:#176c9b;box-shadow:0 0 0 6px rgba(23,108,155,.23),0 4px 12px rgba(0,0,0,.25);
+}
+#apPublicLanding .aplp-map-popup{min-width:190px;color:#17384d;font-family:Inter,Arial,sans-serif}
+#apPublicLanding .aplp-map-popup strong{
+  display:block;margin-bottom:5px;color:#123a55;font-size:13px;
+}
+#apPublicLanding .aplp-map-popup p{
+  margin:0 0 9px;color:#617789;font-size:11px;line-height:1.55;
+}
+#apPublicLanding .aplp-map-popup a{
+  display:inline-flex;padding:7px 10px;border-radius:7px;background:#155d86;
+  color:#fff;font-size:10px;font-weight:850;text-decoration:none;
+}
+#apPublicLanding .aplp-about-stamp{z-index:1300!important}
+
+/* Section stacking guard: no previous gallery row can paint over Contact. */
+#apPublicLanding .aplp-gallery-section,
+#apPublicLanding #campuses,
+#apPublicLanding #contact{position:relative;z-index:0;clear:both}
+#apPublicLanding .aplp-gallery-section{overflow:visible!important}
+#apPublicLanding .aplp-gallery-showcase>*{min-width:0}
+
+@media(max-width:980px){
+  #apPublicLanding .aplp-gallery-showcase.aplp-gallery-manawan-grid{
+    grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto!important;gap:16px!important;
+  }
+  #apPublicLanding .aplp-gallery-info{min-height:0!important}
+  #apPublicLanding .aplp-contact-grid{
+    grid-template-columns:minmax(0,1fr)!important;gap:24px!important;
+  }
+  #apPublicLanding .aplp-contact-panel{min-height:0!important}
+}
+@media(max-width:780px){
+  #apPublicLanding .aplp-location-building{grid-template-columns:minmax(0,1fr)!important}
+  #apPublicLanding .aplp-location-building-visual{height:260px!important;min-height:260px!important}
+  #apPublicLanding #aplpCampusMap{height:380px!important;min-height:380px!important}
+  #apPublicLanding .aplp-map-tools{right:38px;max-width:calc(100% - 54px)}
+}
+@media(max-width:620px){
+  #apPublicLanding .aplp-gallery-stage{min-height:190px!important;max-height:none!important}
+  #apPublicLanding .aplp-gallery-thumbnails{gap:6px!important}
+  #apPublicLanding .aplp-gallery-thumbnails button{padding:4px!important}
+  #apPublicLanding .aplp-gallery-thumbnails span{font-size:8px!important}
+  #apPublicLanding .aplp-contact-card{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+  #apPublicLanding .aplp-contact-item{min-height:0}
+  #apPublicLanding #aplpCampusMap{height:330px!important;min-height:330px!important}
+  #apPublicLanding .aplp-map-tools{
+    top:9px;right:36px;flex-direction:column;align-items:flex-end;gap:5px;
+  }
+  #apPublicLanding .aplp-map-tools button,
+  #apPublicLanding .aplp-map-tools a{min-height:29px;padding:6px 8px;font-size:8px}
+  #loginOverlay .ptc-login-form-footer{justify-content:space-between!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #apPublicLanding .aplp-gallery-map-link,
+  #apPublicLanding .aplp-training-card,
+  #apPublicLanding .aplp-map-tools button,
+  #loginOverlay .ptc-login-form-footer>a{transition:none!important}
+}

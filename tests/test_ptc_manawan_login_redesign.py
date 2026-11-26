@@ -46,14 +46,29 @@ def test_plain_text_api_errors_are_displayed_instead_of_only_status_code():
     assert "detail = raw.trim().slice(0, 280) || detail;" in HTML
 
 
-def test_manawan_landing_gallery_uses_both_user_supplied_campus_photos():
-    doc = BeautifulSoup(HTML, "html.parser")
+def test_manawan_landing_gallery_uses_three_new_user_supplied_campus_photos():
+    # The v6 public website is served from frontend/index.html. The older
+    # static-page assertions below are retained for their separate legacy checks.
+    frontend_html = ROOT / "frontend" / "index.html"
+    assert frontend_html.is_file(), "Updated Vercel frontend is missing"
+    doc = BeautifulSoup(frontend_html.read_text(encoding="utf-8"), "html.parser")
     gallery = doc.select_one(".aplp-gallery-manawan-grid")
     assert gallery is not None
-    images = [img.get("src", "") for img in gallery.select("img")]
-    assert any("ptc-manawan-flags-campus.webp" in src for src in images)
-    assert any("ptc-manawan-entrance.jpg" in src for src in images)
-    assert len(gallery.select(".aplp-gallery-item")) == 2
+
+    # Only the three newly supplied photographs should be visible in the stage.
+    slides = gallery.select(".aplp-gallery-stage [data-gallery-slide]")
+    assert len(slides) == 3
+    visible_images = [slide.select_one("img").get("src", "") for slide in slides]
+    assert visible_images == [
+        "/assets/ptc-manawan-gallery-new-night.webp",
+        "/assets/ptc-manawan-gallery-new-gate.webp",
+        "/assets/ptc-manawan-gallery-new-fountain.webp",
+    ]
+
+    # Legacy photographs may remain only in the non-rendered compatibility template.
+    stage_html = str(gallery.select_one(".aplp-gallery-stage"))
+    assert "ptc-manawan-flags-campus.webp" not in stage_html
+    assert "ptc-manawan-entrance.jpg" not in stage_html
 
 
 def test_public_landing_stays_visible_without_a_portal_hash():
