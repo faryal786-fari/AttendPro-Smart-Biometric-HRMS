@@ -1,4 +1,4 @@
-window.ATTENDPRO_BUILD = "2026-11-26-frontend-backend-architecture-v1";
+window.ATTENDPRO_BUILD = "2026-11-27-dashboard-roles-v2";
 
 const apEnglishText = new Map([
  ['Could not load settings:','Could not load settings:'],['Could not save settings:','Could not save settings:'],
@@ -239,7 +239,9 @@ function makeLiveRows(employeeRows, dailyRows, officeStart='09:00') {
     const d=byEmp.get(String(e.dbId));
     const cin=d?showTime(d.clock_in):'—';
     const cout=d?showTime(d.clock_out):'—';
-    let status=d?titleStatus(d.status):'Not Checked In';
+    const rawStatus=String(d?.status||'').toLowerCase();
+    const arrivalFlag=rawStatus==='early_arrival'?'Early Arrival':'';
+    let status=d?(rawStatus==='early_arrival'?'Present':titleStatus(d.status)):'Not Checked In';
     if (d && cin==='—' && cout!=='—' && status==='Present') status='Missing Check-in';
     const rawLate=Number(d?.late_minutes||0), rawEarly=Number(d?.early_minutes||0);
     let lateStr='—';
@@ -247,7 +249,7 @@ function makeLiveRows(employeeRows, dailyRows, officeStart='09:00') {
     const schedIn=(/^\d{2}:\d{2}$/.test(String(d?.shift||''))?d.shift:officeStart)||'09:00';
     const work=Number(d?.work_minutes||0);
     const wh=work>0?`${Math.floor(work/60)}h ${work%60}m`:'—';
-    return {...e, shift:d?.shift||e.shift||'General', schedIn, schedOut:'—', status, cin, cout:cout==='—'&&cin!=='—'?'Pending':cout, lateStr,
+    return {...e, shift:d?.shift||e.shift||'General', schedIn, schedOut:'—', status, arrivalFlag, cin, cout:cout==='—'&&cin!=='—'?'Pending':cout, lateStr,
       date:d?.work_date||currentDataDate, wh, late:rawLate?`${rawLate} min`:'—', earlyDep:rawEarly?`${rawEarly} min`:'—', ot:'—',
       source:d?.source||'no_attendance_record'};
   });
@@ -262,14 +264,17 @@ function updateDepartmentOptions(rows) {
   });
   const shiftEl=document.getElementById('liveShift');
   if(shiftEl){const shifts=[...new Set(liveData.map(r=>r.shift).filter(Boolean))].sort();const prior=shiftEl.value;shiftEl.innerHTML='<option value="">All Shifts</option>'+shifts.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');if(shifts.includes(prior))shiftEl.value=prior;}
+  const employeeEl=document.getElementById('rptEmployee');
+  if(employeeEl){const prior=employeeEl.value;employeeEl.innerHTML='<option value="">All Employees</option>'+rows.slice().sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base'})).map(e=>`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)} (${escapeHtml(e.id)})</option>`).join('');if(rows.some(e=>String(e.id)===prior))employeeEl.value=prior;}
 }
 function escapeHtml(v) { return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function updateKpis(metrics, depts) {
-  const early=liveData.filter(r=>r.status==='Early Arrival').length;
+  const early=liveData.filter(r=>r.arrivalFlag==='Early Arrival').length;
   const missingOut=liveData.filter(r=>r.cin!=='—' && (r.cout==='Pending'||r.cout==='—')).length;
   const vals={kpiTotal:metrics.total??employees.length,kpiPresent:metrics.present??0,kpiAbsent:metrics.absent??0,kpiLate:metrics.late??0,
-    kpiEarly:early,kpiLeave:metrics.on_leave??0,kpiMissingIn:metrics.missing_check_in??0,
-    kpiMissingOut:metrics.missing_check_out??missingOut};
+    kpiEarly:metrics.early_arrival??early,kpiLeave:metrics.on_leave??0,kpiMissingIn:metrics.missing_check_in??0,
+    kpiMissingOut:metrics.missing_check_out??missingOut,kpiOsd:metrics.osd??0,
+    kpiOsdPermanent:metrics.osd_permanent??0,kpiMedicalLeave:metrics.medical_leave??0};
   Object.entries(vals).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
   const cards=document.querySelectorAll('#screen-dashboard .kpi-card .kpi-sub');
   const total=Number(metrics.total||0), present=Number(metrics.present||0), absent=Number(metrics.absent||0);
@@ -282,12 +287,23 @@ function updateKpis(metrics, depts) {
   if(cards[6])cards[6].textContent='Employees with a missing check-in punch';
   if(cards[7])cards[7].textContent='Employees with a missing check-out punch';
 }
+function shiftMatchesFront(rowShift,selected){
+  if(!selected||selected==='All Shifts')return true;
+  const value=String(rowShift||'').toLowerCase();
+  const key=String(selected||'').toLowerCase();
+  if(key==='morning')return ['morning','morning shift','08:00','08:00 am'].includes(value);
+  if(key==='general')return ['general','general shift','09:00','09:00 am'].includes(value);
+  if(key==='evening')return ['evening','evening shift','14:00','02:00 pm'].includes(value);
+  return value===key;
+}
 function updateDonut() {
-  const present=liveData.filter(r=>r.status==='Present'||r.status==='Early Arrival').length;
-  const late=liveData.filter(r=>r.status==='Late').length;
-  const absent=liveData.filter(r=>r.status==='Absent').length;
-  const onLeave=liveData.filter(r=>r.status==='On Leave').length;
-  const unknown=liveData.filter(r=>r.status==='Not Checked In'||r.status==='Missing Check-in').length;
+  const selected=currentDashboard?.shift||'';
+  const rows=liveData.filter(r=>shiftMatchesFront(r.shift,selected));
+  const present=rows.filter(r=>r.status==='Present'||r.status==='Early Arrival').length;
+  const late=rows.filter(r=>r.status==='Late').length;
+  const absent=rows.filter(r=>r.status==='Absent').length;
+  const onLeave=rows.filter(r=>r.status==='On Leave').length;
+  const unknown=rows.filter(r=>r.status==='Not Checked In'||r.status==='Missing Check-in').length;
   const total=Math.max(1,present+late+absent+onLeave+unknown);
   const working=Math.max(1,total-onLeave);
   const pct=Math.round((present+late)/working*100);
@@ -299,6 +315,7 @@ function updateDonut() {
     [present,absent,late,onLeave,unknown].forEach((n,i)=>{const len=circ*n/total;const c=circles[i+1];c.setAttribute('stroke-dasharray',`${len} ${Math.max(0,circ-len)}`);c.setAttribute('stroke-dashoffset',String(-offset));offset+=len;});
   }
 }
+
 async function loadSyncHistory() {
   const box=document.getElementById('syncHistoryBox'); if(!box)return;
   try {
@@ -352,22 +369,76 @@ async function showSyncLogs() {
   catch(e){notify('Could not load logs: '+e.message);}
 }
 async function loadSelectedDate() { userSelectedDate=true; await loadRealData(true); }
+async function loadStaffDashboardFilters(){
+  const selected=document.getElementById('staffDashboardDate')?.value||currentDataDate||today();
+  userSelectedDate=true;
+  const liveDate=document.getElementById('liveDate');if(liveDate)liveDate.value=selected;
+  await loadRealData(true);
+}
+async function loadViewOnlyDashboard(){
+  const data=await apiJSON('/api/view-only/dashboard');
+  currentDataDate=data.date||'';
+  const m=data.metrics||{};
+  const put=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=Number(value||0).toLocaleString();};
+  put('viewOnlyTotalStaff',m.total_staff);put('viewOnlyOsd',m.osd);
+  put('viewOnlyOsdPermanent',m.osd_permanent);put('viewOnlyMedicalLeave',m.medical_leave);
+  const dateLabel=document.getElementById('viewOnlyDateLabel');if(dateLabel)dateLabel.textContent=`Previous day: ${data.date||'—'}`;
+  const badge=document.querySelector('.demo-badge');if(badge){badge.textContent=`Previous-day attendance only · ${data.date||''}`;badge.style.background='#e0f2fe';badge.style.borderColor='#bae6fd';badge.style.color='#075985';}
+  const dashDate=document.getElementById('dashDate');if(dashDate)dashDate.textContent=data.date||'Previous Day';
+  const pageSub=document.querySelector('#screen-dashboard .page-sub');if(pageSub)pageSub.innerHTML=`Previous-day attendance — <strong>${escapeHtml(data.date||'')}</strong>`;
+  const tbody=document.getElementById('viewOnlyAttendanceTbody');
+  if(tbody){
+    const rows=data.attendance||[];
+    tbody.innerHTML=rows.length?rows.map(r=>`<tr><td>${escapeHtml(r.employee_no||'—')}</td><td><strong>${escapeHtml(r.name||'')}</strong></td><td>${escapeHtml(r.department||'')}</td><td>${escapeHtml(r.shift||'—')}</td><td>${escapeHtml(r.clock_in||'—')}</td><td>${escapeHtml(r.clock_out||'—')}</td><td>${statusBadge(titleStatus(r.status))}</td></tr>`).join(''):'<tr><td colspan="7" class="access-help">No attendance records are available for the previous day.</td></tr>';
+  }
+  const announcements=document.getElementById('viewOnlyAnnouncements');
+  if(announcements){
+    const rows=data.announcements||[];
+    announcements.innerHTML=rows.length?rows.map(a=>`<article class="view-announcement"><strong>${escapeHtml(a.title||'Leave announcement')}</strong><div>${escapeHtml(a.message||'')}</div><small>${escapeHtml(a.start_date||'')} — ${escapeHtml(a.end_date||'')}</small></article>`).join(''):'<div class="access-help">No current leave announcements.</div>';
+  }
+}
 async function loadRealData(forceDate=false) {
-  if(realLoading)return;
+  if(realLoading){if(forceDate)pendingRealReload=true;return;}
   realLoading=true;
   try {
+    if(currentUser?.role==='view_only'){
+      await loadViewOnlyDashboard();
+      return;
+    }
+    const shift=document.getElementById('staffDashboardShift')?.value||'';
+    const preferredDate=(userSelectedDate&&document.getElementById('liveDate')?.value)
+      ?document.getElementById('liveDate').value
+      :(document.getElementById('staffDashboardDate')?.value||'');
+    const q=new URLSearchParams();if(preferredDate)q.set('date',preferredDate);if(shift)q.set('shift',shift);
     const health=await apiJSON('/api/health');
-    const dashboard=await apiJSON('/api/dashboard');
+    const selectedDash=await apiJSON('/api/dashboard'+(q.toString()?'?'+q.toString():''));
     await loadAccessSettings();
     const employeeRows=await fetchAllPages('/api/employees');
     if(!employeeRows.length)throw new Error('No employee records were returned by the database.');
     employees.splice(0,employees.length,...employeeRows.map(mapEmployee));
-    currentDataDate=(userSelectedDate && document.getElementById('liveDate').value)?document.getElementById('liveDate').value:(dashboard.date||today());
-    if(!userSelectedDate){const dateEl=document.getElementById('liveDate');if(dateEl)dateEl.value=currentDataDate;}
-    const selectedDash=(currentDataDate===dashboard.date)?dashboard:await apiJSON('/api/dashboard?date='+encodeURIComponent(currentDataDate));
+    currentDataDate=selectedDash.date||today();
+    if(!userSelectedDate){
+      const dateEl=document.getElementById('liveDate');if(dateEl)dateEl.value=currentDataDate;
+      const dashDateEl=document.getElementById('staffDashboardDate');if(dashDateEl)dashDateEl.value=currentDataDate;
+    }else{
+      const dashDateEl=document.getElementById('staffDashboardDate');if(dashDateEl)dashDateEl.value=currentDataDate;
+    }
+    const liveDate=document.getElementById('liveDate');if(liveDate&&!liveDate.value)liveDate.value=currentDataDate;
     currentDashboard=selectedDash;
     const dailyRows=await fetchAllPages('/api/attendance',{date:currentDataDate});
     liveData.splice(0,liveData.length,...makeLiveRows(employees,dailyRows,(currentSettings.office_start||'09:00')));
+    const osdIds=new Set((selectedDash.osd_employee_ids||[]).map(String));
+    const osdPermanentIds=new Set((selectedDash.osd_permanent_employee_ids||[]).map(String));
+    const medicalIds=new Set((selectedDash.medical_leave_employee_ids||[]).map(String));
+    liveData.forEach(row=>{
+      const id=String(row.dbId);
+      if(osdIds.has(id)){
+        row.status='Present';row.source=osdPermanentIds.has(id)?'approved_osd_permanent':'approved_osd';
+        row.lateStr='OSD';row.cin=row.cin||'—';row.cout=row.cout||'—';
+      }else if(medicalIds.has(id)){
+        row.status='On Leave';row.source='approved_medical_leave';
+      }
+    });
     recentPunches=selectedDash.recent||[];
     updateDepartmentOptions(employees);
     updateKpis(selectedDash.metrics||{},selectedDash.departments||[]);
@@ -375,6 +446,7 @@ async function loadRealData(forceDate=false) {
     buildDashboard(); renderLive(); renderEmployees();
     const ptsDate=document.getElementById('ptsDashboardDate');if(ptsDate&&!ptsDate.value)ptsDate.value=currentDataDate;
     if(ptsDashboardMode==='trainee')loadPtsDashboard();
+    if(document.getElementById('screen-live')?.classList.contains('active')&&liveAttendanceMode==='trainee')loadPtsLiveAttendance();
     const badge=document.querySelector('.demo-badge');
     if(badge){
       const dev=selectedDash.device||{};
@@ -387,7 +459,7 @@ async function loadRealData(forceDate=false) {
     }
     const sub=document.querySelector('#screen-dashboard .page-sub'); if(sub)sub.innerHTML=`Attendance overview — <strong>${escapeHtml(currentDataDate)}</strong> · ${devText(selectedDash.device)}`;
     const empSub=document.querySelector('#screen-employees .page-sub');if(empSub)empSub.textContent=`${employees.length} PTS staff from the attendance database`;
-    const liveSub=document.querySelector('#screen-live .page-sub');if(liveSub)liveSub.textContent=`Attendance records for ${currentDataDate} · refreshes automatically`;
+    const liveSub=document.querySelector('#screen-live .page-sub');if(liveSub)liveSub.textContent=`Staff and trainee attendance for ${currentDataDate} · refreshes automatically`;
     await loadHistoryForRange(false);
   } catch(e) {
     const badge=document.querySelector('.demo-badge');
@@ -396,9 +468,15 @@ async function loadRealData(forceDate=false) {
   } finally {
     realLoading=false;
     if(realRefreshTimer)clearTimeout(realRefreshTimer);
-    realRefreshTimer=setTimeout(()=>loadRealData(false),15000);
+    if(pendingRealReload){
+      pendingRealReload=false;
+      realRefreshTimer=setTimeout(()=>loadRealData(true),50);
+      return;
+    }
+    realRefreshTimer=setTimeout(()=>loadRealData(false),currentUser?.role==='view_only'?60000:15000);
   }
 }
+
 function devText(dev){const s=dev?.status||'not configured';return s==='online'?'Access database connected':('database '+s.replaceAll('_',' '));}
 async function loadHistoryForRange(render=true) {
   const from=document.getElementById('recFrom')?.value||'';
@@ -406,6 +484,10 @@ async function loadHistoryForRange(render=true) {
   if(!from||!to)return;
   try {
     const q=new URLSearchParams({from,to});
+    const employee=document.getElementById('rptEmployee')?.value||'';
+    if(employee)q.set('search',employee);
+    const dept=document.getElementById('rptDept')?.value||'';
+    if(dept)q.set('department',dept);
     const result=await apiJSON('/api/attendance/history?'+q.toString());
     recData.splice(0,recData.length,...(result.items||[]).map(r=>{
       const emp=employees.find(e=>String(e.dbId)===String(r.employee_id));
@@ -434,7 +516,11 @@ let ptsDashboardMode='trainee';
 let ptsTraineeRows=[];
 let editingPtsTraineeId=null;
 let ptsCurrentRecordType='leave',ptsCurrentPersonType='trainee';
+let liveAttendanceMode='staff';
+let ptsReportRows=[];
+let ptsDirectoryCache={staff:null,trainee:null};
 function setPtsDashboardMode(mode){
+  if(currentUser?.role==='view_only')return;
   ptsDashboardMode=mode==='staff'?'staff':'trainee';
   const trainee=ptsDashboardMode==='trainee';
   const traineePanel=document.getElementById('ptsTraineeDashboard');
@@ -448,6 +534,7 @@ function setPtsDashboardMode(mode){
 }
 async function loadPtsDashboard(){
   const dateEl=document.getElementById('ptsDashboardDate'),shiftEl=document.getElementById('ptsShiftSelect');
+  if(dateEl&&!dateEl.value)dateEl.value=currentDataDate||today();
   const date=(dateEl&&dateEl.value)||currentDataDate||today(),shift=(shiftEl&&shiftEl.value)||'Morning';
   const status=document.getElementById('ptsTraineeDataStatus');
   const heading=document.getElementById('ptsShiftHeading');if(heading)heading.textContent=shift;
@@ -459,10 +546,54 @@ async function loadPtsDashboard(){
     Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.textContent=Number(value).toLocaleString('en-US');});
     const rows=Array.isArray(data.course_wise)?data.course_wise:[];
     const body=document.getElementById('ptsCourseWiseTbody');
-    if(body)body.innerHTML=rows.length?rows.map(r=>`<tr><td><strong>${escapeHtml(r.course)}</strong></td><td>${Number(r.total||0).toLocaleString('en-US')}</td><td style="color:#13a879;font-weight:700">${Number(r.present||0).toLocaleString('en-US')}</td><td style="color:#d83b54;font-weight:700">${Number(r.absent||0).toLocaleString('en-US')}</td></tr>`).join(''):'<tr><td colspan="4">No course attendance has been recorded for this shift and date.</td></tr>';
+    if(body)body.innerHTML=rows.length?rows.map(r=>{
+      const pct=Number(r.total||0)?Math.round(Number(r.present||0)/Number(r.total||0)*100):0;
+      return `<tr><td><strong>${escapeHtml(r.course)}</strong><div class="pts-course-progress"><span style="width:${pct}%"></span></div></td><td>${Number(r.total||0).toLocaleString('en-US')}</td><td style="color:#13a879;font-weight:700">${Number(r.present||0).toLocaleString('en-US')}</td><td style="color:#d83b54;font-weight:700">${Number(r.absent||0).toLocaleString('en-US')}</td></tr>`;
+    }).join(''):'<tr><td colspan="4">No course attendance has been recorded for this shift and date.</td></tr>';
+    const dist=data.status_distribution||{},distBox=document.getElementById('ptsStatusDistribution');
+    const distItems=[['Present',(dist.present||0)+(dist.early_arrival||0),'#13a879'],['Late',dist.late||0,'#d97706'],['Absent',dist.absent||0,'#dc3545'],['Leave',dist.leave||0,'#64748b'],['OSD',dist.osd||0,'#7c3aed'],['Not Marked',dist.not_marked||0,'#94a3b8']];
+    const distTotal=distItems.reduce((sum,x)=>sum+Number(x[1]||0),0);
+    if(distBox)distBox.innerHTML=distItems.map(([label,count,color])=>`<div class="pts-dist-row"><div><span>${label}</span><strong>${Number(count).toLocaleString('en-US')}</strong></div><div class="pts-dist-track"><span style="width:${distTotal?Math.round(Number(count)/distTotal*100):0}%;background:${color}"></span></div></div>`).join('');
+    const totalEl=document.getElementById('ptsStatusTotal');if(totalEl)totalEl.textContent=`${distTotal} trainees`;
+    const activityBody=document.getElementById('ptsRecentActivityTbody');
+    const activity=data.live_activity||[];
+    if(activityBody)activityBody.innerHTML=activity.length?activity.map(r=>`<tr><td><strong>${escapeHtml(r.name||'')}</strong><div class="access-help">${escapeHtml(r.employee_no||'')}</div></td><td>${escapeHtml(r.course_name||'—')} / ${escapeHtml(r.platoon||'—')}</td><td>${escapeHtml(r.check_in||'—')}</td><td>${escapeHtml(r.check_out||'—')}</td><td>${ptsStatusBadge(r.status)}</td></tr>`).join(''):'<tr><td colspan="5">No trainee attendance activity recorded for this date and shift.</td></tr>';
     if(status)status.textContent=data.data_ready?`${m.active_enrolled||0} active trainees · ${m.attendance_records||0} attendance records`:'No Manawan trainee roster imported yet · counts are correctly shown as zero.';
   }catch(e){if(status)status.textContent='Trainee data unavailable: '+englishMessage(e.message);console.warn('PTC trainee dashboard:',e.message);}
 }
+async function loadPtsLiveAttendance(){
+  const dateEl=document.getElementById('ptsLiveDate'),shiftEl=document.getElementById('ptsLiveShift');
+  if(dateEl&&!dateEl.value)dateEl.value=currentDataDate||today();
+  const date=dateEl?.value||currentDataDate||today(),shift=shiftEl?.value||'Morning';
+  const body=document.getElementById('ptsLiveTbody');if(body)body.innerHTML='<tr><td colspan="8">Loading trainee attendance…</td></tr>';
+  try{
+    const data=await apiJSON('/api/pts/attendance?'+new URLSearchParams({date,shift}).toString());
+    const rows=data.items||[];
+    rows.sort((a,b)=>{
+      const rank=x=>({present:0,late:1,early_arrival:0,absent:2,leave:3,outdoor_leave:3,medical_rest:3,long_weekend:3,osd:4,'':5}[String(x.attendance_status||'').toLowerCase()]??6);
+      return rank(a)-rank(b)||String(a.check_in||'99:99').localeCompare(String(b.check_in||'99:99'))||String(a.name||'').localeCompare(String(b.name||''));
+    });
+    if(body)body.innerHTML=rows.length?rows.map(r=>`<tr><td>${escapeHtml(r.employee_no||'')}</td><td><strong>${escapeHtml(r.name||'')}</strong></td><td>${escapeHtml(r.course_name||'—')}</td><td>${escapeHtml(r.platoon||'—')}</td><td>${escapeHtml(shift)}</td><td>${escapeHtml(r.check_in||'—')}</td><td>${escapeHtml(r.check_out||'—')}</td><td>${ptsStatusBadge(r.attendance_status||'not_marked')}</td></tr>`).join(''):'<tr><td colspan="8">No active trainees found.</td></tr>';
+  }catch(e){if(body)body.innerHTML=`<tr><td colspan="8">${escapeHtml(englishMessage(e.message))}</td></tr>`;}
+}
+function setLiveAttendanceMode(mode){
+  liveAttendanceMode=mode==='trainee'?'trainee':'staff';
+  const staff=liveAttendanceMode==='staff';
+  const staffView=document.getElementById('liveStaffView'),traineeView=document.getElementById('liveTraineeView');
+  if(staffView)staffView.style.display=staff?'block':'none';
+  if(traineeView)traineeView.style.display=staff?'none':'block';
+  const staffTab=document.getElementById('liveStaffTab'),traineeTab=document.getElementById('liveTraineeTab');
+  if(staffTab)staffTab.classList.toggle('active',staff);
+  if(traineeTab)traineeTab.classList.toggle('active',!staff);
+  if(staff)renderLive();else loadPtsLiveAttendance();
+}
+function ptsStatusBadge(status){
+  const key=String(status||'not_marked').toLowerCase();
+  const labels={present:'Present',late:'Late',early_arrival:'Early Arrival',absent:'Absent',leave:'Leave',outdoor_leave:'Outdoor Leave',medical_rest:'Medical Rest',long_weekend:'Long Weekend',osd:'OSD',not_marked:'Not Marked'};
+  const cls={present:'b-green',late:'b-amber',early_arrival:'b-green',absent:'b-red',leave:'b-blue',outdoor_leave:'b-blue',medical_rest:'b-purple',long_weekend:'b-gray',osd:'b-violet',not_marked:'b-gray'};
+  return `<span class="badge ${cls[key]||'b-gray'}">${labels[key]||escapeHtml(status||'Not Marked')}</span>`;
+}
+
 async function loadPtsAttendance(){
   const dateEl=document.getElementById('ptsAttendanceDate'),shiftEl=document.getElementById('ptsAttendanceShift');
   if(dateEl&&!dateEl.value)dateEl.value=currentDataDate||today();
@@ -470,7 +601,7 @@ async function loadPtsAttendance(){
   const body=document.getElementById('ptsAttendanceTbody');if(body)body.innerHTML='<tr><td colspan="8">Loading trainee attendance…</td></tr>';
   try{const data=await apiJSON('/api/pts/attendance?'+new URLSearchParams({date,shift}).toString());
     const rows=data.items||[];if(!body)return;
-    body.innerHTML=rows.length?rows.map(r=>`<tr data-pts-attendance-row="${Number(r.id)}"><td><strong>${escapeHtml(r.employee_no)}</strong></td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.course_name||'—')}</td><td>${escapeHtml(r.platoon||'—')}</td><td><select class="form-input pts-attendance-status" id="ptsAttendanceStatus_${Number(r.id)}"><option value="">Not Marked</option><option value="present" ${r.attendance_status==='present'?'selected':''}>Present</option><option value="absent" ${r.attendance_status==='absent'?'selected':''}>Absent</option><option value="late" ${r.attendance_status==='late'?'selected':''}>Late</option><option value="early_arrival" ${r.attendance_status==='early_arrival'?'selected':''}>Early Arrival</option><option value="leave" ${r.attendance_status==='leave'?'selected':''}>Leave</option><option value="osd" ${r.attendance_status==='osd'?'selected':''}>OSD</option><option value="medical_rest" ${r.attendance_status==='medical_rest'?'selected':''}>Medical Rest</option><option value="long_weekend" ${r.attendance_status==='long_weekend'?'selected':''}>Long Weekend</option></select></td><td><input class="form-input pts-attendance-time" id="ptsAttendanceIn_${Number(r.id)}" type="time" value="${escapeHtml(r.check_in||'')}"></td><td><input class="form-input pts-attendance-time" id="ptsAttendanceOut_${Number(r.id)}" type="time" value="${escapeHtml(r.check_out||'')}"></td><td><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="savePtsAttendanceRow(${Number(r.id)})">Save</button></td></tr>`).join(''):'<tr><td colspan="8">No active trainees found. Import the Manawan trainee roster first.</td></tr>';
+    body.innerHTML=rows.length?rows.map(r=>`<tr data-pts-attendance-row="${Number(r.id)}"><td><strong>${escapeHtml(r.employee_no)}</strong></td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.course_name||'—')}</td><td>${escapeHtml(r.platoon||'—')}</td><td><select class="form-input pts-attendance-status" id="ptsAttendanceStatus_${Number(r.id)}"><option value="">Not Marked</option><option value="present" ${r.attendance_status==='present'?'selected':''}>Present</option><option value="absent" ${r.attendance_status==='absent'?'selected':''}>Absent</option><option value="late" ${r.attendance_status==='late'?'selected':''}>Late</option><option value="early_arrival" ${r.attendance_status==='early_arrival'?'selected':''}>Early Arrival</option><option value="leave" ${r.attendance_status==='leave'?'selected':''}>Leave</option><option value="outdoor_leave" ${r.attendance_status==='outdoor_leave'?'selected':''}>Outdoor Leave</option><option value="osd" ${r.attendance_status==='osd'?'selected':''}>OSD</option><option value="medical_rest" ${r.attendance_status==='medical_rest'?'selected':''}>Medical Rest</option><option value="long_weekend" ${r.attendance_status==='long_weekend'?'selected':''}>Long Weekend</option></select></td><td><input class="form-input pts-attendance-time" id="ptsAttendanceIn_${Number(r.id)}" type="time" value="${escapeHtml(r.check_in||'')}"></td><td><input class="form-input pts-attendance-time" id="ptsAttendanceOut_${Number(r.id)}" type="time" value="${escapeHtml(r.check_out||'')}"></td><td><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="savePtsAttendanceRow(${Number(r.id)})">Save</button></td></tr>`).join(''):'<tr><td colspan="8">No active trainees found. Import the Manawan trainee roster first.</td></tr>';
     applyRolePermissions();
   }catch(e){if(body)body.innerHTML=`<tr><td colspan="8">${escapeHtml(englishMessage(e.message))}</td></tr>`;}
 }
@@ -487,6 +618,7 @@ async function saveAllPtsAttendance(markAllPresent=false){
   const rows=[...document.querySelectorAll('#ptsAttendanceTbody tr[data-pts-attendance-row]')];
   if(!rows.length){notify('Load the trainee roster first.','error');return;}
   const date=document.getElementById('ptsAttendanceDate').value||today(),shift=document.getElementById('ptsAttendanceShift').value||'Morning';
+  if(markAllPresent&&!await appConfirm(`Mark ALL ${rows.length} active trainees Present for ${date} (${shift})? This replaces any previously selected status for these rows.`))return;
   const items=[];
   rows.forEach(row=>{const id=Number(row.dataset.ptsAttendanceRow),select=document.getElementById('ptsAttendanceStatus_'+id);if(markAllPresent&&select)select.value='present';const status=select?.value;if(!status)return;items.push({trainee_id:id,attendance_date:date,shift,status,check_in:document.getElementById('ptsAttendanceIn_'+id)?.value||'',check_out:document.getElementById('ptsAttendanceOut_'+id)?.value||''});});
   if(!items.length){notify('Choose at least one attendance status.','error');return;}
@@ -521,7 +653,7 @@ async function importPtsRecords(input,recordType,personType){
     if(!response.ok)throw new Error(result.detail||result.message||('HTTP '+response.status));
     notify(result.message||'Records imported.','success');
     if(result.rejected_count){console.warn('Rejected PTS import rows:',result.rejected);notify(result.rejected_count+' rows were rejected. Open the browser console to review row numbers and reasons.','warning');}
-    await loadPtsRecords(recordType,personType);await loadPtsDashboard();
+    await loadPtsRecords(recordType,personType);await loadPtsDashboard();if(personType==='staff')await loadRealData(true);
   }catch(e){notify('Import failed: '+e.message,'error');}
   finally{input.value='';}
 }
@@ -543,8 +675,8 @@ async function savePtsTrainee(event){
 }
 function ptsFormatDate(value){if(!value)return'—';const d=new Date(value);return Number.isNaN(d.getTime())?String(value):d.toLocaleString('en-PK',{dateStyle:'medium',timeStyle:'short'});}
 async function loadPtsRecords(recordType,personType){
-  const idMap={ 'leave-trainee':'ptsTraineeLeaveTbody','osd-trainee':'ptsTraineeOsdTbody','leave-staff':'ptsStaffLeaveTbody','osd-staff':'ptsStaffOsdTbody','duty_rest-staff':'ptsDutyRestTbody'};
-  const body=document.getElementById(idMap[recordType+'-'+personType]);const colSpan=recordType==='osd'?9:8;if(body)body.innerHTML=`<tr><td colspan="${colSpan}">Loading records…</td></tr>`;
+  const idMap={ 'leave-trainee':'ptsTraineeLeaveTbody','osd-trainee':'ptsTraineeOsdTbody','leave-staff':'ptsStaffLeaveTbody','osd-staff':'ptsStaffOsdTbody','osd_permanent-staff':'ptsStaffOsdPermanentTbody','duty_rest-staff':'ptsDutyRestTbody'};
+  const body=document.getElementById(idMap[recordType+'-'+personType]);const colSpan=(recordType==='osd'||recordType==='osd_permanent')?9:8;if(body)body.innerHTML=`<tr><td colspan="${colSpan}">Loading records…</td></tr>`;
   try{
     const r=await apiJSON('/api/pts/records?'+new URLSearchParams({record_type:recordType,person_type:personType}).toString());
     const rows=r.items||[];
@@ -555,7 +687,7 @@ async function loadPtsRecords(recordType,personType){
       const status=`<td><span class="badge ${row.status==='approved'?'b-green':row.status==='rejected'?'b-red':'b-amber'}">${escapeHtml(row.status||'pending')}</span></td>`;
       const actions=(row.status==='pending')?`<td><div class="access-actions"><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="updatePtsRecordStatus('${recordType}',${Number(row.id)},'approved','${personType}')">Approve</button><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="updatePtsRecordStatus('${recordType}',${Number(row.id)},'rejected','${personType}')">Reject</button></div></td>`:'<td>—</td>';
       if(recordType==='leave')return`<tr>${identity}${context}<td>${escapeHtml(row.leave_type||row.reason||'—')}</td><td>${ptsFormatDate(row.start_at)}</td><td>${ptsFormatDate(row.end_at)}</td>${status}${actions}</tr>`;
-      if(recordType==='osd')return`<tr>${identity}${context}<td>${escapeHtml(row.reason||'—')}</td><td>${escapeHtml(row.duty_place||'—')}</td><td>${ptsFormatDate(row.start_at)}</td><td>${ptsFormatDate(row.end_at)}</td>${status}${actions}</tr>`;
+      if(recordType==='osd'||recordType==='osd_permanent')return`<tr>${identity}${context}<td>${escapeHtml(row.reason||'—')}</td><td>${escapeHtml(row.duty_place||'—')}</td><td>${ptsFormatDate(row.start_at)}</td><td>${ptsFormatDate(row.end_at)}</td>${status}${actions}</tr>`;
       return`<tr>${identity}${context}<td>${ptsFormatDate(row.start_at)}</td><td>${ptsFormatDate(row.end_at)}</td><td>${escapeHtml(row.reason||'Duty Rest')}</td>${status}${actions}</tr>`;
     }).join(''):`<tr><td colspan="${colSpan}">No records found for this category.</td></tr>`;
     applyRolePermissions();
@@ -563,36 +695,175 @@ async function loadPtsRecords(recordType,personType){
 }
 async function updatePtsRecordStatus(recordType,recordId,status,personType){
   if(!roleAllowed('attendance_edit')){notify('Supervisor or Super Admin permission is required.','error');return;}
-  try{await apiJSON('/api/pts/records/'+recordType+'/'+recordId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});notify('Record status updated.','success');await loadPtsRecords(recordType,personType);await loadPtsDashboard();}
+  try{await apiJSON('/api/pts/records/'+recordType+'/'+recordId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});notify('Record status updated.','success');if(recordType==='leave'&&document.getElementById('screen-leave')?.classList.contains('active'))await loadLeaveManagement();else await loadPtsRecords(recordType,personType);await loadPtsDashboard();if(personType==='staff')await loadRealData(true);}
   catch(e){notify('Could not update record: '+e.message,'error');}
 }
-function openPtsRecordModal(recordType,personType){
+async function loadLeaveManagement(){
+  const pending=document.getElementById('leavePendingTbody'),approved=document.getElementById('leaveApprovedTbody');
+  const announcementsBody=document.getElementById('leaveAnnouncementsTbody'),holidaysBody=document.getElementById('leaveHolidaysTbody');
+  [pending,approved,announcementsBody,holidaysBody].forEach(el=>{if(el)el.innerHTML='<tr><td colspan="9">Loading…</td></tr>';});
+  try{
+    const [staffLeave,traineeLeave,announcementResult,holidayResult]=await Promise.all([
+      apiJSON('/api/pts/records?record_type=leave&person_type=staff'),
+      apiJSON('/api/pts/records?record_type=leave&person_type=trainee'),
+      apiJSON('/api/pts/leave-announcements'),
+      apiJSON('/api/pts/holidays')
+    ]);
+    const records=[...(staffLeave.items||[]),...(traineeLeave.items||[])].sort((a,b)=>String(b.start_at||'').localeCompare(String(a.start_at||'')));
+    const renderRows=rows=>rows.length?rows.map(row=>{
+      const type=String(row.person_type||'staff'),status=String(row.status||'pending');
+      const actions=status==='pending'?`<button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="updatePtsRecordStatus('leave',${Number(row.id)},'approved','${type}')">Approve</button><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="updatePtsRecordStatus('leave',${Number(row.id)},'rejected','${type}')">Reject</button>`:status==='approved'?`<button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="updatePtsRecordStatus('leave',${Number(row.id)},'cancelled','${type}')">Cancel</button>`:'—';
+      return `<tr><td>${escapeHtml(type==='trainee'?'Trainee':'Staff')}</td><td>${escapeHtml(row.person_id||'')}</td><td><strong>${escapeHtml(row.person_name||'')}</strong></td><td>${escapeHtml(row.leave_type||row.reason||'Leave')}</td><td>${escapeHtml(ptsFormatDate(row.start_at))}</td><td>${escapeHtml(ptsFormatDate(row.end_at))}</td><td>${escapeHtml(row.reason||'—')}</td><td>${statusBadge(status)}</td><td><div class="access-actions">${actions}</div></td></tr>`;
+    }).join(''):'<tr><td colspan="9">No leave requests found.</td></tr>';
+    if(pending)pending.innerHTML=renderRows(records.filter(r=>String(r.status||'pending')==='pending'));
+    if(approved)approved.innerHTML=renderRows(records.filter(r=>['approved','cancelled','rejected'].includes(String(r.status||''))));
+    const announcements=announcementResult.items||[];
+    if(announcementsBody)announcementsBody.innerHTML=announcements.length?announcements.map(a=>`<tr><td><strong>${escapeHtml(a.title||'')}</strong></td><td>${escapeHtml(a.message||'—')}</td><td>${escapeHtml(a.start_date||'')}</td><td>${escapeHtml(a.end_date||'')}</td><td>${escapeHtml(a.audience||'all')}</td><td>${a.active?'Published':'Hidden'}</td><td><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="toggleLeaveAnnouncement(${Number(a.id)},${a.active?'false':'true'})">${a.active?'Hide':'Publish'}</button></td></tr>`).join(''):'<tr><td colspan="7">No leave announcements have been published.</td></tr>';
+    const holidays=holidayResult.items||[];
+    if(holidaysBody)holidaysBody.innerHTML=holidays.length?holidays.map(h=>`<tr><td><strong>${escapeHtml(h.title||'')}</strong></td><td>${escapeHtml(h.holiday_date||'')}</td><td>${escapeHtml(h.holiday_date?new Date(h.holiday_date+'T00:00:00').toLocaleDateString('en-PK',{weekday:'long'}):'—')}</td><td>${escapeHtml(h.category||'')}</td><td>${escapeHtml(h.description||'—')}</td><td><button class="btn btn-outline btn-sm" data-permission="attendance_edit" onclick="deleteHoliday(${Number(h.id)})">Delete</button></td></tr>`).join(''):'<tr><td colspan="6">No public holidays have been added.</td></tr>';
+    applyRolePermissions();
+  }catch(e){
+    [pending,approved,announcementsBody,holidaysBody].forEach(el=>{if(el)el.innerHTML=`<tr><td colspan="9">${escapeHtml(englishMessage(e.message))}</td></tr>`;});
+  }
+}
+function switchLeaveTab(tab,id){
+  document.querySelectorAll('.leave-tabs .l-tab').forEach(el=>el.classList.toggle('active',el===tab));
+  ['leave-pending','leave-approved','leave-announcements','leave-holidays'].forEach(key=>{const el=document.getElementById(key);if(el)el.style.display=key===id?'block':'none';});
+}
+function openLeaveAnnouncementModal(){
+  if(!roleAllowed('attendance_edit'))return;
+  const todayValue=today();
+  document.getElementById('ptsAnnouncementTitle').value='';
+  document.getElementById('ptsAnnouncementMessage').value='';
+  document.getElementById('ptsAnnouncementStart').value=todayValue;
+  document.getElementById('ptsAnnouncementEnd').value=todayValue;
+  document.getElementById('ptsAnnouncementModal').classList.add('open');
+}
+function closeLeaveAnnouncementModal(){document.getElementById('ptsAnnouncementModal')?.classList.remove('open');}
+async function saveLeaveAnnouncement(event){
+  event.preventDefault();
+  const payload={title:document.getElementById('ptsAnnouncementTitle').value.trim(),message:document.getElementById('ptsAnnouncementMessage').value.trim(),start_date:document.getElementById('ptsAnnouncementStart').value,end_date:document.getElementById('ptsAnnouncementEnd').value,audience:document.getElementById('ptsAnnouncementAudience').value};
+  try{await apiJSON('/api/pts/leave-announcements',{method:'POST',body:JSON.stringify(payload)});closeLeaveAnnouncementModal();notify('Leave announcement published.','success');await loadLeaveManagement();}
+  catch(e){notify('Announcement could not be published: '+e.message,'error');}
+}
+async function toggleLeaveAnnouncement(id,active){
+  try{await apiJSON('/api/pts/leave-announcements/'+id,{method:'PATCH',body:JSON.stringify({active:active===true||active==='true'})});await loadLeaveManagement();notify('Announcement status updated.','success');}
+  catch(e){notify('Announcement could not be updated: '+e.message,'error');}
+}
+function openHolidayModal(){
+  if(!roleAllowed('attendance_edit'))return;
+  document.getElementById('ptsHolidayTitle').value='';document.getElementById('ptsHolidayDate').value=today();
+  document.getElementById('ptsHolidayDescription').value='';document.getElementById('ptsHolidayModal').classList.add('open');
+}
+function closeHolidayModal(){document.getElementById('ptsHolidayModal')?.classList.remove('open');}
+async function saveHoliday(event){
+  event.preventDefault();
+  const payload={title:document.getElementById('ptsHolidayTitle').value.trim(),holiday_date:document.getElementById('ptsHolidayDate').value,category:document.getElementById('ptsHolidayCategory').value,description:document.getElementById('ptsHolidayDescription').value.trim()};
+  try{await apiJSON('/api/pts/holidays',{method:'POST',body:JSON.stringify(payload)});closeHolidayModal();notify('Public holiday saved.','success');await loadLeaveManagement();}
+  catch(e){notify('Holiday could not be saved: '+e.message,'error');}
+}
+async function deleteHoliday(id){
+  if(!await appConfirm('Delete this holiday record?'))return;
+  try{await apiJSON('/api/pts/holidays/'+id,{method:'DELETE'});notify('Holiday deleted.','success');await loadLeaveManagement();}
+  catch(e){notify('Holiday could not be deleted: '+e.message,'error');}
+}
+async function loadPtsPersonDirectory(personType){
+  if(personType==='staff'){
+    if(!ptsDirectoryCache.staff){
+      if(!employees.length){const rows=await fetchAllPages('/api/employees');employees.splice(0,employees.length,...rows.map(mapEmployee));}
+      ptsDirectoryCache.staff=employees.filter(e=>e.status==='Active').map(e=>({key:String(e.dbId),person_id:String(e.id||e.deviceUserId||e.dbId),name:e.name,category:e.designation||'',branch:e.dept||'',course:'',platoon:''}));
+    }
+    return ptsDirectoryCache.staff;
+  }
+  if(!ptsDirectoryCache.trainee){
+    const result=await apiJSON('/api/pts/trainees');
+    ptsDirectoryCache.trainee=(result.items||[]).filter(t=>String(t.status||'active').toLowerCase()==='active').map((t,i)=>({key:String(t.id),person_id:String(t.employee_no||''),name:t.name||'',category:'',branch:'',course:t.course_name||'',platoon:t.platoon||''}));
+  }
+  return ptsDirectoryCache.trainee;
+}
+function fillSimpleSelect(id,values,placeholder,selected=''){
+  const el=document.getElementById(id);if(!el)return;
+  const unique=[...new Set((values||[]).map(v=>String(v||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  el.innerHTML=`<option value="">${escapeHtml(placeholder)}</option>`+unique.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  if(unique.includes(selected))el.value=selected;
+}
+async function populatePtsRecordPersonOptions(){
+  const select=document.getElementById('ptsRecordPersonSelect');if(!select)return;
+  select.innerHTML='<option value="">Loading directory…</option>';
+  try{
+    const rows=await loadPtsPersonDirectory(ptsCurrentPersonType);
+    select.innerHTML='<option value="">Select person from directory…</option>'+rows.map((r,i)=>`<option value="${escapeHtml(r.key)}" data-person-id="${escapeHtml(r.person_id)}" data-person-name="${escapeHtml(r.name)}" data-category="${escapeHtml(r.category)}" data-branch="${escapeHtml(r.branch)}" data-course="${escapeHtml(r.course)}" data-platoon="${escapeHtml(r.platoon)}">${escapeHtml(r.person_id)} — ${escapeHtml(r.name)}${r.course?' · '+escapeHtml(r.course):''}</option>`).join('');
+    const category=document.getElementById('ptsRecordCategory');
+    const branch=document.getElementById('ptsRecordBranch');
+    if(ptsCurrentPersonType==='staff'){
+      fillSimpleSelect('ptsRecordCategory',rows.map(r=>r.category),'Select category…');
+      fillSimpleSelect('ptsRecordBranch',rows.map(r=>r.branch),'Select branch…');
+    }
+    selectPtsRecordPerson('');
+  }catch(e){select.innerHTML='<option value="">Could not load directory</option>';notify('Could not load staff/trainee dropdown: '+e.message,'error');}
+}
+function selectPtsRecordPerson(key){
+  const select=document.getElementById('ptsRecordPersonSelect');
+  const option=select?.selectedOptions?.[0];
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value||'';};
+  set('ptsRecordPersonId',option?.dataset.personId||'');
+  set('ptsRecordPersonName',option?.dataset.personName||'');
+  set('ptsRecordCourse',option?.dataset.course||'');
+  set('ptsRecordPlatoon',option?.dataset.platoon||'');
+  if(option?.dataset.category)set('ptsRecordCategory',option.dataset.category);
+  if(option?.dataset.branch)set('ptsRecordBranch',option.dataset.branch);
+}
+async function switchPtsRecordPersonType(personType){
+  ptsCurrentPersonType=personType==='trainee'?'trainee':'staff';
+  await populatePtsRecordPersonOptions();
+  const isTrainee=ptsCurrentPersonType==='trainee';
+  ['ptsRecordCourseWrap','ptsRecordPlatoonWrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isTrainee?'block':'none';});
+  ['ptsRecordCategoryWrap','ptsRecordBranchWrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isTrainee?'none':'block';});
+}
+async function openPtsRecordModal(recordType,personType,globalLeave=false){
   if(!roleAllowed('attendance_edit')){notify('Supervisor or Super Admin permission is required.','error');return;}
   ptsCurrentRecordType=recordType;ptsCurrentPersonType=personType;
   document.getElementById('ptsRecordForm')?.reset();
-  const isTrainee=personType==='trainee',isLeave=recordType==='leave',isOsd=recordType==='osd';
-  document.getElementById('ptsRecordModalTitle').textContent=recordType==='duty_rest'?'Add Staff Duty Rest':`${isTrainee?'Trainee':'Staff'} ${isLeave?'Leave':'OSD / Permission'}`;
-  ['ptsRecordCourseWrap','ptsRecordPlatoonWrap'].forEach(id=>document.getElementById(id).style.display=isTrainee?'block':'none');
-  ['ptsRecordCategoryWrap','ptsRecordBranchWrap'].forEach(id=>document.getElementById(id).style.display=isTrainee?'none':'block');
+  const isTrainee=personType==='trainee',isLeave=recordType==='leave',isOsd=recordType==='osd'||recordType==='osd_permanent',isPermanent=recordType==='osd_permanent';
+  const typeWrap=document.getElementById('ptsRecordPersonTypeWrap');
+  if(typeWrap)typeWrap.style.display=globalLeave?'block':'none';
+  const personTypeSelect=document.getElementById('ptsRecordPersonTypeSelect');if(personTypeSelect)personTypeSelect.value=personType;
+  document.getElementById('ptsRecordModalTitle').textContent=recordType==='duty_rest'?'Add Staff Duty Rest':isPermanent?'Add Permanent Staff OSD':`${isTrainee?'Trainee':'Staff'} ${isLeave?'Leave':'OSD / Permission'}`;
+  ['ptsRecordCourseWrap','ptsRecordPlatoonWrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isTrainee?'block':'none';});
+  ['ptsRecordCategoryWrap','ptsRecordBranchWrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isTrainee?'none':'block';});
   document.getElementById('ptsRecordLeaveTypeWrap').style.display=isLeave?'block':'none';
   document.getElementById('ptsRecordDutyPlaceWrap').style.display=isOsd?'block':'none';
+  document.getElementById('ptsRecordOsdTypeWrap').style.display=isOsd?'block':'none';
+  const osdType=document.getElementById('ptsRecordOsdType');if(osdType)osdType.value=isPermanent?'permanent':'temporary';
+  const status=document.getElementById('ptsRecordStatus');if(status)status.value=isLeave?'pending':'pending';
+  const start=document.getElementById('ptsRecordStart'),end=document.getElementById('ptsRecordEnd');
+  if(start&&!start.value)start.value=new Date().toISOString().slice(0,16);
+  if(end&&!end.value)end.value=isPermanent?'2099-12-31T23:59':new Date(Date.now()+86400000).toISOString().slice(0,16);
   document.getElementById('ptsRecordModal').classList.add('open');
+  await populatePtsRecordPersonOptions();
 }
+function openLeaveRequestModal(){openPtsRecordModal('leave','staff',true);}
 function closePtsRecordModal(){document.getElementById('ptsRecordModal')?.classList.remove('open');}
+
 async function savePtsRecord(event){
   event.preventDefault();
-  const payload={record_type:ptsCurrentRecordType,person_type:ptsCurrentPersonType,person_id:document.getElementById('ptsRecordPersonId').value.trim(),person_name:document.getElementById('ptsRecordPersonName').value.trim(),course_name:document.getElementById('ptsRecordCourse').value.trim(),platoon:document.getElementById('ptsRecordPlatoon').value.trim(),staff_category:document.getElementById('ptsRecordCategory').value.trim(),staff_branch:document.getElementById('ptsRecordBranch').value.trim(),leave_type:document.getElementById('ptsRecordLeaveType').value.trim(),start_at:new Date(document.getElementById('ptsRecordStart').value).toISOString(),end_at:new Date(document.getElementById('ptsRecordEnd').value).toISOString(),reason:document.getElementById('ptsRecordReason').value.trim(),duty_place:document.getElementById('ptsRecordDutyPlace').value.trim(),reference_no:document.getElementById('ptsRecordReference').value.trim(),remarks:document.getElementById('ptsRecordRemarks').value.trim(),status:document.getElementById('ptsRecordStatus').value};
-  try{await apiJSON('/api/pts/records',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});closePtsRecordModal();notify('Record saved successfully.','success');await loadPtsRecords(ptsCurrentRecordType,ptsCurrentPersonType);await loadPtsDashboard();}
+  const startValue=document.getElementById('ptsRecordStart').value;
+  const endValue=document.getElementById('ptsRecordEnd').value||(ptsCurrentRecordType==='osd_permanent'?'2099-12-31T23:59':'');
+  if(!document.getElementById('ptsRecordPersonId').value||!document.getElementById('ptsRecordPersonName').value){notify('Directory se staff ya trainee select karein.','error');return;}
+  const payload={record_type:ptsCurrentRecordType,person_type:ptsCurrentPersonType,person_id:document.getElementById('ptsRecordPersonId').value.trim(),person_name:document.getElementById('ptsRecordPersonName').value.trim(),course_name:document.getElementById('ptsRecordCourse').value.trim(),platoon:document.getElementById('ptsRecordPlatoon').value.trim(),staff_category:document.getElementById('ptsRecordCategory').value.trim(),staff_branch:document.getElementById('ptsRecordBranch').value.trim(),leave_type:document.getElementById('ptsRecordLeaveType').value.trim(),start_at:new Date(startValue).toISOString(),end_at:new Date(endValue).toISOString(),reason:document.getElementById('ptsRecordReason').value.trim(),duty_place:document.getElementById('ptsRecordDutyPlace').value.trim(),osd_type:document.getElementById('ptsRecordOsdType')?.value||'temporary',reference_no:document.getElementById('ptsRecordReference').value.trim(),remarks:document.getElementById('ptsRecordRemarks').value.trim(),status:document.getElementById('ptsRecordStatus').value};
+  try{await apiJSON('/api/pts/records',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});closePtsRecordModal();notify('Record saved successfully.','success');if(ptsCurrentRecordType==='leave'&&document.getElementById('screen-leave')?.classList.contains('active'))await loadLeaveManagement();else await loadPtsRecords(ptsCurrentRecordType,ptsCurrentPersonType);await loadPtsDashboard();if(ptsCurrentPersonType==='staff')await loadRealData(true);}
   catch(e){notify('Could not save record: '+e.message,'error');}
 }
 
 // ── NAVIGATION ──────────────────────────────────────────────────────────────
 function showScreen(name,el){
+  if(currentUser?.role==='view_only'&&name!=='dashboard'){notify('View Only account ko sirf Dashboard aur previous-day attendance ki access hai.','error');return;}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
+  const screen=document.getElementById('screen-'+name);if(!screen)return;
+  screen.classList.add('active');
   if(el)el.classList.add('active');
-  if(name==='live')renderLive();
+  if(name==='live')setLiveAttendanceMode(liveAttendanceMode);
   if(name==='employees')renderEmployees();
   if(name==='records'){setDefaultDates();renderRecords();}
   if(name==='trainees')loadPtsTrainees();
@@ -601,8 +872,11 @@ function showScreen(name,el){
   if(name==='pts-trainee-osd')loadPtsRecords('osd','trainee');
   if(name==='pts-staff-leave')loadPtsRecords('leave','staff');
   if(name==='pts-staff-osd')loadPtsRecords('osd','staff');
+  if(name==='pts-staff-osd-permanent')loadPtsRecords('osd_permanent','staff');
   if(name==='pts-duty-rest')loadPtsRecords('duty_rest','staff');
-  if(name==='dashboard'&&ptsDashboardMode==='trainee')loadPtsDashboard();
+  if(name==='leave')loadLeaveManagement();
+  if(name==='reports')loadTraineeReportDefaults();
+  if(name==='dashboard'&&ptsDashboardMode==='trainee'&&currentUser?.role!=='view_only')loadPtsDashboard();
   if(name==='settings'){loadApConfig();}
 }
 function setLiveFilter(s){document.getElementById('liveStatus').value=s;renderLive()}
@@ -610,18 +884,25 @@ function setLiveFilter(s){document.getElementById('liveStatus').value=s;renderLi
 // ── LIVE TABLE ──────────────────────────────────────────────────────────────
 let livePage=1,liveSort={col:'',dir:1};
 function renderLive(){
-  const search=(document.getElementById('liveSearch').value||'').toLowerCase();
-  const dept=document.getElementById('liveDept').value;
-  const shift=document.getElementById('liveShift').value;
-  const status=document.getElementById('liveStatus').value;
+  const search=(document.getElementById('liveSearch')?.value||'').toLowerCase();
+  const dept=document.getElementById('liveDept')?.value||'';
+  const shift=document.getElementById('liveShift')?.value||'';
+  const status=document.getElementById('liveStatus')?.value||'';
   let data=liveData.filter(r=>{
     if(search&&!r.name.toLowerCase().includes(search)&&!r.id.toLowerCase().includes(search))return false;
     if(dept&&r.dept!==dept)return false;
-    if(shift&&r.shift!==shift)return false;
+    if(shift&&!shiftMatchesFront(r.shift,shift))return false;
     if(status&&r.status!==status)return false;
     return true;
   });
-  if(liveSort.col){const k=liveSort.col;data.sort((a,b)=>liveSort.dir*String(a[k]).localeCompare(String(b[k])))}
+  if(liveSort.col){
+    const k=liveSort.col;data.sort((a,b)=>liveSort.dir*String(a[k]??'').localeCompare(String(b[k]??''),undefined,{numeric:true,sensitivity:'base'}));
+  }else{
+    const rank={'Present':0,'Late':1,'Absent':2,'On Leave':3,'Missing Check-in':4,'Not Checked In':5};
+    data.sort((a,b)=>(rank[a.status]??6)-(rank[b.status]??6)||
+      (a.cin==='—'?1:b.cin==='—'?-1:String(a.cin).localeCompare(String(b.cin)))||
+      a.name.localeCompare(b.name,undefined,{sensitivity:'base'}));
+  }
   const pp=15,total=data.length,pages=Math.ceil(total/pp);
   if(livePage>pages)livePage=1;
   const slice=data.slice((livePage-1)*pp,livePage*pp);
@@ -630,7 +911,7 @@ function renderLive(){
       <td>${avEl(r)}</td><td style="font-family:monospace;font-size:12px">${r.id}</td>
       <td><strong>${r.name}</strong></td><td>${r.dept}</td><td style="font-size:12px">${r.shift}</td>
       <td>${r.schedIn}</td>
-      <td style="font-weight:600;color:${r.cin==='—'?'var(--text3)':r.status==='Late'?'var(--red)':r.status==='Early Arrival'?'var(--blue)':'var(--green)'}">${r.cin}</td>
+      <td style="font-weight:600;color:${r.cin==='—'?'var(--text3)':r.status==='Late'?'var(--red)':r.arrivalFlag==='Early Arrival'?'var(--blue)':'var(--green)'}">${r.cin}</td>
       <td style="font-size:12px;color:${r.lateStr.startsWith('+')?'var(--red)':r.lateStr.startsWith('-')?'var(--blue)':'var(--green)'}">${r.lateStr}</td>
       <td>${r.schedOut}</td>
       <td style="color:${r.cout==='Pending'?'var(--amber)':r.cout==='—'?'var(--text3)':'var(--text)'}">${r.cout}</td>
@@ -735,7 +1016,15 @@ function openEmployeeEditor(id){
  const e=employees.find(row=>String(row.dbId)===String(id));if(!e){notify('Employee was not found.','error');return;}
  apEditingEmployeeId=id;
  const fields=[['name','Full Name',displayEmployeeName(e.name)],['department','Department',e.dept],['designation','Designation',e.designation],['shift','Shift',e.shift],['phone','Phone',e.phone],['email','Email',e.email]];
- document.getElementById('apEmployeeEditFields').innerHTML=fields.map(([key,label,value])=>`<label class="form-label" style="display:block;margin-top:10px">${escapeHtml(label)}<input class="ap-profile-input" name="${key}" value="${escapeHtml(value||'')}" ${key==='name'?'required minlength="2"':''} ${key==='email'?'type="email"':''}></label>`).join('');
+ const departments=[...(apLocalConfig.departments||[]).map(x=>x.name),...employees.map(x=>x.dept),e.dept];
+ const shifts=[...(apLocalConfig.shifts||[]).map(x=>x.name),...employees.map(x=>x.shift),e.shift];
+ document.getElementById('apEmployeeEditFields').innerHTML=fields.map(([key,label,value])=>{
+  if(key==='department'||key==='shift'){
+   const opts=[...new Set((key==='department'?departments:shifts).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+   return `<label class="form-label" style="display:block;margin-top:10px">${escapeHtml(label)}<select class="ap-profile-input" name="${key}">${opts.map(v=>`<option value="${escapeHtml(v)}" ${v===value?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></label>`;
+  }
+  return `<label class="form-label" style="display:block;margin-top:10px">${escapeHtml(label)}<input class="ap-profile-input" name="${key}" value="${escapeHtml(value||'')}" ${key==='name'?'required minlength="2"':''} ${key==='email'?'type="email"':''}></label>`;
+ }).join('');
  document.getElementById('apEmployeeEditOverlay').classList.add('open');closeModal();
 }
 function closeEmployeeEditor(){document.getElementById('apEmployeeEditOverlay').classList.remove('open');apEditingEmployeeId=null;}
@@ -748,7 +1037,7 @@ async function saveEmployeeProfile(event){
   const result=await apiJSON('/api/employees/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(profile)});
   if(!result.success)throw new Error('Profile could not be saved.');
   const employee=employees.find(e=>String(e.dbId)===String(id));if(employee){employee.name=profile.name;employee.dept=profile.department;employee.designation=profile.designation;employee.shift=profile.shift;employee.phone=profile.phone;employee.email=profile.email;}
-  employeeProfileCache.delete(Number(id));closeEmployeeEditor();renderEmployees();
+  employeeProfileCache.delete(Number(id));ptsDirectoryCache.staff=null;closeEmployeeEditor();renderEmployees();
   notify('Employee profile saved to '+(result.saved_to==='supabase'?'Supabase.':'AttendPro.')+' Original biometric data is unchanged.','success');
   await loadRealData(true);
  }catch(err){notify('Employee profile could not be saved: '+err.message,'error');}
@@ -786,8 +1075,8 @@ function buildDashboard(){
 // ── LEAVE TABS ──────────────────────────────────────────────────────────────
 function switchLeaveTab(el,id){
   document.querySelectorAll('.l-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
-  ['leave-pending','leave-approved','leave-holidays'].forEach(t=>{document.getElementById(t).style.display='none'});
-  document.getElementById(id).style.display='block';
+  ['leave-pending','leave-approved','leave-announcements','leave-holidays'].forEach(t=>{const panel=document.getElementById(t);if(panel)panel.style.display='none';});
+  const target=document.getElementById(id);if(target)target.style.display='block';
 }
 
 // ── SETTINGS TABS ──────────────────────────────────────────────────────────
@@ -855,30 +1144,35 @@ function statusBadge(s){
   return `<span class="badge ${m[s]||'b-gray'}">${escapeHtml(s||'Unknown')}</span>`;
 }
 function buildDashboard(){
+  const selected=currentDashboard?.shift||'';
+  const selectedRows=liveData.filter(r=>shiftMatchesFront(r.shift,selected));
+  const selectedIds=new Set(selectedRows.map(r=>String(r.dbId)));
   const tbody=document.getElementById('deptSummaryBody');
   if(tbody && currentDashboard?.departments){
     tbody.innerHTML=currentDashboard.departments.map(d=>`<tr><td>${escapeHtml(d.department||'Unassigned')}</td><td>${d.total||0}</td><td style="color:#10b981;font-weight:600">${d.present||0}</td><td style="color:#ef4444;font-weight:600">${d.absent||0}</td><td style="color:#8b5cf6;font-weight:600">${d.on_leave||0}</td></tr>`).join('')||'<tr><td colspan="5">No department data</td></tr>';
   }
   const recent=document.getElementById('recentActivity');
   if(recent){
-    const rows=recentPunches.length?recentPunches.slice().sort((a,b)=>String(b.happened_at).localeCompare(String(a.happened_at))).slice(0,8).map(p=>{
+    const filteredPunches=recentPunches.filter(p=>!selected||selected==='All Shifts'||selectedIds.has(String(p.employee_id)));
+    const rows=filteredPunches.length?filteredPunches.slice().sort((a,b)=>String(b.happened_at).localeCompare(String(a.happened_at))).slice(0,8).map(p=>{
       const kind=String(p.kind||'CHECK').toUpperCase();
       const employee=employees.find(e=>String(e.dbId)===String(p.employee_id))||{};
       const name=p.name||employee.name||p.badge_number||'Unmapped employee';
       const dept=p.department||employee.dept||'Unassigned';
       return `<tr><td><div style="display:flex;align-items:center;gap:6px">${avEl({color:employee.color||COLORS[0],name},24)}<span>${escapeHtml(name)}</span></div></td><td><span class="badge b-blue" style="font-size:10px">${escapeHtml(kind)}</span></td><td style="font-family:monospace;font-size:12px">${showTime(p.happened_at)}</td><td style="font-size:12px">${escapeHtml(dept)}</td><td>${statusBadge(kind==='IN'?'Present':kind==='OUT'?'Present':'Recorded')}</td></tr>`;
-    }):liveData.filter(r=>r.cin!=='—').slice(0,8).map(r=>`<tr><td><div style="display:flex;align-items:center;gap:6px">${avEl(r,24)}<span>${escapeHtml(r.name)}</span></div></td><td><span class="badge b-blue" style="font-size:10px">CHECK-IN</span></td><td style="font-family:monospace;font-size:12px">${escapeHtml(r.cin)}</td><td style="font-size:12px">${escapeHtml(r.dept)}</td><td>${statusBadge(r.status)}</td></tr>`);
-    recent.innerHTML=rows.join('')||'<tr><td colspan="5" style="color:var(--text3)">No attendance punches for this date.</td></tr>';
+    }):selectedRows.filter(r=>r.cin!=='—').slice(0,8).map(r=>`<tr><td><div style="display:flex;align-items:center;gap:6px">${avEl(r,24)}<span>${escapeHtml(r.name)}</span></div></td><td><span class="badge b-blue" style="font-size:10px">CHECK-IN</span></td><td style="font-family:monospace;font-size:12px">${escapeHtml(r.cin)}</td><td style="font-size:12px">${escapeHtml(r.dept)}</td><td>${statusBadge(r.status)}</td></tr>`);
+    recent.innerHTML=rows.join('')||'<tr><td colspan="5" style="color:var(--text3)">No attendance punches for this date and shift.</td></tr>';
   }
   const exc=document.getElementById('exceptions');
   if(exc){
-    const rows=[...liveData.filter(r=>r.status==='Absent').slice(0,2).map(r=>({r,label:'Absent',cls:'b-red',desc:r.dept})),
-      ...liveData.filter(r=>r.status==='Late').slice(0,2).map(r=>({r,label:'Late',cls:'b-amber',desc:r.lateStr+' late'})),
-      ...liveData.filter(r=>r.status==='Missing Check-in'||r.status==='Not Checked In').slice(0,2).map(r=>({r,label:'Unconfirmed',cls:'b-gray',desc:'No confirmed attendance'}))];
+    const rows=[...selectedRows.filter(r=>r.status==='Absent').slice(0,2).map(r=>({r,label:'Absent',cls:'b-red',desc:r.dept})),
+      ...selectedRows.filter(r=>r.status==='Late').slice(0,2).map(r=>({r,label:'Late',cls:'b-amber',desc:r.lateStr+' late'})),
+      ...selectedRows.filter(r=>r.status==='Missing Check-in'||r.status==='Not Checked In').slice(0,2).map(r=>({r,label:'Unconfirmed',cls:'b-gray',desc:'No confirmed attendance'}))];
     exc.innerHTML=rows.map(({r,label,cls,desc})=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray100)"><div style="display:flex;align-items:center;gap:8px">${avEl(r,26)}<div><div style="font-size:12px;font-weight:600">${escapeHtml(r.name)}</div><div style="font-size:11px;color:var(--text3)">${escapeHtml(desc||r.dept)}</div></div></div><span class="badge ${cls}">${label}</span></div>`).join('')||'<div style="color:var(--text3);font-size:12px">No attendance exceptions.</div>';
   }
   updateDonut();
 }
+
 async function renderRecords(){
   await loadHistoryForRange(false);
   const dept=document.getElementById('recDept').value;
@@ -941,12 +1235,21 @@ let userCache = [];
 function roleAllowed(permission) {
   const role=currentUser?.role||'';
   if(permission==='super_admin')return role==='super_admin';
+  if(permission==='supervisor')return role==='supervisor'||role==='super_admin';
   if(permission==='attendance_edit')return role==='supervisor'||role==='super_admin';
   if(permission==='view_only')return ['view_only','supervisor','super_admin'].includes(role);
   return true;
 }
 function applyPermissions() {
   document.querySelectorAll('[data-permission]').forEach(el=>el.classList.toggle('role-hidden',!roleAllowed(el.dataset.permission)));
+  const isViewOnly=currentUser?.role==='view_only';
+  const fullDashboard=document.getElementById('fullDashboardContent'),viewDashboard=document.getElementById('viewOnlyDashboard');
+  if(fullDashboard)fullDashboard.style.display=isViewOnly?'none':'';
+  if(viewDashboard)viewDashboard.style.display=isViewOnly?'block':'none';
+  document.querySelectorAll('.sb-nav .nav-item').forEach(el=>el.classList.toggle('role-hidden',isViewOnly&&el.dataset.screen!=='dashboard'));
+  document.querySelectorAll('.sb-nav .sb-section').forEach((el,index)=>el.classList.toggle('role-hidden',isViewOnly&&index>0));
+  const deviceNav=document.getElementById('deviceNavList');if(deviceNav)deviceNav.classList.toggle('role-hidden',isViewOnly);
+  ['.tb-search','.aplp-app-home','#apNotificationBell'].forEach(selector=>{const el=document.querySelector(selector);if(el)el.classList.toggle('role-hidden',isViewOnly);});
   const name=currentUser?.display_name||'AttendPro User';
   const roleName=({view_only:'View Only User',supervisor:'Supervisor',super_admin:'Super Admin'})[currentUser?.role]||'User';
   const sn=document.getElementById('sidebarUserName'),sr=document.getElementById('sidebarUserRole'),av=document.getElementById('userAvatar');
@@ -1206,10 +1509,11 @@ async function syncAccessDB() {
   catch(e){notify('Sync error: '+e.message);}
 }
 function showScreen(name,el) {
+  if(currentUser?.role==='view_only'&&name!=='dashboard'){notify('View Only account ko sirf Dashboard aur previous-day attendance ki access hai.','error');return;}
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   const target=document.getElementById('screen-'+name);if(target)target.classList.add('active');if(el)el.classList.add('active');
-  if(name==='live')renderLive();
+  if(name==='live')setLiveAttendanceMode(liveAttendanceMode);
   if(name==='employees')renderEmployees();
   if(name==='trainees')loadPtsTrainees();
   if(name==='pts-trainee-attendance')loadPtsAttendance();
@@ -1217,16 +1521,18 @@ function showScreen(name,el) {
   if(name==='pts-trainee-osd')loadPtsRecords('osd','trainee');
   if(name==='pts-staff-leave')loadPtsRecords('leave','staff');
   if(name==='pts-staff-osd')loadPtsRecords('osd','staff');
+  if(name==='pts-staff-osd-permanent')loadPtsRecords('osd_permanent','staff');
   if(name==='pts-duty-rest')loadPtsRecords('duty_rest','staff');
-  if(name==='dashboard'&&ptsDashboardMode==='trainee')loadPtsDashboard();
+  if(name==='leave')loadLeaveManagement();
+  if(name==='dashboard'&&ptsDashboardMode==='trainee'&&currentUser?.role!=='view_only')loadPtsDashboard();
   if(name==='records'){if(!document.getElementById('recFrom').value)setDefaultDates();renderRecords();}
   if(name==='device'){loadAccessSettings();}
-  if(name==='settings'){loadAccessSettings();}
+  if(name==='settings'){loadAccessSettings();renderApSettings();}
   if(name==='users')loadUsers();
-  if(name==='reports'){const day=currentDataDate||today();for(const id of ['rptFrom','rptTo']){const el=document.getElementById(id);if(el&&!el.value)el.value=day;}}
-  if(name==='settings')renderApSettings();
+  if(name==='reports'){const day=currentDataDate||today();for(const id of ['rptFrom','rptTo']){const el=document.getElementById(id);if(el&&!el.value)el.value=day;}loadTraineeReportDefaults();}
   renderDeviceUI(currentSettings.devices||[],currentSettings.active_device_id);
 }
+
 function switchSettingsTab(el,id) {
   document.querySelectorAll('.s-nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');
   ['sOrg','sShifts','sDepts','sAttendance','sUsers','sNotif','sDevices'].forEach(k=>{const panel=document.getElementById(k);if(panel)panel.style.display='none';});
@@ -1369,8 +1675,8 @@ async function renderRecords() {
   }).join('')||'<tr><td colspan="9" style="color:var(--text3);text-align:center;padding:22px">No records match these filters.</td></tr>';
   renderPag('recPag',recPage,pages,total,pp,p=>{recPage=p;renderRecords();});
 }
-function openAttendanceEditorByKey(key) {
-  const r=recData.find(x=>recordKey(x)===key);if(!r)return;
+function openAttendanceEditorForRecord(r){
+  if(!r)return;
   if(!roleAllowed('attendance_edit')){notify('Your role does not allow attendance editing.');return;}
   currentEditRecord=r;
   document.getElementById('editEmployeeName').textContent=`${r.name} (${r.id})`;
@@ -1380,6 +1686,26 @@ function openAttendanceEditorByKey(key) {
   document.getElementById('editClockOut').value=/^\d{2}:\d{2}$/.test(String(r.cout||''))?r.cout:'';
   const status=String(r.status||'').toLowerCase().replaceAll(' ','_');document.getElementById('editStatus').value=({ 'missing_check-in':'not_checked_in','missing_check_in':'not_checked_in','not_checked_in':'not_checked_in','on_leave':'on_leave','early_arrival':'early_arrival'})[status]||(['present','late','absent','on_leave','early_arrival','not_checked_in'].includes(status)?status:'present');
   document.getElementById('attendanceEditModal').classList.add('open');
+}
+function openAttendanceEditorByKey(key) {
+  const r=recData.find(x=>recordKey(x)===key);openAttendanceEditorForRecord(r);
+}
+function openDiscrepancyPunchEditor(){
+  const c=currentDiscrepancy;if(!c)return;
+  const employee=employees.find(e=>String(e.dbId)===String(c.employee_id))||{};
+  const row={dbId:c.employee_id,employee_id:c.employee_id,date:c.work_date,id:String(c.badge_number||employee.id||c.employee_id),
+    name:c.name||employee.name||'Unknown',dept:c.department||employee.dept||'Unassigned',
+    timetable:c.shift||employee.shift||'09:00',cin:c.clock_in||'',cout:c.clock_out||'',status:titleStatus(c.status)};
+  closeDiscrepancyModal();
+  openAttendanceEditorForRecord(row);
+}
+function openDashboardDiscrepancies(issue){
+  if(!roleAllowed('attendance_edit'))return;
+  const day=currentDataDate||today();
+  const from=document.getElementById('discFrom'),to=document.getElementById('discTo');
+  const issueEl=document.getElementById('discIssue'),state=document.getElementById('discState');
+  if(from)from.value=day;if(to)to.value=day;if(issueEl)issueEl.value=issue||'';if(state)state.value='all';
+  discrepancyPage=1;showScreen('discrepancies',document.querySelector('[data-screen="discrepancies"]'));loadDiscrepancies();
 }
 function closeAttendanceEditor(){document.getElementById('attendanceEditModal').classList.remove('open');currentEditRecord=null;}
 async function viewOriginalAudit(){
@@ -1398,7 +1724,7 @@ async function saveAttendanceEdit() {
   if(!currentEditRecord)return;
   const body={employee_id:currentEditRecord.dbId||currentEditRecord.employee_id,work_date:currentEditRecord.date,clock_in:document.getElementById('editClockIn').value,clock_out:document.getElementById('editClockOut').value,shift:document.getElementById('editShift').value||'09:00',status:document.getElementById('editStatus').value,action:'update'};
   if(cloudMode){body.reason=await appPrompt('Reason for attendance correction (required for audit):')||'';if(body.reason.trim().length<3){notify('Correction cancelled: enter a reason (3+ characters).');return;}}
-  try{const r=await apiJSON('/api/attendance/edit',{method:'PUT',body:JSON.stringify(body)});closeAttendanceEditor();notify(r.message||'Attendance updated successfully.');await loadRealData(true);await loadHistoryForRange(false);renderRecords();}
+  try{const r=await apiJSON('/api/attendance/edit',{method:'PUT',body:JSON.stringify(body)});closeAttendanceEditor();notify(r.message||'Attendance updated successfully.');await loadRealData(true);await loadHistoryForRange(false);renderRecords();if(document.getElementById('screen-discrepancies')?.classList.contains('active'))await loadDiscrepancies();if(document.getElementById('screen-discrepancies')?.classList.contains('active'))await loadDiscrepancies();}
   catch(e){notify('Could not update attendance: '+e.message);}
 }
 async function quickAttendanceAction(action) {
@@ -1471,6 +1797,34 @@ function addDaysToIso(day, delta) {
   const value = new Date(`${day}T00:00:00Z`);
   value.setUTCDate(value.getUTCDate() + delta);
   return value.toISOString().slice(0,10);
+}
+
+function loadTraineeReportDefaults(){
+  const from=document.getElementById('ptsReportFrom'),to=document.getElementById('ptsReportTo');
+  if(from&&!from.value)from.value=currentDataDate||today();
+  if(to&&!to.value)to.value=currentDataDate||today();
+}
+async function loadTraineeReport(){
+  const from=document.getElementById('ptsReportFrom')?.value||currentDataDate||today();
+  const to=document.getElementById('ptsReportTo')?.value||from;
+  const shift=document.getElementById('ptsReportShift')?.value||'';
+  const body=document.getElementById('ptsReportTbody');if(body)body.innerHTML='<tr><td colspan="9">Loading trainee report…</td></tr>';
+  if(from>to){notify('From date must be before or equal to To date.','error');return;}
+  try{
+    const q=new URLSearchParams({from_date:from,to_date:to});if(shift)q.set('shift',shift);
+    const result=await apiJSON('/api/pts/attendance/history?'+q.toString());
+    ptsReportRows=result.items||[];
+    if(body)body.innerHTML=ptsReportRows.length?ptsReportRows.map(r=>`<tr><td>${escapeHtml(r.employee_no||'')}</td><td><strong>${escapeHtml(r.name||'')}</strong></td><td>${escapeHtml(r.course_name||'—')}</td><td>${escapeHtml(r.platoon||'—')}</td><td>${escapeHtml(r.attendance_date||'')}</td><td>${escapeHtml(r.shift||'')}</td><td>${escapeHtml(r.check_in||'—')}</td><td>${escapeHtml(r.check_out||'—')}</td><td>${ptsStatusBadge(r.status||'not_marked')}</td></tr>`).join(''):'<tr><td colspan="9">No trainee attendance records were found for this period.</td></tr>';
+    notify(`${ptsReportRows.length} trainee attendance rows loaded.`, 'success');
+  }catch(e){ptsReportRows=[];if(body)body.innerHTML=`<tr><td colspan="9">${escapeHtml(englishMessage(e.message))}</td></tr>`;notify('Trainee report could not be loaded: '+e.message,'error');}
+}
+function exportTraineeReportCsv(){
+  if(!ptsReportRows.length){notify('Pehle trainee report preview karein.','error');return;}
+  const fields=['employee_no','name','course_name','platoon','attendance_date','shift','check_in','check_out','status'];
+  const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const csv=[fields.join(','),...ptsReportRows.map(r=>fields.map(k=>quote(r[k])).join(','))].join('\r\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`attendpro-trainee-attendance-${document.getElementById('ptsReportFrom')?.value||today()}.csv`;a.click();URL.revokeObjectURL(url);
 }
 
 async function runQuickReport(kind) {
@@ -1664,9 +2018,19 @@ async function downloadReportExcel() {
 
 
 
-function openAddEmployeeForm(){
+async function populateEmployeeFormDropdowns(){
+  try{if(!apLocalConfig?.departments?.length||!apLocalConfig?.shifts?.length)await loadApConfig();}catch(_){}
+  const departments=['Unassigned',...(apLocalConfig.departments||[]).map(x=>x.name),...employees.map(x=>x.dept)];
+  const shifts=['General','Morning','Evening',...(apLocalConfig.shifts||[]).map(x=>x.name),...employees.map(x=>x.shift)];
+  fillSimpleSelect('newEmpDept',departments,'Select department…','Unassigned');
+  fillSimpleSelect('newEmpShift',shifts,'Select shift…','General');
+  const dept=document.getElementById('newEmpDept');if(dept&&!dept.value)dept.value='Unassigned';
+  const shift=document.getElementById('newEmpShift');if(shift&&!shift.value)shift.value='General';
+}
+async function openAddEmployeeForm(){
   if(!roleAllowed('super_admin')){notify('Only Super Admin can add employees.');return;}
   document.getElementById('addEmployeeForm')?.reset();
+  await populateEmployeeFormDropdowns();
   document.getElementById('addEmployeeModal')?.classList.add('open');
   document.getElementById('newEmpName')?.focus();
 }
@@ -1679,9 +2043,11 @@ async function saveNewEmployee(ev){
   try{
     const result=await apiJSON('/api/employees',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     closeAddEmployeeForm();clearEmployeeFilters();
+    ptsDirectoryCache.staff=null;
     await loadRealData(true);
     const id=Number(result.employee?.id);
-    if(id){const e=employees.find(x=>Number(x.dbId)===id);if(e){empPage=1;document.getElementById('empSearch').value=e.name;document.getElementById('globalEmployeeSearch').value=e.name;renderEmployees();await toggleEmployeeProfile(id);}}
+    if(id){const e=employees.find(x=>Number(x.dbId)===id);if(e){empPage=1;const search=document.getElementById('empSearch');if(search)search.value=e.name;renderEmployees();}}
+    notify('New employee added. Aap login session mein hi rahenge.','success');
   }catch(e){notify('Could not save employee: '+e.message);}finally{btn.disabled=false;}
 }
 // ── Restored original Employees table: A–Z names + View popup, no row dropdown. ──
@@ -1758,6 +2124,7 @@ function openDiscrepancyReview(index){
  <div class="detail-row"><span class="detail-label">Clock Out</span><span class="detail-val">${escapeHtml(c.clock_out||'—')}</span></div>
  <div class="detail-row"><span class="detail-label">Biometric</span><span class="detail-val">${escapeHtml(c.biometric_enrollment==='not_configured'?'Not Configured':c.biometric_enrollment==='configured'?'Configured':'Unknown / unverified')}</span></div>
  <div class="detail-row"><span class="detail-label">Current Status</span><span class="detail-val">${statusBadge(titleStatus(c.status))}</span></div>
+ ${roleAllowed('attendance_edit')?`<div style="margin-top:12px"><button type="button" class="btn btn-primary btn-sm" onclick="openDiscrepancyPunchEditor()">＋ Add / Edit Missing Punch</button></div>`:''}
  ${c.reviewed_by?`<div class="detail-row"><span class="detail-label">Last Reviewed</span><span class="detail-val">${escapeHtml(c.reviewed_by)} · ${escapeHtml(c.reviewed_at||'')}</span></div>`:''}`;
  document.getElementById('discResolution').value=c.resolution||'reviewed';
  document.getElementById('discReviewNote').value=c.review_note||'';

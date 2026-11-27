@@ -9,7 +9,7 @@ from typing import Optional
 from urllib.parse import quote
 from fastapi import FastAPI, HTTPException, Request, Response, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from .tools.importers import import_spreadsheet, get_workbook, safe_datetime
@@ -242,7 +242,17 @@ def init_db():
    remarks TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'approved', created_by TEXT NOT NULL DEFAULT '',
    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
   CREATE INDEX IF NOT EXISTS ix_pts_duty_rest_dates ON pts_duty_rest_records(status,start_at,end_at);
-
+  CREATE TABLE IF NOT EXISTS pts_leave_announcements(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, message TEXT NOT NULL DEFAULT '',
+   start_date TEXT NOT NULL, end_date TEXT NOT NULL, audience TEXT NOT NULL DEFAULT 'all',
+   active INTEGER NOT NULL DEFAULT 1, created_by TEXT NOT NULL DEFAULT '',
+   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  CREATE INDEX IF NOT EXISTS ix_pts_leave_announcements_dates ON pts_leave_announcements(active,start_date,end_date);
+  CREATE TABLE IF NOT EXISTS pts_holidays(
+   id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, holiday_date TEXT NOT NULL,
+   category TEXT NOT NULL DEFAULT 'Institutional', description TEXT NOT NULL DEFAULT '',
+   created_by TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+  CREATE INDEX IF NOT EXISTS ix_pts_holidays_date ON pts_holidays(holiday_date);
   ''')
   prepare_raw_tables(db)
   # Optional editable local HR profile fields; original Access MDB is never modified.
@@ -250,6 +260,9 @@ def init_db():
   for col,typ in [('designation',"TEXT DEFAULT 'Staff'"),('shift',"TEXT DEFAULT 'General'"),('phone',"TEXT DEFAULT ''"),('email',"TEXT DEFAULT ''"),('biometric_enrollment',"TEXT NOT NULL DEFAULT 'unknown'")]:
    if col not in existing_cols:
     db.execute(f'ALTER TABLE employees ADD COLUMN {col} {typ}')
+  osd_cols={r[1] for r in db.execute('PRAGMA table_info(pts_osd_records)')}
+  if 'osd_type' not in osd_cols:
+   db.execute("ALTER TABLE pts_osd_records ADD COLUMN osd_type TEXT NOT NULL DEFAULT 'temporary'")
   for key,value in {'device_ip':'','device_port':'4370','device_comm_key':'0','auto_sync':'false','sync_seconds':'60','office_start':'09:00','grace_minutes':'15','weekend_days':'6','device_status':'not_configured','last_sync':'','last_error':'','access_path':'','access_auto':'false','access_interval':'90','access_last_sync':'','access_last_error':'','access_status':'not_configured','access_signature':'','access_last_attempt':'','active_device_id':''}.items():
    db.execute('INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)',(key,value))
   # Migrate the older single-device settings into a multi-device table without
@@ -335,35 +348,180 @@ def safe_pagination(page,per_page):
 
 def rows_as_dict(rows):return [dict(r) for r in rows]
 
-def daily_query(work_date,status='',department='',search=''):
+def daily_query(work_date,status='',department='',search='',shift=''):
  where=['d.work_date=?'];args=[work_date]
  if status and status!='all': where.append('d.status=?');args.append(status)
  if department and department!='all':where.append('e.department=?');args.append(department)
+ aliases=_shift_aliases(shift)
+ if aliases:
+  marks=','.join('?' for _ in aliases)
+  where.append(f'(LOWER(d.shift) IN ({marks}) OR LOWER(e.shift) IN ({marks}))')
+  values=[x.casefold() for x in aliases];args.extend(values+values)
  if search:
   where.append('(e.name LIKE ? OR e.badge_number LIKE ? OR e.device_user_id LIKE ?)')
   args.extend([f'%{search}%']*3)
  return '''FROM daily d JOIN employees e ON e.id=d.employee_id WHERE '''+' AND '.join(where),args
 
-def overview(db,work_date):
- total=db.execute('SELECT COUNT(*) FROM employees WHERE active=1').fetchone()[0]
- statuses={r['status']:r['n'] for r in db.execute('''SELECT d.status,COUNT(*) n FROM daily d JOIN employees e ON e.id=d.employee_id WHERE d.work_date=? AND e.active=1 GROUP BY d.status''',(work_date,))}
- # Late and early-arrival employees are present for headcount purposes.
- present=statuses.get('present',0)+statuses.get('late',0)+statuses.get('early_arrival',0)
- absent=statuses.get('absent',0)
- on_leave=statuses.get('on_leave',0)
+def _shift_aliases(shift):
+ raw=str(shift or '').strip()
+ if not raw or raw.lower() in ('all','all shifts','any'): return []
+ key=raw.casefold().replace(' shift','').strip()
+ aliases={
+  'morning':['morning','morning shift','08:00','08:00 am'],
+  'general':['general','general shift','09:00','09:00 am'],
+  'evening':['evening','evening shift','14:00','02:00 pm'],
+ }
+ return aliases.get(key,[raw])
+
+def _employee_matches_shift(employee, daily_row, shift):
+ aliases=_shift_aliases(shift)
+ if not aliases:return True
+ values={str(employee.get('shift') or '').strip().casefold(),
+         str((daily_row or {}).get('shift') or '').strip().casefold()}
+ return bool(values.intersection({x.casefold() for x in aliases}))
+
+def _record_matches_staff_employee(record, employee):
+ person_id=str(record.get('person_id') or '').strip()
+ identifiers={str(employee.get(k) or '').strip() for k in ('id','badge_number','device_user_id','source_userid')}
+ identifiers.discard('')
+ return bool(person_id and person_id in identifiers)
+
+def _staff_attendance_overrides(db, work_day, shift=''):
+ employees=rows_as_dict(db.execute('SELECT id,badge_number,device_user_id,source_userid,name,department,shift FROM employees WHERE active=1').fetchall())
+ eligible={int(e['id']):e for e in employees}
+ if shift:
+  daily_map={int(r['employee_id']):dict(r) for r in db.execute(
+   'SELECT employee_id,shift,status,clock_in,clock_out FROM daily WHERE work_date=?',(work_day,)).fetchall()}
+  eligible={ident:e for ident,e in eligible.items() if _employee_matches_shift(e,daily_map.get(ident),shift)}
+ try:
+  osd_rows=_pts_rows('pts_osd_records')
+ except Exception:
+  osd_rows=[]
+ try:
+  leave_rows=_pts_rows('pts_leave_records')
+ except Exception:
+  leave_rows=[]
+ osd_ids=set();osd_permanent_ids=set();leave_ids=set();medical_ids=set()
+ for record in osd_rows:
+  if record.get('person_type')!='staff' or not _pts_active_on(record,work_day):continue
+  for ident,employee in eligible.items():
+   if _record_matches_staff_employee(record,employee):
+    osd_ids.add(ident)
+    if str(record.get('osd_type') or 'temporary').strip().lower() in ('permanent','osd_permanent','permanent_osd'):
+     osd_permanent_ids.add(ident)
+ for record in leave_rows:
+  if record.get('person_type')!='staff' or not _pts_active_on(record,work_day):continue
+  for ident,employee in eligible.items():
+   if _record_matches_staff_employee(record,employee):
+    leave_ids.add(ident)
+    leave_type=str(record.get('leave_type') or record.get('reason') or '').casefold()
+    if 'medical' in leave_type or 'sick' in leave_type:
+     medical_ids.add(ident)
+ leave_ids.difference_update(osd_ids)
+ medical_ids.difference_update(osd_ids)
+ return {'employees':eligible,'osd_ids':osd_ids,'osd_permanent_ids':osd_permanent_ids,
+         'leave_ids':leave_ids,'medical_ids':medical_ids}
+
+def overview(db,work_date,shift='',staff_state=None):
+ state=staff_state or _staff_attendance_overrides(db,work_date,shift)
+ employees=state['employees']
+ osd_ids=state['osd_ids'];osd_permanent_ids=state['osd_permanent_ids'];medical_ids=state['medical_ids'];leave_ids=state['leave_ids']
+ daily_rows=rows_as_dict(db.execute('SELECT d.employee_id,d.status,d.clock_in,d.clock_out,d.late_minutes,d.shift FROM daily d WHERE d.work_date=?',(work_date,)).fetchall())
+ by_id={int(r['employee_id']):r for r in daily_rows}
+ selected=[(ident,e,by_id.get(ident)) for ident,e in employees.items()]
+ present=absent=on_leave=late=early=missing_in=missing_out=0
+ for ident,employee,row in selected:
+  if ident in osd_ids:
+   present+=1
+   continue
+  if ident in leave_ids:
+   on_leave+=1
+   continue
+  status=str((row or {}).get('status') or '').lower()
+  if status in ('present','late','early_arrival'):
+   present+=1
+   if status=='late':late+=1
+   if status=='early_arrival':early+=1
+  elif status=='absent':absent+=1
+  elif status=='on_leave':on_leave+=1
+  if row:
+   if row.get('clock_out') and not row.get('clock_in'):missing_in+=1
+   if row.get('clock_in') and not row.get('clock_out'):missing_out+=1
+ total=len(selected)
  unknown=max(0,total-present-absent-on_leave)
- late=statuses.get('late',0)
  punches=db.execute("SELECT COUNT(*) FROM punches WHERE substr(happened_at,1,10)=?",(work_date,)).fetchone()[0]
- missing_in=db.execute("SELECT COUNT(*) FROM daily d JOIN employees e ON e.id=d.employee_id WHERE d.work_date=? AND e.active=1 AND d.clock_in IS NULL AND d.clock_out IS NOT NULL",(work_date,)).fetchone()[0]
- missing_out=db.execute("SELECT COUNT(*) FROM daily d JOIN employees e ON e.id=d.employee_id WHERE d.work_date=? AND e.active=1 AND d.clock_in IS NOT NULL AND d.clock_out IS NULL",(work_date,)).fetchone()[0]
  working=max(0,total-on_leave)
- return {'total':total,'present':present,'absent':absent,'on_leave':on_leave,'late':late,
+ return {'total':total,'present':present,'absent':absent,'on_leave':on_leave,'late':late,'early_arrival':early,
          'unknown':unknown,'working_employees':working,
          'attendance_percentage':round(100*present/working,1) if working else 0,
          'absence_percentage':round(100*absent/working,1) if working else 0,
          'missing_check_in':missing_in,'missing_check_out':missing_out,
          'incomplete':missing_in+missing_out,'punches':punches,'not_checked_in':unknown,
-         'provisional_absent':unknown if (work_date==today_iso() and setting(db,'last_sync','')[:10]==today_iso()) else 0}
+         'provisional_absent':unknown if (work_date==today_iso() and setting(db,'last_sync','')[:10]==today_iso()) else 0,
+         'osd':len(osd_ids),'osd_permanent':len(osd_permanent_ids),'medical_leave':len(medical_ids),
+         'osd_employee_ids':sorted(osd_ids),'osd_permanent_employee_ids':sorted(osd_permanent_ids),
+         'medical_leave_employee_ids':sorted(medical_ids)}
+
+def department_summary(db,work_day,shift,staff_state):
+ rows=[]
+ for ident,employee in staff_state['employees'].items():
+  daily=db.execute('SELECT status,shift FROM daily WHERE employee_id=? AND work_date=?',(ident,work_day)).fetchone()
+  d=dict(daily) if daily else None
+  if shift and not _employee_matches_shift(employee,d,shift):continue
+  status='unknown'
+  if ident in staff_state['osd_ids']:status='present'
+  elif ident in staff_state['leave_ids']:status='on_leave'
+  elif d:status=str(d.get('status') or 'unknown').lower()
+  dept=str(employee.get('department') or '').strip() or 'Unassigned'
+  item=next((x for x in rows if x['department']==dept),None)
+  if not item:
+   item={'department':dept,'total':0,'present':0,'absent':0,'on_leave':0,'unknown':0};rows.append(item)
+  item['total']+=1
+  if status in ('present','late','early_arrival'):item['present']+=1
+  elif status=='absent':item['absent']+=1
+  elif status=='on_leave':item['on_leave']+=1
+  else:item['unknown']+=1
+ return sorted(rows,key=lambda x:(-x['total'],x['department'].casefold()))
+
+
+def yesterday_iso():
+ return (local_now().date()-timedelta(days=1)).isoformat()
+
+def _view_only_dashboard_payload():
+ day=yesterday_iso()
+ with connection() as db:
+  state=_staff_attendance_overrides(db,day,'')
+  metrics=overview(db,day,'',state)
+  raw=rows_as_dict(db.execute('''SELECT e.id,e.badge_number,e.name,e.department,e.shift,
+    d.status,d.clock_in,d.clock_out,d.shift daily_shift
+    FROM employees e LEFT JOIN daily d ON d.employee_id=e.id AND d.work_date=?
+    WHERE e.active=1 ORDER BY e.name COLLATE NOCASE''',(day,)).fetchall())
+  attendance=[]
+  for row in raw:
+   ident=int(row['id'])
+   if ident in state['osd_ids']: status='present'
+   elif ident in state['leave_ids']: status='on_leave'
+   else: status=str(row.get('status') or 'not_checked_in').lower()
+   attendance.append({'employee_id':ident,'employee_no':row.get('badge_number') or '',
+    'name':row.get('name') or 'Unknown','department':row.get('department') or 'Unassigned',
+    'date':day,'shift':row.get('daily_shift') or row.get('shift') or '—',
+    'clock_in':row.get('clock_in') or '','clock_out':row.get('clock_out') or '',
+    'status':status})
+ try:
+  announcement_rows=_pts_rows('pts_leave_announcements')
+ except Exception:
+  announcement_rows=[]
+ today=today_iso()
+ announcements=[r for r in announcement_rows if bool(r.get('active',True))
+   and str(r.get('end_date') or '9999-12-31')>=today]
+ announcements.sort(key=lambda r:(str(r.get('start_date') or ''),int(r.get('id') or 0)),reverse=True)
+ public_metrics={'total_staff':metrics['total'],'osd':metrics['osd'],
+                 'osd_permanent':metrics['osd_permanent'],'medical_leave':metrics['medical_leave']}
+ attendance.sort(key=lambda r:(0 if r['status'] in ('present','late','early_arrival') else 1,
+                               r['clock_in'] or '99:99',str(r['name']).casefold()))
+ return {'date':day,'metrics':public_metrics,'attendance':attendance,
+         'announcements':announcements[:12]}
+
 
 def active_device_id(db):
  try:return int(setting(db,'active_device_id','') or 0)
@@ -537,6 +695,26 @@ app.mount('/src', StaticFiles(directory=STATIC/'src'), name='frontend-source')
 # CORS is enabled for the optional local-file preview; normal use is same-origin at http://127.0.0.1:8000.
 if not CLOUD_ENABLED:
  app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
+
+@app.middleware('http')
+async def restrict_view_only_api(request:Request,call_next):
+    if request.url.path.startswith('/api/'):
+        user=None
+        if CLOUD_ENABLED and cloud is not None:
+            try:user=cloud.identity(request.cookies.get('attendpro_cloud_access',''))
+            except Exception:user=None
+        elif not CLOUD_ENABLED:
+            user=session_user(request)
+        if user and user.get('role')=='view_only':
+            allowed={
+                ('GET','/api/auth/status'),('POST','/api/auth/logout'),('POST','/api/auth/refresh'),
+                ('GET','/api/dashboard'),('GET','/api/view-only/dashboard'),
+                ('GET','/api/attendance'),('GET','/api/attendance/history'),
+                ('GET','/api/pts/leave-announcements')
+            }
+            if (request.method,request.url.path) not in allowed:
+                return JSONResponse({'detail':'View Only account is restricted to previous-day attendance, summary counts and published leave announcements.'},status_code=403)
+    return await call_next(request)
 
 @app.middleware('http')
 async def protect_cloud_writes(request:Request,call_next):
@@ -858,7 +1036,7 @@ async def scheduler_run_now(request:Request):
 
 @app.get('/api/monitor/logs')
 def monitor_activity_logs(request:Request, limit:int=30):
-    require_roles(request,'view_only','supervisor','super_admin')
+    require_roles(request,'supervisor','super_admin')
     limit=max(1,min(int(limit or 30),100))
     with connection() as db:
         row=db.execute("SELECT value FROM settings WHERE key='monitor_activity_log'").fetchone()
@@ -886,7 +1064,7 @@ async def cloud_sync_now(request:Request):
 
 @app.get('/api/attendance/provenance')
 def attendance_provenance(request:Request,employee_id:int,work_date:str):
- require_roles(request,'view_only','supervisor','super_admin')
+ require_roles(request,'supervisor','super_admin')
  try:work_date=date.fromisoformat(work_date).isoformat()
  except ValueError:raise HTTPException(400,'Invalid date')
  with connection() as db:
@@ -908,37 +1086,47 @@ def health():
   return {'ok':True,'database':'connected','employees':db.execute('SELECT COUNT(*) FROM employees').fetchone()[0],'time':stamp(),'mode':'supabase' if CLOUD_ENABLED else 'local'}
 
 @app.get('/api/dashboard')
-@redis_cached_endpoint('dashboard')
-def dashboard(date:Optional[str]=None):
+def dashboard(request:Request,date:Optional[str]=None,shift:str=''):
+ user=require_roles(request,'view_only','supervisor','super_admin')
+ if user.get('role')=='view_only':
+  payload=_view_only_dashboard_payload()
+  if date and date!=payload['date']:
+   raise HTTPException(403,'View Only users can access previous-day attendance only.')
+  return {'date':payload['date'],'shift':'Previous Day','view_only':True,'metrics':payload['metrics']}
  with connection() as db:
-  d=requested_date(db,date);stats=overview(db,d)
-  depts=rows_as_dict(db.execute('''SELECT COALESCE(NULLIF(TRIM(e.department),''),'Unassigned') department, COUNT(*) total,
-    SUM(CASE WHEN d.status IN ('present','late','early_arrival') THEN 1 ELSE 0 END) present,
-    SUM(CASE WHEN d.status='absent' THEN 1 ELSE 0 END) absent,
-    SUM(CASE WHEN d.status='on_leave' THEN 1 ELSE 0 END) on_leave
-    FROM employees e LEFT JOIN daily d ON d.employee_id=e.id AND d.work_date=?
-    WHERE e.active=1 GROUP BY COALESCE(NULLIF(TRIM(e.department),''),'Unassigned') ORDER BY total DESC''',(d,)).fetchall())
-  for it in depts:
-    it['present']=it['present'] or 0;it['absent']=it['absent'] or 0;it['on_leave']=it['on_leave'] or 0
-    it['unknown']=max(0,int(it['total'])-int(it['present'])-int(it['absent'])-int(it['on_leave']))
-  recent=rows_as_dict(db.execute('''SELECT p.happened_at,p.kind,p.source,e.name,e.department,e.badge_number
+  d=requested_date(db,date)
+  staff_state=_staff_attendance_overrides(db,d,shift)
+  stats=overview(db,d,shift,staff_state)
+  depts=department_summary(db,d,shift,staff_state)
+  recent=rows_as_dict(db.execute('''SELECT p.happened_at,p.kind,p.source,p.employee_id,e.name,e.department,e.badge_number
    FROM punches p LEFT JOIN employees e ON e.id=p.employee_id WHERE substr(p.happened_at,1,10)=?
-   ORDER BY p.happened_at DESC,p.id DESC LIMIT 9''',(d,)).fetchall())
+   ORDER BY p.happened_at DESC,p.id DESC LIMIT 20''',(d,)).fetchall())
   hourly=rows_as_dict(db.execute('''SELECT substr(happened_at,12,2) hour,COUNT(DISTINCT employee_id) people,
    COUNT(*) punches FROM punches WHERE substr(happened_at,1,10)=? GROUP BY substr(happened_at,12,2)
    ORDER BY hour''',(d,)).fetchall())
   last_import=db.execute('SELECT filename,imported_at,attendance_rows FROM imports ORDER BY id DESC LIMIT 1').fetchone()
   dates=[r[0] for r in db.execute('SELECT DISTINCT work_date FROM daily ORDER BY work_date DESC LIMIT 150')]
   device_list=all_devices(db)
-  return {'date':d,'is_today':d==today_iso(),'metrics':stats,'departments':depts,
-    'recent':recent,'hourly':hourly,'dates':dates,'device':device_status(db),
-    'devices':device_list['items'],'active_device_id':device_list['active_device_id'],
-    'last_import':dict(last_import) if last_import else None,'server_time':stamp(),'watch_folder':bool(os.environ.get('APP_WATCH_FOLDER'))}
+  osd_ids=sorted(staff_state['osd_ids'])
+  osd_permanent_ids=sorted(staff_state['osd_permanent_ids'])
+  medical_ids=sorted(staff_state['medical_ids'])
+  public_stats={k:v for k,v in stats.items() if not k.endswith('_employee_ids')}
+  return {'date':d,'shift':shift or 'All Shifts','is_today':d==today_iso(),'metrics':public_stats,'departments':depts,
+    'osd_employee_ids':osd_ids,'osd_permanent_employee_ids':osd_permanent_ids,
+    'medical_leave_employee_ids':medical_ids,'recent':recent,'hourly':hourly,'dates':dates,
+    'device':device_status(db),'devices':device_list['items'],'active_device_id':device_list['active_device_id'],
+    'last_import':dict(last_import) if last_import else None,'server_time':stamp(),
+    'watch_folder':bool(os.environ.get('APP_WATCH_FOLDER'))}
+
+@app.get('/api/view-only/dashboard')
+def view_only_dashboard(request:Request):
+ require_roles(request,'view_only')
+ return _view_only_dashboard_payload()
 
 # ── PTC LAHORE / MANAWAN TRAINING MANAGEMENT ───────────────────────────────
-PTS_TABLES = {'leave':'pts_leave_records','osd':'pts_osd_records','duty_rest':'pts_duty_rest_records'}
+PTS_TABLES = {'leave':'pts_leave_records','osd':'pts_osd_records','osd_permanent':'pts_osd_records','duty_rest':'pts_duty_rest_records'}
 PTS_RECORD_FIELDS = ('person_type','person_id','person_name','course_name','platoon','staff_category',
-                     'staff_branch','leave_type','start_at','end_at','reason','duty_place',
+                     'staff_branch','leave_type','start_at','end_at','reason','duty_place','osd_type',
                      'reference_no','remarks','status')
 
 def _pts_rows(table):
@@ -976,7 +1164,7 @@ def _pts_insert(table, values):
 
 @app.get('/api/pts/dashboard')
 def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning'):
-    require_roles(request,'view_only','supervisor','super_admin')
+    require_roles(request,'supervisor','super_admin')
     day=str(date or today_iso())
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',day):
         raise HTTPException(400,'Date must use YYYY-MM-DD format.')
@@ -986,8 +1174,10 @@ def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning')
     attendance=_pts_rows('pts_trainee_attendance')
     leaves=_pts_rows('pts_leave_records')
     osd_rows=_pts_rows('pts_osd_records')
-    active_trainees=[t for t in trainees if str(t.get('status') or 'active').lower() not in ('completed','deleted')]
+    active_trainees=[t for t in trainees if str(t.get('status') or 'active').lower() not in ('completed','deleted','repatriated')]
+    trainee_by_id={str(t.get('id')):t for t in active_trainees}
     day_attendance=[r for r in attendance if str(r.get('attendance_date') or '')[:10]==day and str(r.get('shift') or 'Morning').lower()==shift.lower()]
+    by_trainee={str(r.get('trainee_id')):r for r in day_attendance}
     present_ids={str(r.get('trainee_id')) for r in day_attendance if str(r.get('status') or '').lower() in ('present','late','early_arrival')}
     absent_ids={str(r.get('trainee_id')) for r in day_attendance if str(r.get('status') or '').lower()=='absent'}
     active_leave=[r for r in leaves if r.get('person_type')=='trainee' and _pts_active_on(r,day)]
@@ -996,12 +1186,13 @@ def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning')
     long_weekend_ids={str(r.get('person_id')) for r in active_leave if 'long' in str(r.get('leave_type') or '').lower()}
     medical_ids={str(r.get('person_id')) for r in active_leave if 'medical' in str(r.get('leave_type') or '').lower()}
     osd_ids={str(r.get('person_id')) for r in active_osd}
+    osd_permanent_ids={str(r.get('person_id')) for r in active_osd if str(r.get('osd_type') or 'temporary').lower()=='permanent'}
     for row in day_attendance:
-        trainee=next((t for t in active_trainees if str(t.get('id'))==str(row.get('trainee_id'))),None)
+        trainee=trainee_by_id.get(str(row.get('trainee_id')))
         if not trainee: continue
         employee_no=str(trainee.get('employee_no') or '')
         state=str(row.get('status') or '').lower()
-        if state=='leave': leave_ids.add(employee_no)
+        if state in ('leave','outdoor_leave'): leave_ids.add(employee_no)
         elif state=='long_weekend': long_weekend_ids.add(employee_no); leave_ids.add(employee_no)
         elif state=='medical_rest': medical_ids.add(employee_no); leave_ids.add(employee_no)
         elif state=='osd': osd_ids.add(employee_no)
@@ -1012,12 +1203,34 @@ def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning')
         item=course_map.setdefault(course,{'course':course,'total':0,'present':0,'absent':0,'leave':0})
         item['total']+=1
     for row in day_attendance:
-        trainee=next((t for t in active_trainees if str(t.get('id'))==str(row.get('trainee_id'))),None)
+        trainee=trainee_by_id.get(str(row.get('trainee_id')))
         course=str(row.get('course_name') or (trainee or {}).get('course_name') or 'Unassigned')
         item=course_map.setdefault(course,{'course':course,'total':0,'present':0,'absent':0,'leave':0})
         state=str(row.get('status') or '').lower()
         if state in ('present','late','early_arrival'): item['present']+=1
         elif state=='absent': item['absent']+=1
+        elif state in ('leave','outdoor_leave','medical_rest','long_weekend'): item['leave']+=1
+    live_rows=[]
+    distribution={'present':0,'late':0,'early_arrival':0,'absent':0,'leave':0,'osd':0,'medical_rest':0,'long_weekend':0,'not_marked':0}
+    for trainee in active_trainees:
+        saved=by_trainee.get(str(trainee.get('id')),{})
+        state=str(saved.get('status') or '').lower()
+        employee_no=str(trainee.get('employee_no') or '')
+        if not state:
+            if employee_no in medical_ids: state='medical_rest'
+            elif employee_no in long_weekend_ids: state='long_weekend'
+            elif employee_no in leave_ids: state='leave'
+            elif employee_no in osd_ids: state='osd'
+            else: state='not_marked'
+        distribution_key='leave' if state=='outdoor_leave' else state
+        if distribution_key in distribution: distribution[distribution_key]+=1
+        live_rows.append({'trainee_id':trainee.get('id'),'employee_no':employee_no,'name':trainee.get('name'),
+          'course_name':saved.get('course_name') or trainee.get('course_name'),'platoon':trainee.get('platoon'),
+          'shift':shift,'status':state,'check_in':saved.get('check_in') or '',
+          'check_out':saved.get('check_out') or ''})
+    live_rows.sort(key=lambda x:(x['check_in'] or '99:99',str(x['course_name'] or '').casefold(),
+                                 str(x['platoon'] or '').casefold(),str(x['name'] or '').casefold()))
+    live_activity=[r for r in live_rows if r['status']!='not_marked'][:30]
     metrics={
       'total_enrolled':len(trainees), 'active_enrolled':len(active_trainees),
       'present':len(present_ids), 'absent':len(absent_ids), 'leave':len(leave_ids),
@@ -1027,11 +1240,13 @@ def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning')
     }
     return {'date':day,'shift':shift,'metrics':metrics,
             'course_wise':sorted(course_map.values(),key=lambda x:x['course'].lower()),
+            'status_distribution':distribution,'attendance_rows':live_rows,'live_activity':live_activity,
             'data_ready':bool(trainees),'message':None if trainees else 'No Manawan trainee roster has been imported yet.'}
+
 
 @app.get('/api/pts/trainees')
 def list_pts_trainees(request:Request, search:str='', course:str='', status:str=''):
-    require_roles(request,'view_only','supervisor','super_admin')
+    require_roles(request,'supervisor','super_admin')
     items=_pts_rows('pts_trainees')
     if search:
         q=search.strip().lower()
@@ -1091,7 +1306,7 @@ async def update_pts_trainee(trainee_id:int,request:Request):
 
 @app.get('/api/pts/attendance')
 def list_pts_attendance(request:Request,date:str='',shift:str='Morning'):
-    require_roles(request,'view_only','supervisor','super_admin')
+    require_roles(request,'supervisor','super_admin')
     day=str(date or today_iso())
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',day): raise HTTPException(400,'Attendance date must use YYYY-MM-DD.')
     if shift not in ('Morning','Evening'): raise HTTPException(400,'Shift must be Morning or Evening.')
@@ -1118,7 +1333,7 @@ async def bulk_pts_attendance(request:Request):
         except (TypeError,ValueError): continue
         attendance_date=str(row.get('attendance_date') or '').strip();shift=str(row.get('shift') or 'Morning')
         status=str(row.get('status') or '').lower()
-        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',attendance_date) or shift not in ('Morning','Evening') or status not in ('present','absent','late','early_arrival','leave','osd','medical_rest','long_weekend'):
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',attendance_date) or shift not in ('Morning','Evening') or status not in ('present','absent','late','early_arrival','leave','outdoor_leave','osd','medical_rest','long_weekend'):
             continue
         clean.append({'trainee_id':trainee_id,'attendance_date':attendance_date,'shift':shift,'status':status,
           'check_in':str(row.get('check_in') or ''),'check_out':str(row.get('check_out') or ''),
@@ -1153,7 +1368,7 @@ async def upsert_pts_attendance(request:Request):
     status=str(body.get('status') or '').lower()
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',attendance_date): raise HTTPException(400,'Attendance date must use YYYY-MM-DD.')
     if shift not in ('Morning','Evening'): raise HTTPException(400,'Shift must be Morning or Evening.')
-    if status not in ('present','absent','late','early_arrival','leave','osd','medical_rest','long_weekend'):
+    if status not in ('present','absent','late','early_arrival','leave','outdoor_leave','osd','medical_rest','long_weekend'):
         raise HTTPException(400,'Invalid trainee attendance status.')
     values={'trainee_id':trainee_id,'attendance_date':attendance_date,'shift':shift,'status':status,
             'check_in':str(body.get('check_in') or ''),'check_out':str(body.get('check_out') or ''),
@@ -1176,7 +1391,7 @@ async def upsert_pts_attendance(request:Request):
 
 @app.get('/api/pts/templates/trainee-roster')
 def download_pts_trainee_template(request:Request):
-    require_roles(request,'view_only','supervisor','super_admin')
+    require_roles(request,'supervisor','super_admin')
     path=TEMPLATE_DIR/'PTS_Manawan_Trainee_Roster_Template.xlsx'
     if not path.exists(): raise HTTPException(404,'Trainee roster template is not installed.')
     return FileResponse(path,filename='PTS_Manawan_Trainee_Roster_Template.xlsx',
@@ -1289,8 +1504,8 @@ def _pts_pick_raw(row,*keys):
 
 @app.get('/api/pts/templates/{template_type}')
 def download_pts_import_template(template_type:str,request:Request):
-    require_roles(request,'view_only','supervisor','super_admin')
-    filenames={'leave':'PTS_Leave_Import_Template.xlsx','osd':'PTS_OSD_Import_Template.xlsx','trainee-roster':'PTS_Manawan_Trainee_Roster_Template.xlsx'}
+    require_roles(request,'supervisor','super_admin')
+    filenames={'leave':'PTS_Leave_Import_Template.xlsx','osd':'PTS_OSD_Import_Template.xlsx','osd_permanent':'PTS_OSD_Import_Template.xlsx','trainee-roster':'PTS_Manawan_Trainee_Roster_Template.xlsx'}
     filename=filenames.get(template_type)
     if not filename: raise HTTPException(404,'Template not found.')
     path=TEMPLATE_DIR/filename
@@ -1300,8 +1515,8 @@ def download_pts_import_template(template_type:str,request:Request):
 @app.post('/api/pts/records/import')
 async def import_pts_records(request:Request,record_type:str='leave',person_type:str='trainee',file:UploadFile=File(...)):
     actor=require_roles(request,'supervisor','super_admin')
-    if record_type not in ('leave','osd'): raise HTTPException(400,'Only Leave and OSD templates can be imported.')
-    if person_type not in ('trainee','staff'): raise HTTPException(400,'Select Trainee or Staff before importing.')
+    if record_type not in ('leave','osd','osd_permanent'): raise HTTPException(400,'Only Leave and OSD templates can be imported.')
+    if person_type not in ('trainee','staff') or (record_type=='osd_permanent' and person_type!='staff'): raise HTTPException(400,'Permanent OSD import is only available for Staff.')
     raw=await file.read()
     if not raw: raise HTTPException(400,'The uploaded file is empty.')
     try: rows=_pts_import_rows(raw,file.filename or '')
@@ -1313,14 +1528,19 @@ async def import_pts_records(request:Request,record_type:str='leave',person_type
     else:
         with connection() as db:
             staff_rows=rows_as_dict(db.execute('SELECT id,badge_number,device_user_id,name,department,active FROM employees WHERE active=1').fetchall()) if person_type=='staff' else []
-    existing_osd=_pts_rows('pts_osd_records') if record_type=='osd' else []
+    existing_osd=_pts_rows('pts_osd_records') if record_type in ('osd','osd_permanent') else []
     imported=0; rejected=[]
     for index,row in enumerate(rows,start=2):
         try:
             employee_no=str(_pts_pick_raw(row,'Employee ID/Cap No.','Employee ID','Cap No.','ID') or '').strip()
             if not employee_no: raise ValueError('Employee ID/Cap No. is required')
             start_local=_pts_parse_import_datetime(_pts_pick_raw(row,'Start Date & Time','Start Date'))
-            end_local=_pts_parse_import_datetime(_pts_pick_raw(row,'End Date & Time','End Date'))
+            osd_type_value='permanent' if record_type=='osd_permanent' else str(_pts_pick_raw(row,'OSD Type','OSD Type (Temporary/Permanent)','Duty Type') or 'temporary').strip().lower()
+            is_permanent_osd=record_type in ('osd','osd_permanent') and osd_type_value in ('permanent','osd permanent','permanent osd')
+            raw_end=_pts_pick_raw(row,'End Date & Time','End Date')
+            end_local=_pts_parse_import_datetime(raw_end) if raw_end not in (None,'') else (datetime(2099,12,31,23,59,tzinfo=ZoneInfo('Asia/Karachi')) if is_permanent_osd else None)
+            if end_local is None: raise ValueError('End Date & Time is required for temporary records.')
+            if is_permanent_osd and person_type!='staff': raise ValueError('Permanent OSD is only available for Staff.')
             if end_local<start_local: raise ValueError('End Date & Time must be after Start Date & Time')
             start_utc=start_local.astimezone(ZoneInfo('UTC')).isoformat()
             end_utc=end_local.astimezone(ZoneInfo('UTC')).isoformat()
@@ -1373,6 +1593,7 @@ async def import_pts_records(request:Request,record_type:str='leave',person_type
                 if 'emergency' in values['leave_type'].lower(): values['status']='pending'
             else:
                 values['duty_place']=str(_pts_pick_raw(row,'Duty Place') or '').strip()
+                values['osd_type']='permanent' if is_permanent_osd else 'temporary'
                 overlap=False
                 for old in existing_osd:
                     if old.get('person_type')!=person_type or str(old.get('person_id'))!=employee_no: continue
@@ -1385,7 +1606,7 @@ async def import_pts_records(request:Request,record_type:str='leave',person_type
                     except (TypeError,ValueError): continue
                 if overlap: raise ValueError('An active OSD / Short Permission already overlaps this period.')
             _pts_insert(PTS_TABLES[record_type],values)
-            if record_type=='osd': existing_osd.append(dict(values))
+            if record_type in ('osd','osd_permanent'): existing_osd.append(dict(values))
             imported+=1
         except HTTPException: raise
         except Exception as e:
@@ -1417,10 +1638,13 @@ async def update_pts_record(record_type:str,record_id:int,request:Request):
 
 @app.get('/api/pts/records')
 def list_pts_records(request:Request, record_type:str='leave', person_type:str='trainee'):
-    require_roles(request,'view_only','supervisor','super_admin')
+    require_roles(request,'supervisor','super_admin')
     if record_type not in PTS_TABLES: raise HTTPException(400,'Invalid record type.')
     if person_type not in ('trainee','staff'): raise HTTPException(400,'Invalid person type.')
     items=[r for r in _pts_rows(PTS_TABLES[record_type]) if (record_type=='duty_rest' or r.get('person_type')==person_type)]
+    if record_type in ('osd','osd_permanent'):
+        wanted='permanent' if record_type=='osd_permanent' else 'temporary'
+        items=[r for r in items if str(r.get('osd_type') or 'temporary').lower()==wanted]
     return {'items':items,'total':len(items)}
 
 @app.post('/api/pts/records')
@@ -1430,10 +1654,13 @@ async def create_pts_record(request:Request):
     record_type=str(body.get('record_type') or '')
     person_type=str(body.get('person_type') or 'trainee')
     if record_type not in PTS_TABLES: raise HTTPException(400,'Invalid record type.')
-    if person_type not in ('trainee','staff') or (record_type=='duty_rest' and person_type!='staff'):
+    storage_type='osd' if record_type=='osd_permanent' else record_type
+    if person_type not in ('trainee','staff') or (storage_type=='duty_rest' and person_type!='staff') or (record_type=='osd_permanent' and person_type!='staff'):
         raise HTTPException(400,'Invalid person type for this record.')
     person_id=str(body.get('person_id') or '').strip(); person_name=str(body.get('person_name') or '').strip()
     start_at=str(body.get('start_at') or '').strip(); end_at=str(body.get('end_at') or '').strip()
+    if record_type=='osd_permanent' and not end_at:
+        end_at='2099-12-31T23:59:00+05:00'
     reason=str(body.get('reason') or '').strip()
     if not person_id or not person_name or not start_at or not end_at or not reason:
         raise HTTPException(400,'Person ID, name, start, end and reason are required.')
@@ -1448,10 +1675,12 @@ async def create_pts_record(request:Request):
       'start_at':start_at,'end_at':end_at,'reason':reason,'reference_no':str(body.get('reference_no') or '').strip(),
       'remarks':str(body.get('remarks') or '').strip(),'status':str(body.get('status') or 'pending').lower(),
       'created_by':str(actor.get('auth_id') or actor.get('id') or '')}
-    if record_type=='leave':
+    if storage_type=='leave':
         values['leave_type']=str(body.get('leave_type') or reason).strip()
-    if record_type=='osd': values['duty_place']=str(body.get('duty_place') or '').strip()
-    if record_type=='duty_rest':
+    if storage_type=='osd':
+        values['duty_place']=str(body.get('duty_place') or '').strip()
+        values['osd_type']='permanent' if record_type=='osd_permanent' or str(body.get('osd_type') or '').lower()=='permanent' else 'temporary'
+    if storage_type=='duty_rest':
         values.pop('course_name',None); values.pop('platoon',None)
         values['reason']=reason or 'Duty Rest'
     if values['status'] not in ('pending','approved','rejected','cancelled','exempt'):
@@ -1460,26 +1689,149 @@ async def create_pts_record(request:Request):
     except CloudError as e: raise HTTPException(503,str(e)) from e
     return {'success':True,'item':saved}
 
+@app.get('/api/pts/leave-announcements')
+def list_pts_leave_announcements(request:Request):
+    require_roles(request,'view_only','supervisor','super_admin')
+    if CLOUD_ENABLED:
+        items=cloud_or_503(lambda:cloud.rows('pts_leave_announcements',{'active':'eq.true','order':'start_date.desc'}))
+    else:
+        with connection() as db:
+            items=rows_as_dict(db.execute('SELECT * FROM pts_leave_announcements WHERE active=1 ORDER BY start_date DESC,id DESC').fetchall())
+    return {'items':items,'total':len(items)}
+
+@app.post('/api/pts/leave-announcements')
+async def create_pts_leave_announcement(request:Request):
+    actor=require_roles(request,'supervisor','super_admin')
+    body=await request.json()
+    title=str(body.get('title') or '').strip()
+    message=str(body.get('message') or '').strip()
+    start_date=str(body.get('start_date') or '').strip()
+    end_date=str(body.get('end_date') or '').strip()
+    audience=str(body.get('audience') or 'all').lower()
+    if not title or not start_date or not end_date: raise HTTPException(400,'Title, start date and end date are required.')
+    try:
+        start=date.fromisoformat(start_date);end=date.fromisoformat(end_date)
+        if end<start: raise ValueError()
+    except ValueError: raise HTTPException(400,'Enter valid dates and ensure the end date is not before the start date.')
+    if audience not in ('all','staff','trainee'): raise HTTPException(400,'Audience must be all, staff or trainee.')
+    values={'title':title[:180],'message':message[:3000],'start_date':start.isoformat(),'end_date':end.isoformat(),
+            'audience':audience,'active':True,'created_by':str(actor.get('auth_id') or actor.get('username') or '')}
+    saved=_pts_insert('pts_leave_announcements',values)
+    return {'success':True,'item':saved}
+
+@app.patch('/api/pts/leave-announcements/{announcement_id}')
+async def update_pts_leave_announcement(announcement_id:int,request:Request):
+    require_roles(request,'supervisor','super_admin')
+    body=await request.json();values={}
+    if 'active' in body: values['active']=bool(body.get('active'))
+    if 'message' in body: values['message']=str(body.get('message') or '')[:3000]
+    if not values: raise HTTPException(400,'No announcement fields were supplied.')
+    if CLOUD_ENABLED:
+        rows=cloud_or_503(lambda:cloud.patch('pts_leave_announcements',{'id':'eq.'+str(announcement_id)},values))
+        if not rows: raise HTTPException(404,'Announcement not found.')
+        return {'success':True,'item':rows[0]}
+    with connection() as db:
+        cur=db.execute('UPDATE pts_leave_announcements SET '+','.join(k+'=?' for k in values)+' WHERE id=?',list(values.values())+[announcement_id])
+        if not cur.rowcount: raise HTTPException(404,'Announcement not found.')
+        return {'success':True,'item':dict(db.execute('SELECT * FROM pts_leave_announcements WHERE id=?',(announcement_id,)).fetchone())}
+
+@app.get('/api/pts/holidays')
+def list_pts_holidays(request:Request):
+    require_roles(request,'view_only','supervisor','super_admin')
+    if CLOUD_ENABLED:
+        items=cloud_or_503(lambda:cloud.rows('pts_holidays',{'order':'holiday_date.asc'}))
+    else:
+        with connection() as db: items=rows_as_dict(db.execute('SELECT * FROM pts_holidays ORDER BY holiday_date,id').fetchall())
+    return {'items':items,'total':len(items)}
+
+@app.post('/api/pts/holidays')
+async def create_pts_holiday(request:Request):
+    actor=require_roles(request,'supervisor','super_admin')
+    body=await request.json()
+    title=str(body.get('title') or '').strip();holiday_date=str(body.get('holiday_date') or '').strip()
+    category=str(body.get('category') or 'Institutional').strip();description=str(body.get('description') or '').strip()
+    if not title or not holiday_date: raise HTTPException(400,'Holiday name and date are required.')
+    try: holiday_date=date.fromisoformat(holiday_date).isoformat()
+    except ValueError: raise HTTPException(400,'Holiday date must use YYYY-MM-DD.')
+    values={'title':title[:180],'holiday_date':holiday_date,'category':category[:80],
+            'description':description[:1000],'created_by':str(actor.get('auth_id') or actor.get('username') or '')}
+    return {'success':True,'item':_pts_insert('pts_holidays',values)}
+
+@app.delete('/api/pts/holidays/{holiday_id}')
+def delete_pts_holiday(holiday_id:int,request:Request):
+    require_roles(request,'supervisor','super_admin')
+    if CLOUD_ENABLED:
+        rows=cloud_or_503(lambda:cloud.rest('DELETE','pts_holidays',params={'id':'eq.'+str(holiday_id)},headers={'Prefer':'return=representation'}))
+        if not rows: raise HTTPException(404,'Holiday not found.')
+        return {'success':True}
+    with connection() as db:
+        cur=db.execute('DELETE FROM pts_holidays WHERE id=?',(holiday_id,))
+        if not cur.rowcount: raise HTTPException(404,'Holiday not found.')
+    return {'success':True}
+
+@app.get('/api/pts/attendance/history')
+def pts_attendance_history(request:Request, from_date:str='', to_date:str='', shift:str=''):
+    require_roles(request,'supervisor','super_admin')
+    if not from_date and not to_date: from_date=to_date=today_iso()
+    elif from_date and not to_date: to_date=from_date
+    elif to_date and not from_date: from_date=to_date
+    try:
+        start=date.fromisoformat(from_date);end=date.fromisoformat(to_date)
+    except ValueError: raise HTTPException(400,'Dates must use YYYY-MM-DD.')
+    if start>end or (end-start).days>366: raise HTTPException(400,'Select a valid date range of 366 days or less.')
+    trainees=_pts_rows('pts_trainees'); attendance=_pts_rows('pts_trainee_attendance')
+    by_id={str(t.get('id')):t for t in trainees}
+    items=[]
+    for row in attendance:
+        day=str(row.get('attendance_date') or '')[:10]
+        if not (start.isoformat()<=day<=end.isoformat()): continue
+        if shift and str(row.get('shift') or 'Morning').casefold()!=shift.casefold(): continue
+        trainee=by_id.get(str(row.get('trainee_id')))
+        if not trainee: continue
+        items.append({'trainee_id':row.get('trainee_id'),'employee_no':trainee.get('employee_no'),'name':trainee.get('name'),
+          'course_name':row.get('course_name') or trainee.get('course_name'),'platoon':trainee.get('platoon'),
+          'attendance_date':day,'shift':row.get('shift') or 'Morning','status':row.get('status'),
+          'check_in':row.get('check_in') or '','check_out':row.get('check_out') or ''})
+    items.sort(key=lambda x:(x['attendance_date'],str(x['course_name'] or '').casefold(),str(x['platoon'] or '').casefold(),str(x['name'] or '').casefold()))
+    return {'from':start.isoformat(),'to':end.isoformat(),'items':items,'total':len(items)}
+
 @app.get('/api/attendance')
-@redis_cached_endpoint('attendance')
-def attendance(date:Optional[str]=None,status:str='',department:str='',search:str='',page:int=1,per_page:int=30):
+def attendance(request:Request,date:Optional[str]=None,status:str='',department:str='',search:str='',shift:str='',page:int=1,per_page:int=30):
+ user=require_roles(request,'view_only','supervisor','super_admin')
  with connection() as db:
-  d=requested_date(db,date);page,per_page=safe_pagination(page,per_page)
-  frm,args=daily_query(d,status,department,search)
+  if user.get('role')=='view_only':
+   d=yesterday_iso()
+   if date and date!=d: raise HTTPException(403,'View Only users can access previous-day attendance only.')
+  else:d=requested_date(db,date)
+  if user.get('role')=='view_only':status=department=search=shift=''
+  page,per_page=safe_pagination(page,per_page)
+  frm,args=daily_query(d,status,department,search,shift)
   n=db.execute('SELECT COUNT(*) '+frm,args).fetchone()[0]
   items=rows_as_dict(db.execute('''SELECT e.id employee_id,e.badge_number,e.device_user_id,e.name,e.department,
   d.work_date,d.status,d.clock_in,d.clock_out,d.late_minutes,d.early_minutes,d.work_minutes,d.shift,d.source
   '''+frm+''' ORDER BY CASE d.status WHEN 'late' THEN 0 WHEN 'present' THEN 1 WHEN 'absent' THEN 2 ELSE 3 END,e.name LIMIT ? OFFSET ?''',args+[per_page,(page-1)*per_page]).fetchall())
+  if user.get('role')=='view_only':
+   state=_staff_attendance_overrides(db,d,'')
+   for row in items:
+    ident=int(row['employee_id'])
+    if ident in state['osd_ids']:row['status']='present';row['source']='approved_osd'
+    elif ident in state['leave_ids']:row['status']='on_leave';row['source']='approved_leave'
   return {'date':d,'total':n,'page':page,'per_page':per_page,'items':items}
 
 @app.get('/api/attendance/history')
-@redis_cached_endpoint('attendance-history')
 def attendance_history(request: Request):
- # Default to the latest available attendance date, not the server's calendar date.
- # This keeps reports useful when the latest imported MDB/Excel file is historical.
+ user=require_roles(request,'view_only','supervisor','super_admin')
  params=request.query_params
- from_text=params.get('from') or ''
- to_text=params.get('to') or ''
+ if user.get('role')=='view_only':
+  day=yesterday_iso()
+  requested_from=params.get('from') or day;requested_to=params.get('to') or requested_from
+  if requested_from!=day or requested_to!=day:
+   raise HTTPException(403,'View Only users can access previous-day attendance only.')
+  from_text=to_text=day
+ else:
+  # Default to the latest available stored attendance date.
+  from_text=params.get('from') or ''
+  to_text=params.get('to') or ''
  if not from_text and not to_text:
   with connection() as db:
    latest=db.execute('SELECT MAX(work_date) FROM daily').fetchone()[0] or today_iso()
@@ -1498,9 +1850,9 @@ def attendance_history(request: Request):
  if (to_day-from_day).days>366:
   raise HTTPException(400,'Please select a date range of 366 days or less')
  where=['d.work_date BETWEEN ? AND ?'];args=[from_day.isoformat(),to_day.isoformat()]
- department=params.get('department','').strip()
- status=params.get('status','').strip().lower()
- search=params.get('search','').strip()
+ department='' if user.get('role')=='view_only' else params.get('department','').strip()
+ status='' if user.get('role')=='view_only' else params.get('status','').strip().lower()
+ search='' if user.get('role')=='view_only' else params.get('search','').strip()
  if department and department!='all':where.append('e.department=?');args.append(department)
  if status and status!='all':where.append('d.status=?');args.append(status)
  if search:where.append('(e.name LIKE ? OR e.badge_number LIKE ? OR e.device_user_id LIKE ?)');args.extend([f'%{search}%']*3)
@@ -1509,6 +1861,12 @@ def attendance_history(request: Request):
    d.work_date,d.status,d.clock_in,d.clock_out,d.late_minutes,d.early_minutes,d.work_minutes,d.shift,d.source
    FROM daily d JOIN employees e ON e.id=d.employee_id WHERE """ + ' AND '.join(where) + ' ORDER BY d.work_date DESC,e.name'
   items=rows_as_dict(db.execute(sql,args).fetchall())
+  if user.get('role')=='view_only':
+   state=_staff_attendance_overrides(db,from_day.isoformat(),'')
+   for row in items:
+    ident=int(row['employee_id'])
+    if ident in state['osd_ids']:row['status']='present';row['source']='approved_osd'
+    elif ident in state['leave_ids']:row['status']='on_leave';row['source']='approved_leave'
   return {'from':from_day.isoformat(),'to':to_day.isoformat(),'total':len(items),'items':items}
 
 @app.put('/api/attendance/edit')
@@ -1665,6 +2023,7 @@ def apply_auto_biometric_exceptions(work_date=None, employee_id=None):
 @app.get('/api/discrepancies')
 @redis_cached_endpoint('discrepancies')
 def list_discrepancies(request: Request, from_date:str='', to_date:str='', state:str='open', issue:str='', search:str='',page:int=1,per_page:int=50):
+    require_roles(request,'supervisor','super_admin')
     with connection() as db:
         # Default to the newest imported report, not server's calendar date.
         most_recent=db.execute('SELECT MAX(work_date) FROM daily').fetchone()[0] or today_iso()
@@ -1867,7 +2226,8 @@ async def update_employee_profile(employee_id:int,request:Request):
 
 @app.get('/api/employees')
 @redis_cached_endpoint('employees')
-def employees(search:str='',department:str='',page:int=1,per_page:int=30):
+def employees(request:Request,search:str='',department:str='',page:int=1,per_page:int=30):
+ require_roles(request,'supervisor','super_admin')
  with connection() as db:
   page,per_page=safe_pagination(page,per_page)
   wh=['active=1'];args=[]
@@ -1880,7 +2240,8 @@ def employees(search:str='',department:str='',page:int=1,per_page:int=30):
 
 @app.get('/api/employee/{employee_id}')
 @redis_cached_endpoint('employee-detail')
-def employee_detail(employee_id:int):
+def employee_detail(employee_id:int,request:Request):
+ require_roles(request,'supervisor','super_admin')
  with connection() as db:
   e=db.execute('SELECT * FROM employees WHERE id=?',(employee_id,)).fetchone()
   if not e:raise HTTPException(404,'Employee not found')
@@ -1889,7 +2250,8 @@ def employee_detail(employee_id:int):
   return {'employee':dict(e),'history':days,'punches':punches}
 
 @app.get('/api/imports')
-def imports():
+def imports(request:Request):
+ require_roles(request,'supervisor','super_admin')
  with connection() as db:return {'items':rows_as_dict(db.execute('SELECT * FROM imports ORDER BY id DESC LIMIT 20').fetchall())}
 
 @app.post('/api/import-excel')
@@ -1914,7 +2276,8 @@ async def upload(request:Request, filename:str='upload.xls'):
  except (ValueError,UnicodeError,KeyError,IndexError,AssertionError) as exc:raise HTTPException(400,str(exc)) from exc
 
 @app.get('/api/export')
-def export(date:Optional[str]=None,status:str='',department:str='',search:str=''):
+def export(request:Request,date:Optional[str]=None,status:str='',department:str='',search:str=''):
+ require_roles(request,'supervisor','super_admin')
  with connection() as db:
   d=requested_date(db,date);frm,args=daily_query(d,status,department,search)
   rows=db.execute('''SELECT e.badge_number,e.name,e.department,d.work_date,d.status,d.clock_in,d.clock_out,
@@ -1928,6 +2291,7 @@ def export(date:Optional[str]=None,status:str='',department:str='',search:str=''
 
 @app.post('/api/reports/excel')
 async def export_report_excel(request:Request):
+    require_roles(request,'supervisor','super_admin')
     body=await request.json()
     from_text=str(body.get('from') or (local_now().date()-timedelta(days=6)).isoformat())
     to_text=str(body.get('to') or from_text)
@@ -2116,7 +2480,8 @@ async def update_app_config(request:Request):
 
 
 @app.get('/api/settings')
-def get_settings():
+def get_settings(request:Request=None):
+ if request is not None: require_roles(request,'supervisor','super_admin')
  with connection() as db:
   selected=active_device_id(db)
   row=db.execute('SELECT * FROM devices WHERE id=?',(selected,)).fetchone()
@@ -2172,7 +2537,8 @@ async def change_settings(request:Request):
  return get_settings()
 
 @app.get('/api/devices')
-def list_devices():
+def list_devices(request:Request):
+ require_roles(request,'supervisor','super_admin')
  with connection() as db:return all_devices(db)
 
 @app.post('/api/devices')
@@ -2625,7 +2991,8 @@ async def sync_database(request:Request,force:bool=True):
     return await asyncio.to_thread(run_access_sync,force,ident)
 
 @app.get('/api/database/status')
-def database_status():
+def database_status(request:Request):
+    require_roles(request,'supervisor','super_admin')
     with connection() as db:
         ident=active_device_id(db)
         return {'database':device_status(db,ident),'path':setting(db,'access_path'),

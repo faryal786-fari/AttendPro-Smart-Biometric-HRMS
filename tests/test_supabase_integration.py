@@ -122,7 +122,9 @@ def test_supabase_auth_role_gate_on_real_fastapi_routes(monkeypatch):
    login=client.post('/api/auth/login',json={'username':'user@company.com','password':'valid-password'})
    assert login.status_code==200
    assert 'httponly' in login.headers['set-cookie'].lower()
-   emp=client.get('/api/employees',params={'per_page':1}).json()['items'][0]
+   assert client.get('/api/employees',params={'per_page':1}).status_code==403
+   with mod.connection() as db:
+    emp=dict(db.execute('SELECT * FROM employees ORDER BY id LIMIT 1').fetchone())
    edit={'employee_id':emp['id'],'work_date':'2026-10-26','clock_in':'09:00','clock_out':'17:00',
           'status':'present','shift':'09:00','reason':'Approved correction'}
    assert client.put('/api/attendance/edit',json=edit).status_code==403
