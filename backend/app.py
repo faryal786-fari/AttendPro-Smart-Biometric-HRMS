@@ -17,6 +17,7 @@ from .tools.access_live import verify_source, sync_access, SourceError
 from .tools.report_export import build_report_xlsx
 from .cloud_service import CLOUD_ENABLED, cloud, CloudError, cloud_or_503
 from .cloud_projection import prepare_raw_tables, capture_original_from_daily, apply_override_local, push_sources, pull_cloud
+from .trainee_mdb_sync import extract_trainee_roster
 from .redis_cache import redis_cache
 
 ROOT = Path(__file__).resolve().parents[1]  # repository root (keeps Render/local paths stable)
@@ -1161,6 +1162,107 @@ def _pts_insert(table, values):
         cur=db.execute(f"INSERT INTO {table} ({','.join(keys)}) VALUES ({','.join('?' for _ in keys)})",
                        [values[k] for k in keys])
         return dict(db.execute(f'SELECT * FROM {table} WHERE id=?',(cur.lastrowid,)).fetchone())
+
+
+
+def sync_pts_trainees_from_mdb(mdb_path):
+    """Sync only the verified female-trainee departments into pts_trainees.
+
+    Staff employees, daily attendance and raw punches are never changed here.
+    Existing trainee status, father name and course dates are preserved. Repeated
+    runs are idempotent by employee number + course/platoon matching.
+    """
+    classified=extract_trainee_roster(mdb_path)
+    roster=classified['roster']
+    existing_rows=_pts_rows('pts_trainees')
+    plans=[]
+    used_ids=set()
+    inserted=updated=unchanged=0
+
+    def norm(value):
+        return ' '.join(str(value or '').strip().casefold().split())
+
+    for source in roster:
+        employee_no=str(source['employee_no']).strip()
+        same_employee=[r for r in existing_rows
+                       if str(r.get('employee_no') or '').strip().casefold()==employee_no.casefold()]
+        exact=[r for r in same_employee
+               if norm(r.get('course_name'))==norm(source['course_name'])
+               and norm(r.get('platoon'))==norm(source['platoon'])]
+        if len(exact)>1:
+            raise RuntimeError(f"More than one existing trainee enrollment matches employee {employee_no}; no ambiguous row was changed.")
+        match=exact[0] if exact else None
+        if match is None:
+            same_platoon=[r for r in same_employee if norm(r.get('platoon'))==norm(source['platoon'])]
+            if len(same_platoon)==1:
+                match=same_platoon[0]
+            elif len(same_platoon)>1:
+                parent_course=[r for r in same_platoon if norm(r.get('course_name'))==norm(source['course_name'])]
+                if len(parent_course)==1:
+                    match=parent_course[0]
+                else:
+                    raise RuntimeError(f"Employee {employee_no} has multiple trainee enrollments in the same platoon; manual review is required.")
+        if match is None:
+            parent_course=[r for r in same_employee if norm(r.get('course_name'))==norm(source['course_name'])]
+            if len(parent_course)==1:
+                match=parent_course[0]  # department/platoon changed in MDB
+            elif len(parent_course)>1:
+                raise RuntimeError(f"Employee {employee_no} has multiple matching course enrollments; no ambiguous row was changed.")
+
+        if match is None:
+            plans.append(('insert',source,None))
+            inserted+=1
+            continue
+        match_id=int(match['id'])
+        if match_id in used_ids:
+            raise RuntimeError(f"Existing trainee row {match_id} matched more than once; no ambiguous row was changed.")
+        used_ids.add(match_id)
+        changes={}
+        if str(match.get('name') or '').strip()!=source['name']:
+            changes['name']=source['name']
+        # Update the platoon only when the parent course mapping is still source-owned.
+        # Manually supplied course name, father name, dates and status are preserved.
+        if norm(match.get('course_name'))==norm(source['course_name']) and norm(match.get('platoon'))!=norm(source['platoon']):
+            changes['platoon']=source['platoon']
+        if not str(match.get('course_name') or '').strip():
+            changes['course_name']=source['course_name']
+        plans.append(('update',changes,match_id))
+        if changes:
+            updated+=1
+        else:
+            unchanged+=1
+
+    if CLOUD_ENABLED:
+        # Per-row writes are retry-safe: after a partial network failure, the next
+        # scheduler run finds rows already created and only updates differences.
+        for action,values,record_id in plans:
+            if action=='insert':
+                _pts_insert('pts_trainees',values)
+            elif values:
+                saved=cloud_or_503(lambda rid=record_id,vals=values:cloud.patch(
+                    'pts_trainees',{'id':'eq.'+str(rid)},vals))
+                if not saved:
+                    raise RuntimeError(f"Supabase did not update trainee row {record_id}.")
+    else:
+        with connection() as db:
+            for action,values,record_id in plans:
+                if action=='insert':
+                    keys=list(values)
+                    db.execute(f"INSERT INTO pts_trainees ({','.join(keys)}) VALUES ({','.join('?' for _ in keys)})",
+                               [values[k] for k in keys])
+                elif values:
+                    keys=list(values)
+                    cur=db.execute('UPDATE pts_trainees SET '+','.join(k+'=?' for k in keys)+
+                                   ',updated_at=CURRENT_TIMESTAMP WHERE id=?',
+                                   [values[k] for k in keys]+[record_id])
+                    if not cur.rowcount:
+                        raise RuntimeError(f"Local trainee row {record_id} disappeared during sync.")
+
+    return {'success':True,'source':'MDB department roster',
+            'candidate_count':classified['candidate_count'],'inserted':inserted,
+            'updated':updated,'unchanged':unchanged,
+            'department_counts':classified['department_counts'],
+            'message':f"Trainee MDB sync complete: {inserted} inserted, {updated} updated, {unchanged} unchanged."}
 
 @app.get('/api/pts/dashboard')
 def pts_dashboard(request:Request, date:Optional[str]=None, shift:str='Morning'):
@@ -2757,6 +2859,20 @@ def run_access_sync(force=False,device_id=None):
                           'access_last_fetched':str(stats['last_fetched']),'access_last_inserted':str(stats['last_inserted'])}
                         for k,v in aliases.items():db.execute('INSERT OR REPLACE INTO settings(key,value) VALUES (?,?)',(k,v))
             result['device_id']=device_id
+            if result.get('success') and path:
+                try:
+                    trainee_sync=sync_pts_trainees_from_mdb(path)
+                    result['trainee_sync']=trainee_sync
+                    append_monitor_log('MDB female trainee roster sync', 'Success',
+                        records=int(trainee_sync.get('candidate_count') or 0),
+                        details=trainee_sync.get('message') or 'Female trainee roster synchronized.',
+                        trigger='device_sync')
+                except Exception as trainee_exc:
+                    trainee_error=f'{type(trainee_exc).__name__}: {trainee_exc}'[:350]
+                    result['trainee_sync']={'success':False,'message':trainee_error}
+                    result['trainee_sync_warning']=trainee_error
+                    append_monitor_log('MDB female trainee roster sync', 'Failed',
+                        details=trainee_error, trigger='device_sync')
             if CLOUD_ENABLED and result.get('changed'):
                 with connection() as db:
                     capture_original_from_daily(db)
@@ -2878,8 +2994,12 @@ def run_hourly_sync_cycle(force=False, trigger='scheduler'):
                            'changed':bool(result.get('changed')),
                            'new_punches':int(result.get('new_punches') or 0),
                            'cloud_synced':result.get('cloud_synced', (not CLOUD_ENABLED or not result.get('changed'))),
-                           'message':result.get('message') or result.get('cloud_warning') or ''}
+                           'trainee_sync':result.get('trainee_sync'),
+                           'message':result.get('message') or result.get('cloud_warning') or result.get('trainee_sync_warning') or ''}
             device_results.append(device_result)
+            trainee_sync_result=result.get('trainee_sync') or {}
+            if trainee_sync_result and not trainee_sync_result.get('success'):
+                warnings.append(f"{dev['name']}: trainee roster sync failed: {trainee_sync_result.get('message','unknown error')}")
             append_monitor_log(f"MDB read — {dev['name']}", 'Success' if result.get('success') else 'Failed',
                                records=int(result.get('new_punches') or 0),
                                details=result.get('message') or ('New punches: '+str(result.get('new_punches') or 0)),
@@ -2923,8 +3043,9 @@ def run_hourly_sync_cycle(force=False, trigger='scheduler'):
         finished=stamp()
         sync_failed=any(x.get('success') is False for x in device_results if 'success' in x)
         cloud_failed=any(x.get('cloud_synced') is False for x in device_results)
+        trainee_failed=any(x.get('trainee_sync') and not x['trainee_sync'].get('success') for x in device_results)
         cache_failed=bool(redis_cache.enabled and cloud_ready and not cache_result.get('success'))
-        summary={'success':not (sync_failed or cloud_failed or not cloud_ready or cache_failed),
+        summary={'success':not (sync_failed or cloud_failed or trainee_failed or not cloud_ready or cache_failed),
                  'trigger':trigger,'started_at':started,'finished_at':finished,
                  'interval_seconds':scheduler_interval_seconds(),'devices_checked':checked,
                  'device_results':device_results,'automatic_biometric_rule':auto_rule,
