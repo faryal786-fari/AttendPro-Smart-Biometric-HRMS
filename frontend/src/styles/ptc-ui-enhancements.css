@@ -1,0 +1,231 @@
+/* AttendPro PTC Manawan — isolated UI enhancement styles.
+   All selectors are scoped to the new controls and existing portal/hero containers. */
+
+/* Show Password control */
+#loginOverlay .ap-ui-password-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 8px 0 10px auto;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: #17658f;
+  font: 650 12px/1.35 Inter, Arial, sans-serif;
+  cursor: pointer;
+  border-radius: 6px;
+}
+#loginOverlay .ap-ui-password-toggle:hover {
+  color: #0c3f5d;
+  text-decoration: underline;
+}
+#loginOverlay .ap-ui-password-toggle:focus-visible {
+  outline: 2px solid #2b8bbd;
+  outline-offset: 3px;
+}
+#loginOverlay .ap-ui-password-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A Back button is inserted at the top of every existing backend screen. */
+.ap-ui-back-row {
+  display: none;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 0 12px;
+  padding: 0;
+}
+body.ap-ui-portal-active .ap-ui-back-row {
+  display: flex;
+}
+.ap-ui-back-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid #d5e1e9;
+  border-radius: 9px;
+  background: #fff;
+  color: #145477;
+  box-shadow: 0 2px 8px rgba(11, 43, 62, .06);
+  font: 700 12px/1.2 Inter, Arial, sans-serif;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.ap-ui-back-button > span:first-child {
+  font-size: 17px;
+  line-height: 10px;
+}
+.ap-ui-back-button:hover {
+  background: #f0f7fb;
+  border-color: #9bbbd0;
+  transform: translateX(-2px);
+}
+.ap-ui-back-button:focus-visible {
+  outline: 2px solid #2b8bbd;
+  outline-offset: 3px;
+}
+
+/* Main landing-page gallery: framed like the campus gallery, with the entire
+   uploaded photograph visible at every viewport size (object-fit: contain). */
+.aplp-hero-visual .aplp-campus-art.ap-ui-hero-gallery {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 3 / 2 !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  border: 8px solid rgba(255, 255, 255, .16) !important;
+  border-radius: 18px !important;
+  background: #071c2a !important;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, .30) !important;
+}
+.aplp-hero-visual .ap-ui-hero-slides {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #071c2a;
+}
+.aplp-hero-visual .ap-ui-hero-slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .42s ease, visibility .42s ease;
+  background: #071c2a;
+}
+.aplp-hero-visual .ap-ui-hero-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+.aplp-hero-visual .ap-ui-hero-slide img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  background: #071c2a !important;
+}
+.aplp-hero-visual .ap-ui-hero-count {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
+  min-width: 54px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 20px;
+  background: rgba(5, 22, 34, .78);
+  color: #fff;
+  font: 750 10px/1 Inter, Arial, sans-serif;
+  letter-spacing: .1em;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+.aplp-hero-visual .ap-ui-hero-arrow {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0 0 3px;
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 50%;
+  background: rgba(4, 24, 38, .72);
+  color: #fff;
+  font: 400 28px/1 Arial, sans-serif;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background .18s ease, transform .18s ease;
+}
+.aplp-hero-visual .ap-ui-hero-arrow:hover {
+  background: rgba(17, 103, 145, .94);
+}
+.aplp-hero-visual .ap-ui-hero-prev { left: 12px; }
+.aplp-hero-visual .ap-ui-hero-next { right: 12px; }
+.aplp-hero-visual .ap-ui-hero-dots {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  max-width: calc(100% - 110px);
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 30px;
+  background: rgba(5, 22, 34, .65);
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+}
+.aplp-hero-visual .ap-ui-hero-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255,255,255,.55);
+  cursor: pointer;
+  transition: width .2s ease, background .2s ease;
+}
+.aplp-hero-visual .ap-ui-hero-dot.is-active {
+  width: 21px;
+  background: #e3c58c;
+}
+.aplp-hero-visual .ap-ui-hero-arrow:focus-visible,
+.aplp-hero-visual .ap-ui-hero-dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 780px) {
+  .aplp-hero-visual .aplp-campus-art.ap-ui-hero-gallery {
+    aspect-ratio: 3 / 2 !important;
+    height: auto !important;
+  }
+  .aplp-hero-visual .ap-ui-hero-arrow {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (max-width: 520px) {
+  .aplp-hero-visual .ap-ui-hero-count {
+    top: 8px;
+    right: 8px;
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+  .aplp-hero-visual .ap-ui-hero-prev { left: 8px; }
+  .aplp-hero-visual .ap-ui-hero-next { right: 8px; }
+  .aplp-hero-visual .ap-ui-hero-dots {
+    bottom: 8px;
+    gap: 5px;
+    padding: 6px 8px;
+  }
+  .aplp-hero-visual .ap-ui-hero-dot { width: 6px; height: 6px; min-width: 6px; }
+  .aplp-hero-visual .ap-ui-hero-dot.is-active { width: 17px; }
+}
