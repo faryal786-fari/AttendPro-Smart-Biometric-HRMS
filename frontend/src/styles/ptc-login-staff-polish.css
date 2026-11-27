@@ -1,0 +1,176 @@
+/* AttendPro PTC Manawan — isolated visual refinement.
+   Only the login overlay and staff-dashboard KPI visuals are changed.
+   Preserves all forms, handlers, IDs, values, role gates, and data requests. */
+
+/* Login screen: use the existing parade photo as the complete backdrop,
+   hide the left marketing panel and center the original secure login form. */
+#loginOverlay.open {
+  display: flex !important;
+  position: fixed !important;
+  inset: 0 !important;
+  isolation: isolate !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  background: #092437 !important;
+  overflow: auto !important;
+}
+#loginOverlay::before,
+#loginOverlay::after {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  display: block !important;
+  pointer-events: none !important;
+  opacity: 1 !important;
+}
+#loginOverlay::before {
+  z-index: 0 !important;
+  background: linear-gradient(rgba(4, 24, 42, .51), rgba(4, 24, 42, .65)),
+              url('/assets/ptc-manawan-login-parade.webp') center / cover no-repeat !important;
+  filter: blur(7px) !important;
+  transform: scale(1.035);
+}
+#loginOverlay::after {
+  z-index: 1 !important;
+  background: linear-gradient(90deg,rgba(5,25,42,.45),rgba(5,25,42,.24),rgba(5,25,42,.45)),
+              url('/assets/ptc-manawan-login-parade.webp') center / contain no-repeat !important;
+  opacity: .60 !important;
+}
+#loginOverlay .ptc-login-shell {
+  position: relative !important;
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 480px) !important;
+  align-items: center !important;
+  justify-items: center !important;
+  width: min(100%, 560px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  gap: 0 !important;
+  margin: auto !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+#loginOverlay .ptc-login-shell > .ptc-login-brand {
+  display: none !important;
+}
+#loginOverlay .ptc-login-shell > form.ptc-login-form.login-card {
+  position: relative !important;
+  display: flex !important;
+  width: min(100%, 480px) !important;
+  min-width: 0 !important;
+  max-width: 480px !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: auto !important;
+  padding: clamp(22px, 3vw, 38px) !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 25px 75px rgba(0, 12, 26, .38) !important;
+  backdrop-filter: blur(12px);
+}
+#loginOverlay .ptc-login-form .form-input { width: 100% !important; }
+#loginOverlay .ap-ui-password-toggle { color: #165f89 !important; }
+@media (max-width: 600px) {
+  #loginOverlay.open { padding: 12px !important; }
+  #loginOverlay .ptc-login-shell { width: 100% !important; }
+  #loginOverlay .ptc-login-shell > form.ptc-login-form.login-card {
+    width: min(100%, 440px) !important;
+    padding: 20px 18px !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* Staff cards: match the Trainee cards' structure and navy/pastel aesthetic,
+   but do not change the staff card labels, values, events, or IDs. */
+#ptsStaffDashboard .kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 13px !important;
+  margin-bottom: 18px !important;
+}
+#ptsStaffDashboard .kpi-card {
+  --staff-accent: #357eae;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  min-height: 118px !important;
+  padding: 15px 17px !important;
+  border: 1px solid #e0e9f0 !important;
+  border-top: 3px solid var(--staff-accent) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(145deg,#fff,#f8fbfd) !important;
+  box-shadow: 0 5px 16px rgba(24,57,81,.055) !important;
+  color: #1e3850 !important;
+  text-align: left !important;
+  transition: transform .15s ease, box-shadow .15s ease !important;
+}
+#ptsStaffDashboard .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 13px 27px rgba(23, 58, 83, .12) !important;
+}
+#ptsStaffDashboard .kpi-card .kpi-top { display: contents !important; }
+#ptsStaffDashboard .kpi-card .kpi-label {
+  color: #607b93 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .095em !important;
+  text-transform: uppercase !important;
+  padding-right: 34px;
+}
+#ptsStaffDashboard .kpi-card .kpi-icon {
+  position: absolute !important;
+  top: 13px !important;
+  right: 15px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  color: var(--staff-accent) !important;
+  background: transparent !important;
+  font-size: 20px !important;
+  opacity: .82;
+}
+#ptsStaffDashboard .kpi-card .kpi-value {
+  color: var(--staff-accent) !important;
+  font-size: clamp(27px, 2.55vw, 34px) !important;
+  font-weight: 850 !important;
+  letter-spacing: -.05em !important;
+  line-height: 1.05 !important;
+}
+#ptsStaffDashboard .kpi-card .kpi-sub {
+  color: #8ba1b4 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+#ptsStaffDashboard .kpi-card.kpi-blue { --staff-accent: #5543b8; }
+#ptsStaffDashboard .kpi-card.kpi-green { --staff-accent: #13a879; }
+#ptsStaffDashboard .kpi-card.kpi-red { --staff-accent: #d83b54; }
+#ptsStaffDashboard .kpi-card.kpi-amber { --staff-accent: #c18a17; }
+#ptsStaffDashboard .kpi-card.kpi-purple { --staff-accent: #8050cb; }
+#ptsStaffDashboard .kpi-card.kpi-violet { --staff-accent: #8050cb; }
+#ptsStaffDashboard .kpi-card:focus-visible {
+  outline: 2px solid #217faf !important;
+  outline-offset: 3px !important;
+}
+/* Keep both sets of charts accessible at their existing locations. */
+#ptsTraineeDashboard .pts-dashboard-lower { margin-top: 15px; }
+#ptsTraineeDashboard .pts-dashboard-lower .card,
+#ptsStaffDashboard .grid3 .card { min-width: 0; }
+@media (max-width: 1180px) {
+  #ptsStaffDashboard .kpi-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width: 650px) {
+  #ptsStaffDashboard .kpi-grid { grid-template-columns: minmax(0,1fr) !important; }
+}
