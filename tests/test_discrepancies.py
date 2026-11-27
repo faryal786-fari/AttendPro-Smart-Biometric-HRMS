@@ -114,7 +114,11 @@ class TestDiscrepancies:
   only=TestClient(self.mod.app);only.__enter__()
   try:
    assert only.post('/api/auth/login',json={'username':'only1','password':'securepass123'}).status_code==200
-   assert only.get('/api/discrepancies').status_code==200
+   assert only.get('/api/discrepancies').status_code==403
+   assert only.get('/api/employees').status_code==403
+   view=only.get('/api/view-only/dashboard')
+   assert view.status_code==200 and view.json()['date']==self.mod.yesterday_iso()
+   assert set(view.json()['metrics'])=={'total_staff','osd','osd_permanent','medical_leave'}
    assert only.post('/api/discrepancies/resolve',json={'employee_id':row['employee_id'],'work_date':row['work_date'],'issue_type':row['issue_type'],'resolution':'reviewed','note':'Checked'}).status_code==403
    assert only.put('/api/discrepancies/biometric-status',json={'employee_id':row['employee_id'],'status':'configured'}).status_code==403
   finally:only.__exit__(None,None,None)

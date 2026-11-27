@@ -36,4 +36,4 @@ def test_filtered_source_rows_are_used_for_print_and_template_export():
 
 
 def test_build_version_bumped_for_deployment_cache():
-    assert 'window.ATTENDPRO_BUILD = "2026-11-26-frontend-backend-architecture-v1";' in HTML
+    assert 'window.ATTENDPRO_BUILD = "2026-11-27-dashboard-roles-v2";' in HTML

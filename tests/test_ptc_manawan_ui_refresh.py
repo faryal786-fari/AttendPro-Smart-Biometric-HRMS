@@ -44,7 +44,7 @@ def test_sidebar_groups_keep_every_existing_screen_route():
     expected = {
         "dashboard", "live", "trainees", "pts-trainee-attendance",
         "pts-trainee-leave", "pts-trainee-osd", "employees",
-        "pts-staff-leave", "pts-staff-osd", "pts-duty-rest",
+        "pts-staff-leave", "pts-staff-osd", "pts-staff-osd-permanent", "pts-duty-rest",
         "records", "discrepancies", "leave", "reports", "device",
         "redis", "settings", "users",
     }
@@ -55,7 +55,7 @@ def test_sidebar_groups_keep_every_existing_screen_route():
     assert "Leave &amp; Permissions" in HTML
     assert "Attendance &amp; Records" in HTML
     assert "function initPtcSidebarNavigation()" in HTML
-    assert len(nav.select(".nav-item")) == 18
+    assert len(nav.select(".nav-item")) == 19
     assert sum("Leave & Holidays" in item.get_text(" ", strip=True) for item in nav.select(".nav-item")) == 1
     assert "attendpro-open-nav-groups" in HTML
     assert "aria-expanded" in HTML

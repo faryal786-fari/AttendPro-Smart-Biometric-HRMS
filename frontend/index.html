@@ -17,7 +17,7 @@
 
 <link rel="preload" as="image" href="/assets/ptc-manawan-hero-campus.webp" type="image/webp">
 <link rel="preload" as="image" href="/assets/ptc-manawan-login-parade.webp" type="image/webp">
-  <link rel="stylesheet" href="/src/styles/ptc-ui-enhancements.css?v=20261127-ui3">
+  <link rel="stylesheet" href="/src/styles/ptc-ui-enhancements.css?v=20261127-dashboard-v1">
 </head>
 
 <body class="aplp-landing-mode">
@@ -342,6 +342,7 @@
   <div class="nav-item" onclick="showScreen('pts-trainee-osd',this)" data-screen="pts-trainee-osd"><span class="nav-label">Trainee OSD / Permission</span></div>
   <div class="nav-item" onclick="showScreen('pts-staff-leave',this)" data-screen="pts-staff-leave"><span class="nav-label">Staff Leave</span></div>
   <div class="nav-item" onclick="showScreen('pts-staff-osd',this)" data-screen="pts-staff-osd"><span class="nav-label">Staff OSD / Permission</span></div>
+  <div class="nav-item" onclick="showScreen('pts-staff-osd-permanent',this)" data-screen="pts-staff-osd-permanent"><span class="nav-label">Staff OSD Permanent</span></div>
   <div class="nav-item" onclick="showScreen('pts-duty-rest',this)" data-screen="pts-duty-rest"><span class="nav-label">Duty Rest</span></div>
   <div class="nav-item" onclick="showScreen('leave',this)" data-screen="leave"><span class="nav-label">Leave &amp; Holidays</span></div>
 
@@ -401,6 +402,7 @@
   <div class="page-title">Dashboard</div>
   <div class="page-sub">Police Training College Lahore · Manawan — <span id="dashDate"></span></div>
 </div>
+<div id="fullDashboardContent">
 <div class="pts-dashboard-switch" role="tablist" aria-label="Dashboard category">
   <button type="button" id="ptsModeTrainee" class="active" role="tab" aria-selected="true" onclick="setPtsDashboardMode('trainee')">♙ Trainee</button>
   <button type="button" id="ptsModeStaff" role="tab" aria-selected="false" onclick="setPtsDashboardMode('staff')">♙ Staff</button>
@@ -425,8 +427,20 @@
     <div class="card-hdr"><span class="card-title">Overall Trainee Attendance Analysis · <span id="ptsShiftHeading">Morning</span></span><span class="access-help" id="ptsTraineeDataStatus">Loading Manawan trainee data…</span></div>
     <div class="tbl-wrap"><table><thead><tr><th>Course</th><th>Total Enrolled</th><th>Present</th><th>Absent</th></tr></thead><tbody id="ptsCourseWiseTbody"><tr><td colspan="4">Loading course-wise attendance…</td></tr></tbody></table></div>
   </div>
+  <div class="grid2 pts-dashboard-lower">
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Trainee Attendance Distribution</span><span class="access-help" id="ptsStatusTotal">Selected shift</span></div>
+      <div id="ptsStatusDistribution" class="pts-status-distribution"><div class="access-help">Loading trainee attendance analysis…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Recent Trainee Attendance Activity</span><span class="card-action" onclick="setLiveAttendanceMode('trainee');showScreen('live',document.querySelector('[data-screen=live]'))">View Live →</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Trainee</th><th>Course / Platoon</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead>
+      <tbody id="ptsRecentActivityTbody"><tr><td colspan="5">Loading trainee activity…</td></tr></tbody></table></div>
+    </div>
+  </div>
 </div>
 <div id="ptsStaffDashboard" style="display:none">
+<div class="pts-dashboard-toolbar staff-dashboard-toolbar"><label>Attendance date <input type="date" id="staffDashboardDate" onchange="loadStaffDashboardFilters()"></label><label>Shift <select id="staffDashboardShift" onchange="loadStaffDashboardFilters()"><option value="">All Shifts</option><option value="Morning">Morning</option><option value="General">General</option><option value="Evening">Evening</option></select></label><button class="btn btn-outline btn-sm" type="button" onclick="loadRealData(true)">↻ Refresh</button></div>
 <div class="kpi-grid">
   <div class="kpi-card kpi-blue" onclick="showScreen('employees',document.querySelector('[data-screen=employees]'))">
     <div class="kpi-top"><span class="kpi-label">Total PTS Staff</span><div class="kpi-icon">👥</div></div>
@@ -452,13 +466,25 @@
     <div class="kpi-top"><span class="kpi-label">On Leave</span><div class="kpi-icon">🏖</div></div>
     <div class="kpi-value" id="kpiLeave">0</div><div class="kpi-sub">Approved staff leave</div>
   </div>
-  <div class="kpi-card kpi-amber">
+  <div class="kpi-card kpi-amber clickable-kpi" role="button" tabindex="0" onclick="openDashboardDiscrepancies('missing_check_in')">
     <div class="kpi-top"><span class="kpi-label">Missing Check-in</span><div class="kpi-icon">⚠</div></div>
     <div class="kpi-value" id="kpiMissingIn">0</div><div class="kpi-sub">Missing check-in</div>
   </div>
-  <div class="kpi-card kpi-red">
+  <div class="kpi-card kpi-red clickable-kpi" role="button" tabindex="0" onclick="openDashboardDiscrepancies('missing_check_out')">
     <div class="kpi-top"><span class="kpi-label">Missing Check-out</span><div class="kpi-icon">🚪</div></div>
     <div class="kpi-value" id="kpiMissingOut">0</div><div class="kpi-sub">Missing check-out</div>
+  </div>
+  <div class="kpi-card kpi-violet" onclick="showScreen('pts-staff-osd',document.querySelector('[data-screen=pts-staff-osd]'))">
+    <div class="kpi-top"><span class="kpi-label">Staff OSD</span><div class="kpi-icon">🛡</div></div>
+    <div class="kpi-value" id="kpiOsd">0</div><div class="kpi-sub">Approved temporary official duty</div>
+  </div>
+  <div class="kpi-card kpi-blue" onclick="showScreen('pts-staff-osd-permanent',document.querySelector('[data-screen=pts-staff-osd-permanent]'))">
+    <div class="kpi-top"><span class="kpi-label">OSD Permanent</span><div class="kpi-icon">🏅</div></div>
+    <div class="kpi-value" id="kpiOsdPermanent">0</div><div class="kpi-sub">Permanent official duty</div>
+  </div>
+  <div class="kpi-card kpi-purple" onclick="showScreen('pts-staff-leave',document.querySelector('[data-screen=pts-staff-leave]'))">
+    <div class="kpi-top"><span class="kpi-label">Medical Leave</span><div class="kpi-icon">✚</div></div>
+    <div class="kpi-value" id="kpiMedicalLeave">0</div><div class="kpi-sub">Approved medical leave</div>
   </div>
 </div>
 <div class="page-hdr" style="margin-top:4px;margin-bottom:10px"><div class="page-title" style="font-size:15px">Connected Biometric Devices</div><div class="page-sub">View the live and configured status of each device.</div></div>
@@ -511,6 +537,24 @@
   </div>
 </div>
 </div>
+</div><!-- /fullDashboardContent -->
+<div id="viewOnlyDashboard" style="display:none">
+  <div class="view-only-kpi-grid">
+    <div class="kpi-card kpi-blue"><div class="kpi-top"><span class="kpi-label">Total Staff</span><div class="kpi-icon">👥</div></div><div class="kpi-value" id="viewOnlyTotalStaff">0</div></div>
+    <div class="kpi-card kpi-violet"><div class="kpi-top"><span class="kpi-label">OSD</span><div class="kpi-icon">🛡</div></div><div class="kpi-value" id="viewOnlyOsd">0</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-top"><span class="kpi-label">OSD Permanent</span><div class="kpi-icon">🏅</div></div><div class="kpi-value" id="viewOnlyOsdPermanent">0</div></div>
+    <div class="kpi-card kpi-purple"><div class="kpi-top"><span class="kpi-label">Medical Leave</span><div class="kpi-icon">✚</div></div><div class="kpi-value" id="viewOnlyMedicalLeave">0</div></div>
+  </div>
+  <div class="card" id="viewOnlyAnnouncementsCard" style="margin-top:16px">
+    <div class="card-hdr"><span class="card-title">Leave Announcements</span></div>
+    <div id="viewOnlyAnnouncements" class="view-announcement-list"><div class="access-help">No current announcements.</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-hdr"><span class="card-title">Previous Day Attendance</span><span class="access-help" id="viewOnlyDateLabel">Loading previous day…</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Employee Name</th><th>Department</th><th>Shift</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead>
+      <tbody id="viewOnlyAttendanceTbody"><tr><td colspan="7">Loading previous-day attendance…</td></tr></tbody></table></div>
+  </div>
+</div>
 </div>
 
 <div id="screen-trainees" class="screen">
@@ -521,6 +565,7 @@
 <div id="screen-pts-trainee-attendance" class="screen">
   <div class="page-hdr"><div><div class="page-title">Trainee Attendance</div><div class="page-sub">Record Manawan trainee attendance by course, platoon and shift.</div></div><div class="access-actions"><button class="btn btn-outline" type="button" onclick="loadPtsAttendance()">↻ Refresh</button><button class="btn btn-outline" data-permission="attendance_edit" type="button" onclick="saveAllPtsAttendance(false)">Save Marked Rows</button><button class="btn btn-primary" data-permission="attendance_edit" type="button" onclick="saveAllPtsAttendance(true)">✓ Mark All Present</button></div></div>
   <div class="pts-dashboard-toolbar"><label>Attendance date <input type="date" id="ptsAttendanceDate" onchange="loadPtsAttendance()"></label><label>Shift <select id="ptsAttendanceShift" onchange="loadPtsAttendance()"><option>Morning</option><option>Evening</option></select></label></div>
+  <div class="access-help" style="margin:8px 0 12px">Save Marked Rows sirf un trainees ko save karta hai jin ka status select kiya gaya ho; blank rows skip hoti hain. Mark All Present selected date aur shift ke tamam active trainees ko Present mark karta hai aur pehle selected statuses replace kar sakta hai.</div>
   <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID / Cap No.</th><th>Trainee Name</th><th>Course</th><th>Platoon</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Action</th></tr></thead><tbody id="ptsAttendanceTbody"><tr><td colspan="8">Load trainees to mark attendance.</td></tr></tbody></table></div></div>
 </div>
 <div id="screen-pts-trainee-leave" class="screen pts-record-screen" data-record-type="leave" data-person-type="trainee">
@@ -539,6 +584,10 @@
   <div class="page-hdr"><div><div class="page-title">PTS Staff OSD / Permission</div><div class="page-sub">Manage official duty and short-period permissions for staff.</div></div><div class="access-actions"><button class="btn btn-outline" onclick="downloadPtsRecordTemplate('osd')">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" onclick="document.getElementById('ptsStaffOsdImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('osd','staff')">＋ Add Staff OSD / Permission</button><input id="ptsStaffOsdImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsRecords(this,'osd','staff')"></div></div>
   <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Category / Branch</th><th>Reason</th><th>Duty Place</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsStaffOsdTbody"><tr><td colspan="9">Loading records…</td></tr></tbody></table></div></div>
 </div>
+<div id="screen-pts-staff-osd-permanent" class="screen pts-record-screen" data-record-type="osd_permanent" data-person-type="staff">
+  <div class="page-hdr"><div><div class="page-title">PTS Staff OSD Permanent</div><div class="page-sub">Permanent official-duty staff are treated as present while their approved record is active.</div></div><div class="access-actions"><button class="btn btn-outline" onclick="downloadPtsRecordTemplate('osd_permanent')">↓ Download Template</button><button data-permission="attendance_edit" class="btn btn-outline" onclick="document.getElementById('ptsStaffOsdPermanentImportInput').click()">↑ Import Excel</button><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('osd_permanent','staff')">＋ Add Permanent OSD</button><input id="ptsStaffOsdPermanentImportInput" type="file" accept=".xlsx,.csv" hidden onchange="importPtsRecords(this,'osd_permanent','staff')"></div></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Category / Branch</th><th>Reason</th><th>Duty Place</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsStaffOsdPermanentTbody"><tr><td colspan="9">Loading permanent OSD records…</td></tr></tbody></table></div></div>
+</div>
 <div id="screen-pts-duty-rest" class="screen pts-record-screen" data-record-type="duty_rest" data-person-type="staff">
   <div class="page-hdr"><div><div class="page-title">PTS Staff Duty Rest</div><div class="page-sub">Manage staff duty-rest periods and authorization status.</div></div><button data-permission="attendance_edit" class="btn btn-primary" onclick="openPtsRecordModal('duty_rest','staff')">＋ Add Duty Rest</button></div>
   <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>Category / Branch</th><th>Start</th><th>End</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ptsDutyRestTbody"><tr><td colspan="8">Loading records…</td></tr></tbody></table></div></div>
@@ -548,8 +597,13 @@
 <div id="screen-live" class="screen">
 <div class="page-hdr">
   <div class="page-title">Live Attendance</div>
-  <div class="page-sub">Real-time attendance tracking — updates will appear here after device integration</div>
+  <div class="page-sub">Live staff and trainee attendance, sorted by status and earliest check-in.</div>
 </div>
+<div class="pts-dashboard-switch live-attendance-switch" role="tablist" aria-label="Live attendance category">
+  <button type="button" id="liveStaffTab" class="active" onclick="setLiveAttendanceMode('staff')">♙ Staff Live Attendance</button>
+  <button type="button" id="liveTraineeTab" onclick="setLiveAttendanceMode('trainee')">♙ Trainee Live Attendance</button>
+</div>
+<div id="liveStaffView">
 <div class="filters">
   <input class="f-input" type="text" id="liveSearch" placeholder="🔍 Search name or ID…" oninput="renderLive()">
   <input class="f-input" type="date" id="liveDate" onchange="loadSelectedDate()">
@@ -595,6 +649,11 @@
 </table>
 </div>
 <div class="pagination" id="livePag"></div>
+</div>
+</div>
+<div id="liveTraineeView" style="display:none">
+  <div class="pts-dashboard-toolbar"><label>Attendance date <input type="date" id="ptsLiveDate"></label><label>Shift <select id="ptsLiveShift"><option>Morning</option><option>Evening</option></select></label><button class="btn btn-outline btn-sm" onclick="loadPtsLiveAttendance()">↻ Refresh</button></div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Employee ID / Cap No.</th><th>Trainee Name</th><th>Course</th><th>Platoon</th><th>Shift</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead><tbody id="ptsLiveTbody"><tr><td colspan="8">Loading trainee attendance…</td></tr></tbody></table></div></div>
 </div>
 </div>
 
@@ -687,57 +746,43 @@
 
 <!-- ═══════════════════ LEAVE ═══════════════════ -->
 <div id="screen-leave" class="screen">
-<div class="page-hdr" style="display:flex;justify-content:space-between;align-items:flex-start">
-  <div><div class="page-title">Leave & Holidays</div><div class="page-sub">Leave requests and public holidays — preview only; leave records were not supplied</div></div>
-  <button class="btn btn-primary" onclick="notify('Leave request form would open here')">+ New Leave Request</button>
+<div class="page-hdr" style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+  <div><div class="page-title">Leave & Holidays</div><div class="page-sub">Manage leave requests, publish leave announcements and maintain institutional holidays.</div></div>
+  <div class="access-actions">
+    <button class="btn btn-primary" data-permission="attendance_edit" onclick="openLeaveRequestModal()">＋ New Leave Request</button>
+    <button class="btn btn-outline" data-permission="attendance_edit" onclick="openLeaveAnnouncementModal()">＋ New Leave Announcement</button>
+    <button class="btn btn-outline" data-permission="attendance_edit" onclick="openHolidayModal()">＋ Add Holiday</button>
+  </div>
 </div>
 <div class="leave-tabs">
   <div class="l-tab active" onclick="switchLeaveTab(this,'leave-pending')">Pending Requests</div>
   <div class="l-tab" onclick="switchLeaveTab(this,'leave-approved')">Approved Leaves</div>
+  <div class="l-tab" onclick="switchLeaveTab(this,'leave-announcements')">Announcements</div>
   <div class="l-tab" onclick="switchLeaveTab(this,'leave-holidays')">Public Holidays</div>
 </div>
 <div id="leave-pending">
-  <div class="card">
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Employee</th><th>Dept</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#6366f1">SA</div>Sana Aslam</div></td><td>HR</td><td>Annual Leave</td><td>Oct 30</td><td>Nov 1</td><td>3</td><td>Family event</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#f59e0b">TK</div>Tahir Khan</div></td><td>Engineering</td><td>Sick Leave</td><td>Oct 29</td><td>Oct 29</td><td>1</td><td>Medical</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="emp-av" style="background:#10b981">RM</div>Raza Malik</div></td><td>Sales</td><td>Casual Leave</td><td>Nov 4</td><td>Nov 5</td><td>2</td><td>Personal work</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-green btn-sm" onclick="notify('Leave approved!')">Approve</button> <button class="btn btn-red btn-sm" onclick="notify('Leave rejected!')">Reject</button></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Person Type</th><th>Employee ID</th><th>Name</th><th>Leave Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="leavePendingTbody"><tr><td colspan="9">Loading pending requests…</td></tr></tbody>
+  </table></div></div>
 </div>
 <div id="leave-approved" style="display:none">
-  <div class="card">
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Employee</th><th>Dept</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Approved By</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Ayesha Noor</td><td>Finance</td><td>Annual Leave</td><td>Oct 25</td><td>Oct 28</td><td>4</td><td>Admin Rehman</td><td><span class="badge b-purple">Approved</span></td></tr>
-          <tr><td>Bilal Hussain</td><td>IT Support</td><td>Sick Leave</td><td>Oct 27</td><td>Oct 27</td><td>1</td><td>Admin Rehman</td><td><span class="badge b-purple">Approved</span></td></tr>
-          <tr><td>Fatima Zahra</td><td>Operations</td><td>Maternity</td><td>Oct 1</td><td>Nov 30</td><td>60</td><td>Admin Rehman</td><td><span class="badge b-purple">Approved</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Person Type</th><th>Employee ID</th><th>Name</th><th>Leave Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="leaveApprovedTbody"><tr><td colspan="9">Loading approved leaves…</td></tr></tbody>
+  </table></div></div>
+</div>
+<div id="leave-announcements" style="display:none">
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Announcement</th><th>Message</th><th>From</th><th>To</th><th>Audience</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="leaveAnnouncementsTbody"><tr><td colspan="7">Loading announcements…</td></tr></tbody>
+  </table></div></div>
 </div>
 <div id="leave-holidays" style="display:none">
-  <div class="card">
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Holiday</th><th>Date</th><th>Day</th><th>Type</th></tr></thead>
-        <tbody>
-          <tr><td>Iqbal Day</td><td>Nov 9, 2026</td><td>Monday</td><td><span class="badge b-blue">National</span></td></tr>
-          <tr><td>Christmas</td><td>Dec 25, 2026</td><td>Friday</td><td><span class="badge b-blue">National</span></td></tr>
-          <tr><td>Quaid-e-Azam Day</td><td>Dec 25, 2026</td><td>Friday</td><td><span class="badge b-blue">National</span></td></tr>
-          <tr><td>New Year's Day</td><td>Jan 1, 2027</td><td>Friday</td><td><span class="badge b-blue">National</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Holiday</th><th>Date</th><th>Day</th><th>Type</th><th>Description</th><th>Actions</th></tr></thead>
+    <tbody id="leaveHolidaysTbody"><tr><td colspan="6">Loading holidays…</td></tr></tbody>
+  </table></div></div>
 </div>
 </div>
 
@@ -761,7 +806,7 @@
       <div class="form-group"><label class="form-label">Department</label>
         <select class="form-input" id="rptDept"><option value="">All Departments</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Employee (Optional)</label><input type="text" class="form-input" id="rptEmployee" placeholder="Name or AC-No."></div>
+      <div class="form-group"><label class="form-label">Employee (Optional)</label><select class="form-input" id="rptEmployee"><option value="">All Employees</option></select></div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary" style="flex:1" onclick="showReportPreview()">Preview Report</button>
         <button class="btn btn-outline" onclick="printApReport()">🖨 Print</button>
@@ -793,6 +838,18 @@
       <div style="font-size:12px;margin-top:4px">Select report type and date range, then click Preview</div>
     </div>
   </div>
+</div>
+<div class="card pts-report-panel" id="ptsTraineeReportPanel" style="margin-top:16px">
+  <div class="card-hdr"><span class="card-title">Trainee Attendance Report</span><span class="access-help">Separate report for Manawan trainees.</span></div>
+  <div class="filters">
+    <label class="form-label">From <input class="f-input" type="date" id="ptsReportFrom"></label>
+    <label class="form-label">To <input class="f-input" type="date" id="ptsReportTo"></label>
+    <label class="form-label">Shift <select class="f-input" id="ptsReportShift"><option value="">All Shifts</option><option>Morning</option><option>Evening</option></select></label>
+    <button class="btn btn-primary btn-sm" onclick="loadTraineeReport()">Preview Trainee Report</button>
+    <button class="btn btn-outline btn-sm" onclick="exportTraineeReportCsv()">Export CSV</button>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Employee ID / Cap No.</th><th>Trainee Name</th><th>Course</th><th>Platoon</th><th>Date</th><th>Shift</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead>
+  <tbody id="ptsReportTbody"><tr><td colspan="9">Select a date range and preview the trainee report.</td></tr></tbody></table></div>
 </div>
 <!-- Dedicated print surface: populated from the filtered attendance source rows. -->
 <div class="print-only" id="printLayout" aria-hidden="true"><div id="printTemplateRoot"></div></div>
@@ -1039,9 +1096,9 @@
       <div class="access-help" style="margin-bottom:12px">This adds an employee to the AttendPro database. It does not register anyone on the biometric machine or change the original Access database.</div>
       <div class="form-group"><label class="form-label" for="newEmpName">Employee Full Name *</label><input id="newEmpName" name="name" class="form-input" required maxlength="120" autocomplete="off"></div>
       <div class="form-group"><label class="form-label" for="newEmpBadge">AC-No. (optional)</label><input id="newEmpBadge" name="badge_number" class="form-input" maxlength="80"></div>
-      <div class="form-group"><label class="form-label" for="newEmpDept">Department</label><input id="newEmpDept" name="department" class="form-input" maxlength="100" value="Unassigned"></div>
+      <div class="form-group"><label class="form-label" for="newEmpDept">Department</label><select id="newEmpDept" name="department" class="form-input"><option value="Unassigned">Unassigned</option></select></div>
       <div class="form-group"><label class="form-label" for="newEmpDesignation">Designation</label><input id="newEmpDesignation" name="designation" class="form-input" maxlength="100" value="Staff"></div>
-      <div class="form-group"><label class="form-label" for="newEmpShift">Shift</label><input id="newEmpShift" name="shift" class="form-input" maxlength="100" value="General"></div>
+      <div class="form-group"><label class="form-label" for="newEmpShift">Shift</label><select id="newEmpShift" name="shift" class="form-input"><option value="General">General</option></select></div>
       <div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn btn-outline" onclick="closeAddEmployeeForm()">Cancel</button><button type="submit" class="btn btn-primary">Save Employee</button></div>
     </form>
   </div>
@@ -1102,17 +1159,19 @@
 <div class="modal-overlay" id="ptsRecordModal" onclick="if(event.target===this)closePtsRecordModal()">
  <div class="modal"><div class="modal-hdr"><div class="modal-title" id="ptsRecordModalTitle">Add Record</div><button class="close-btn" type="button" onclick="closePtsRecordModal()">×</button></div>
   <form class="modal-body" id="ptsRecordForm" onsubmit="savePtsRecord(event)">
-   <div class="form-group"><label class="form-label">Employee ID / Cap No. *</label><input class="form-input" id="ptsRecordPersonId" required maxlength="80"></div>
-   <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="ptsRecordPersonName" required maxlength="160"></div>
+   <div class="form-group" id="ptsRecordPersonTypeWrap" style="display:none"><label class="form-label">Person Type</label><select class="form-input" id="ptsRecordPersonTypeSelect" onchange="switchPtsRecordPersonType(this.value)"><option value="staff">Staff</option><option value="trainee">Trainee</option></select></div>
+   <div class="form-group"><label class="form-label">Select Staff / Trainee *</label><select class="form-input" id="ptsRecordPersonSelect" required onchange="selectPtsRecordPerson(this.value)"><option value="">Select person from directory…</option></select></div>
+   <input type="hidden" id="ptsRecordPersonId"><input type="hidden" id="ptsRecordPersonName">
    <div class="form-group" id="ptsRecordCourseWrap"><label class="form-label">Course</label><input class="form-input" id="ptsRecordCourse" maxlength="160"></div>
    <div class="form-group" id="ptsRecordPlatoonWrap"><label class="form-label">Platoon</label><input class="form-input" id="ptsRecordPlatoon" maxlength="60"></div>
-   <div class="form-group" id="ptsRecordCategoryWrap"><label class="form-label">Staff Category</label><input class="form-input" id="ptsRecordCategory" maxlength="120"></div>
-   <div class="form-group" id="ptsRecordBranchWrap"><label class="form-label">Staff Branch / Posting Place</label><input class="form-input" id="ptsRecordBranch" maxlength="160"></div>
-   <div class="form-group" id="ptsRecordLeaveTypeWrap"><label class="form-label">Leave Type</label><input class="form-input" id="ptsRecordLeaveType" maxlength="100" placeholder="Casual Leave / Medical Rest / Long Weekend"></div>
+   <div class="form-group" id="ptsRecordCategoryWrap"><label class="form-label">Staff Category</label><select class="form-input" id="ptsRecordCategory"><option value="">Select category…</option></select></div>
+   <div class="form-group" id="ptsRecordBranchWrap"><label class="form-label">Staff Branch / Posting Place</label><select class="form-input" id="ptsRecordBranch"><option value="">Select branch…</option></select></div>
+   <div class="form-group" id="ptsRecordLeaveTypeWrap"><label class="form-label">Leave Type</label><select class="form-input" id="ptsRecordLeaveType"><option>Casual Leave</option><option>Annual Leave</option><option>Medical Leave</option><option>Medical Rest</option><option>Outdoor Leave</option><option>Long Weekend</option><option>Emergency Leave</option><option>Other</option></select></div>
    <div class="form-group"><label class="form-label">Start Date &amp; Time *</label><input class="form-input" id="ptsRecordStart" type="datetime-local" required></div>
    <div class="form-group"><label class="form-label">End Date &amp; Time *</label><input class="form-input" id="ptsRecordEnd" type="datetime-local" required></div>
    <div class="form-group"><label class="form-label">Reason *</label><input class="form-input" id="ptsRecordReason" required maxlength="500"></div>
    <div class="form-group" id="ptsRecordDutyPlaceWrap"><label class="form-label">Duty / Permission Place</label><input class="form-input" id="ptsRecordDutyPlace" maxlength="180"></div>
+   <div class="form-group" id="ptsRecordOsdTypeWrap" style="display:none"><label class="form-label">OSD Type</label><select class="form-input" id="ptsRecordOsdType"><option value="temporary">Temporary OSD / Permission</option><option value="permanent">Permanent OSD</option></select></div>
    <div class="form-group"><label class="form-label">Order / Reference No.</label><input class="form-input" id="ptsRecordReference" maxlength="120"></div>
    <div class="form-group"><label class="form-label">Remarks</label><textarea class="form-input" id="ptsRecordRemarks" rows="2"></textarea></div>
    <div class="form-group"><label class="form-label">Status</label><select class="form-input" id="ptsRecordStatus"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="exempt">Exempt</option></select></div>
@@ -1121,6 +1180,28 @@
  </div>
 </div>
 
+<div class="modal-overlay" id="ptsAnnouncementModal" onclick="if(event.target===this)closeLeaveAnnouncementModal()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title">New Leave Announcement</div><button class="close-btn" onclick="closeLeaveAnnouncementModal()">×</button></div>
+  <form class="modal-body" onsubmit="saveLeaveAnnouncement(event)">
+   <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="ptsAnnouncementTitle" required maxlength="180"></div>
+   <div class="form-group"><label class="form-label">Announcement / Instructions</label><textarea class="form-input" id="ptsAnnouncementMessage" rows="4" maxlength="3000"></textarea></div>
+   <div class="user-form-grid"><div class="form-group"><label class="form-label">Start Date *</label><input class="form-input" id="ptsAnnouncementStart" type="date" required></div><div class="form-group"><label class="form-label">End Date *</label><input class="form-input" id="ptsAnnouncementEnd" type="date" required></div></div>
+   <div class="form-group"><label class="form-label">Audience</label><select class="form-input" id="ptsAnnouncementAudience"><option value="all">All staff and trainees</option><option value="staff">Staff only</option><option value="trainee">Trainees only</option></select></div>
+   <div class="access-actions"><button class="btn btn-primary" type="submit">Publish Announcement</button><button class="btn btn-outline" type="button" onclick="closeLeaveAnnouncementModal()">Cancel</button></div>
+  </form>
+ </div>
+</div>
+<div class="modal-overlay" id="ptsHolidayModal" onclick="if(event.target===this)closeHolidayModal()">
+ <div class="modal"><div class="modal-hdr"><div class="modal-title">Add Public Holiday</div><button class="close-btn" onclick="closeHolidayModal()">×</button></div>
+  <form class="modal-body" onsubmit="saveHoliday(event)">
+   <div class="form-group"><label class="form-label">Holiday Name *</label><input class="form-input" id="ptsHolidayTitle" required maxlength="180"></div>
+   <div class="form-group"><label class="form-label">Date *</label><input class="form-input" id="ptsHolidayDate" type="date" required></div>
+   <div class="form-group"><label class="form-label">Type</label><select class="form-input" id="ptsHolidayCategory"><option>National</option><option>Provincial</option><option>Institutional</option><option>Special Notice</option></select></div>
+   <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="ptsHolidayDescription" rows="3"></textarea></div>
+   <div class="access-actions"><button class="btn btn-primary" type="submit">Save Holiday</button><button class="btn btn-outline" type="button" onclick="closeHolidayModal()">Cancel</button></div>
+  </form>
+ </div>
+</div>
 <div class="login-overlay" id="loginOverlay" aria-label="PTC Manawan secure portal sign in">
   <div class="ptc-login-shell">
     <section class="ptc-login-brand" aria-label="Police Training College Lahore identity">
@@ -1201,7 +1282,7 @@
 <div id="apActionDialog" role="dialog" aria-modal="true" aria-labelledby="apDialogTitle"><div class="ap-dialog-box"><h3 id="apDialogTitle" style="font-size:17px;margin-bottom:10px">Confirm action</h3><div id="apDialogMessage" style="font-size:13px"></div><div id="apDialogInputWrap" style="display:none"><input id="apDialogInput" type="text" autocomplete="off"></div><div class="ap-dialog-actions"><button type="button" id="apDialogCancel" class="btn btn-outline">Cancel</button><button type="button" id="apDialogOK" class="btn btn-primary">Continue</button></div></div></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="/src/js/attendpro-app.js?v=2026-11-26-ptc-frontend-refresh-v6"></script>
+<script src="/src/js/attendpro-app.js?v=2026-11-27-dashboard-roles-v2"></script>
 
 <script src="/src/js/public-landing.js?v=2026-11-26-ptc-frontend-refresh-v6"></script>
 
